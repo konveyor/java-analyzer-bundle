@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.5"?>
+<plugin>
+   <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
+      <delegateCommandHandler class="io.konveyor.tackle.core.internal.SampleDelegatoeCommandHandler">
+            <command id="io.konveyor.tackle.samplecommand"/>
+       </delegateCommandHandler>
+   </extension>
+</plugin>

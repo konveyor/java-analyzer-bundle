@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: java-rule-addon Test Fragment
+Bundle-SymbolicName: java-rule-addon.test
+Bundle-Version: 1.0.0.qualifier
+Fragment-Host: java-rule-addon.core;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Require-Bundle: org.eclipse.jdt.junit4.runtime;bundle-version="1.1.0",
+ org.junit;bundle-version="4.12",
+  org.eclipse.m2e.core
+

@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: java-rule-addon Core Extension
+Bundle-SymbolicName: java-rule-addon.core;singleton:=true
+Bundle-Version: 1.0.0.202208311826
+Bundle-Activator: io.konveyor.tackle.core.internal.ExtensionActivator
+Require-Bundle: org.eclipse.core.runtime,org.eclipse.jdt.ls.core,org.ecl
+ ipse.jdt.core,org.eclipse.core.resources,org.eclipse.lsp4j
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+
