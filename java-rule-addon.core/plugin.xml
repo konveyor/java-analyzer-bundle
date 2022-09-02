@@ -2,8 +2,9 @@
 <?eclipse version="3.5"?>
 <plugin>
    <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
-      <delegateCommandHandler class="io.konveyor.tackle.core.internal.SampleDelegatoeCommandHandler">
+      <delegateCommandHandler class="io.konveyor.tackle.core.internal.SampleDelegateCommandHandler">
             <command id="io.konveyor.tackle.samplecommand"/>
+            <command id="io.konveyor.tackle.ruleEntry"/>
        </delegateCommandHandler>
    </extension>
 </plugin>

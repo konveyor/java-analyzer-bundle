@@ -1,5 +1,7 @@
 package io.konveyor.tackle.core.internal;
 
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,9 +45,8 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                 monitor.setCanceled(true);
                 return;
             }
-            
             // If we are not looking at files, then we don't want to return anytyhing for the match.
-            if ((match.getResource().getType() | IResource.FILE) != 0 || match.getElement() == null) {
+            if ((match.getResource().getType() | IResource.FILE) == 0 || match.getElement() == null) {
                 return;
 
             }
@@ -65,7 +66,8 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             symbol.setKind(convertSymbolKind(element));
             symbol.setContainerName(element.getParent().getElementName());
             symbol.setLocation(location);
-            symbols.add(symbol);
+            this.symbols.add(symbol);
+            logInfo("symbols" + this.symbols);
         }
 
         private SymbolKind convertSymbolKind(IJavaElement element) {
@@ -127,5 +129,9 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                 return SymbolKind.Package;
         }
         return SymbolKind.String;
+    }
+
+    public List<SymbolInformation> getSymbols() {
+        return this.symbols;
     }
 }
