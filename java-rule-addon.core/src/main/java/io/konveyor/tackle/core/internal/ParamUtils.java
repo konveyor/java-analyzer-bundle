@@ -13,5 +13,4 @@ public class ParamUtils {
     public static String getString(Map<String, Object> obj, String key) {
 		return (String) obj.get(key);
 	}
-    
 }

@@ -6,4 +6,6 @@ public class RuleEntryParams {
 
     public String query;
 
+    public int location;
+
 }
