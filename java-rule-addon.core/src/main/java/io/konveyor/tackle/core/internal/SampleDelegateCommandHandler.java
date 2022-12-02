@@ -32,7 +32,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             case RULE_ENTRY_COMMAND_ID:
                 logInfo("Here we get the arguments for rule entry: "+arguments);
                 RuleEntryParams params = this.getRuleEntryParams(commandId, arguments);
-                return search(params.projectName, params.query, progress);
+                return search(params.projectName, params.query, params.location, progress);
             default:
                 throw new UnsupportedOperationException(String.format("Unsupported command '%s'!", commandId));
         }
@@ -51,10 +51,11 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
         params.projectName = ParamUtils.getString(obj, "project");
         params.query = ParamUtils.getString(obj, "query");
+        params.location = Integer.parseInt(ParamUtils.getString(obj, "location"));
         return params;
     }
 
-    private static List<SymbolInformation> search(String projectName, String query, IProgressMonitor monitor) {
+    private static List<SymbolInformation> search(String projectName, String query, int location, IProgressMonitor monitor) {
         IJavaProject[] targetProjects;
         IJavaProject project = ProjectUtils.getJavaProject(projectName);
         logInfo("Searching in project: " + project + " Query: " + query);
@@ -71,12 +72,12 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
         SearchEngine searchEngine = new SearchEngine();
 
-        SearchPattern pattern = SearchPattern.createPattern(query, IJavaSearchConstants.CLASS_AND_INTERFACE, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
-        logInfo("Pattern: " + pattern);
+        SearchPattern pattern = SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
+        //logInfo("Pattern: " + pattern);
 
         List<SymbolInformation> symbols = new ArrayList<SymbolInformation>();
 
-        SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor);
+        SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor, location);
 
         //Use the default search participents
         SearchParticipant participent = new JavaSearchParticipant();
