@@ -13,3 +13,5 @@ and the [m2eclipse-tycho plugin](https://github.com/tesla/m2eclipse-tycho/). Upd
 * m2e stable update site : http://download.eclipse.org/technology/m2e/releases/
 * m2eclipse-tycho dev update site : http://repo1.maven.org/maven2/.m2e/connectors/m2eclipse-tycho/0.8.1/N/LATEST/
 
+## Code of Conduct
+Refer to our [Code of Conduct page](https://github.com/konveyor/community/blob/main/CODE_OF_CONDUCT.md) for detailed information 
