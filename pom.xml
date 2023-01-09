@@ -33,14 +33,28 @@
 
   <repositories>
     <repository>
-      <id>2022-06</id>
+      <id>lsp4j</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/2022-06</url>
+      <url>https://download.eclipse.org/lsp4j/updates/releases/0.12.0</url>
     </repository>
     <repository>
-      <id>jdt.ls</id>
+      <id>2022-12</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
+      <url>http://download.eclipse.org/releases/2022-12</url>
+    </repository>
+    <repository>
+      <id>jdt.ls.p2</id>
+      <layout>p2</layout>
+      <url>https://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
+    </repository>
+    <repository>
+      <id>jdt.ls.maven</id>
+      <url>https://repo.eclipse.org/content/repositories/jdtls-snapshots/</url>
+    </repository>
+    <repository>
+      <id>orbit</id>
+      <layout>p2</layout>
+      <url>https://download.eclipse.org/tools/orbit/downloads/drops/R20220830213456/repository</url>
     </repository>
   </repositories>
     <build>
@@ -56,9 +70,24 @@
         <artifactId>target-platform-configuration</artifactId>
         <version>${tycho.version}</version>
         <configuration>
+	  <executionEnvironment>JavaSE-17</executionEnvironment>
           <resolver>p2</resolver>
           <pomDependencies>consider</pomDependencies>
           <ignoreTychoRepositories>true</ignoreTychoRepositories>
+	  <!---
+	  <target>
+            <artifact>
+              <groupId>org.eclipse.lsp4mp</groupId>
+              <artifactId>org.eclipse.lsp4mp.jdt.tp</artifactId>
+              <version>${project.version}</version>
+            </artifact>
+            <artifact>
+              <groupId>org.eclipse.jdt.ls</groupId>
+              <artifactId>org.eclipse.jdt.ls.tp</artifactId>
+              <version>${jdt.ls.version}</version>
+            </artifact>
+	  </target>
+	  -->
         </configuration>
       </plugin>
     </plugins>
