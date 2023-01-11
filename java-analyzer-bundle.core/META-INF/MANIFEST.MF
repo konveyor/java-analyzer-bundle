@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: java-rule-addon Core Extension
-Bundle-SymbolicName: java-rule-addon.core;singleton:=true
+Bundle-Name: java-analyzer-bundle Core Extension
+Bundle-SymbolicName: java-analyzer-bundle.core;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: io.konveyor.tackle.core.internal.ExtensionActivator
 Require-Bundle: org.eclipse.core.runtime,

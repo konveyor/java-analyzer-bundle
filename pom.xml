@@ -2,11 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.konveyor.tackle</groupId>
-  <artifactId>java-rule-addon</artifactId>
+  <artifactId>java-analyzer-bundle</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>java-rule-addon :: parent</name>
-  <description>java-rule-addon parent</description>
+  <name>java-analyzer-bundle :: parent</name>
+  <description>java-analyzer-bundle parent</description>
 
   <prerequisites>
     <maven>3.0</maven>
@@ -190,8 +190,8 @@
     </profile>
       </profiles>
   <modules>
-    <module>java-rule-addon.core</module>
-    <module>java-rule-addon.test</module>
-    <module>java-rule-addon.site</module>
+    <module>java-analyzer-bundle.core</module>
+    <module>java-analyzer-bundle.site</module>
+    <module>java-analyzer-bundle.test</module>
   </modules>
 </project>

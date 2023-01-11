@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
-    <artifactId>java-rule-addon</artifactId>
+    <artifactId>java-analyzer-bundle</artifactId>
     <groupId>io.konveyor.tackle</groupId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>java-rule-addon.core</artifactId>
+  <artifactId>java-analyzer-bundle.core</artifactId>
   <packaging>eclipse-plugin</packaging>
-  <name>java-rule-addon :: core</name>
-  <description>java-rule-addon Core Plugin</description>
+  <name>java-analyzer-bundle :: core</name>
+  <description>java-analyzer-bundle Core Plugin</description>
 </project>
