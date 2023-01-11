@@ -1,0 +1,7 @@
+{
+  "projects": [
+      "java-analyzer-bundle.core",
+      "java-analyzer-bundle.test"
+  ],
+ "targetPlatform": "java-analyzer-bundle.tp/java-analyzer-bundle.target"
+}

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.konveyor.tackle</groupId>
   <artifactId>java-analyzer-bundle</artifactId>
@@ -7,22 +9,18 @@
   <packaging>pom</packaging>
   <name>java-analyzer-bundle :: parent</name>
   <description>java-analyzer-bundle parent</description>
-
   <prerequisites>
     <maven>3.0</maven>
   </prerequisites>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <tycho.version>2.7.4</tycho.version>
-    <tycho.extras.version>2.7.4</tycho.extras.version>
-    <tycho.scmUrl>scm:git:https://github.com/CHANGE/ME.git</tycho.scmUrl>
+    <tycho.version>3.0.1</tycho.version>
+    <tycho.extras.version>3.0.1</tycho.extras.version>
+    <tycho.scmUrl>scm:git:https://github.com/konveyor/java-analyzer-bundle.git</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
-    <tycho.test.platformArgs/>
+    <tycho.test.platformArgs />
     <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
-
-    
     <!-- Code coverage -->
     <jacoco.version>0.7.9</jacoco.version>
     <coverage.filter>org.eclipse.jdt.ls.*</coverage.filter>
@@ -30,34 +28,7 @@
     <jacoco.destFile>${project.build.directory}/jacoco.exec</jacoco.destFile>
     <sonar.jacoco.reportPath>${jacoco.destFile}</sonar.jacoco.reportPath>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>lsp4j</id>
-      <layout>p2</layout>
-      <url>https://download.eclipse.org/lsp4j/updates/releases/0.12.0</url>
-    </repository>
-    <repository>
-      <id>2022-12</id>
-      <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/2022-12</url>
-    </repository>
-    <repository>
-      <id>jdt.ls.p2</id>
-      <layout>p2</layout>
-      <url>https://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
-    </repository>
-    <repository>
-      <id>jdt.ls.maven</id>
-      <url>https://repo.eclipse.org/content/repositories/jdtls-snapshots/</url>
-    </repository>
-    <repository>
-      <id>orbit</id>
-      <layout>p2</layout>
-      <url>https://download.eclipse.org/tools/orbit/downloads/drops/R20220830213456/repository</url>
-    </repository>
-  </repositories>
-    <build>
+  <build>
     <plugins>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
@@ -70,24 +41,17 @@
         <artifactId>target-platform-configuration</artifactId>
         <version>${tycho.version}</version>
         <configuration>
-	  <executionEnvironment>JavaSE-17</executionEnvironment>
+          <executionEnvironment>JavaSE-17</executionEnvironment>
           <resolver>p2</resolver>
           <pomDependencies>consider</pomDependencies>
           <ignoreTychoRepositories>true</ignoreTychoRepositories>
-	  <!---
-	  <target>
+          <target>
             <artifact>
-              <groupId>org.eclipse.lsp4mp</groupId>
-              <artifactId>org.eclipse.lsp4mp.jdt.tp</artifactId>
+              <groupId>io.konveyor.tackle</groupId>
+              <artifactId>java-analyzer-bundle.tp</artifactId>
               <version>${project.version}</version>
             </artifact>
-            <artifact>
-              <groupId>org.eclipse.jdt.ls</groupId>
-              <artifactId>org.eclipse.jdt.ls.tp</artifactId>
-              <version>${jdt.ls.version}</version>
-            </artifact>
-	  </target>
-	  -->
+          </target>
         </configuration>
       </plugin>
     </plugins>
@@ -105,26 +69,26 @@
           </configuration>
         </plugin>
         <plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-dependency-plugin</artifactId>
-					<executions>
-						<execution>
-							<?m2e execute onConfiguration?>
-							<id>get-libs</id>
-							<goals>
-								<goal>copy</goal>
-							</goals>
-							<phase>validate</phase>
-						</execution>
-					</executions>
-					<configuration>
-						<skip>false</skip>
-						<outputDirectory>${basedir}/lib/</outputDirectory>
-						<!-- baseVersion is to avoid SNAPSHOT dependencies being copied with
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <executions>
+            <execution>
+              <?m2e execute onConfiguration?>
+              <id>get-libs</id>
+              <goals>
+                <goal>copy</goal>
+              </goals>
+              <phase>validate</phase>
+            </execution>
+          </executions>
+          <configuration>
+            <skip>false</skip>
+            <outputDirectory>${basedir}/lib/</outputDirectory>
+            <!-- baseVersion is to avoid SNAPSHOT dependencies being copied with
 							ever daily changing timestamp -->
-						<useBaseVersion>true</useBaseVersion>
-					</configuration>
-				</plugin>
+            <useBaseVersion>true</useBaseVersion>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -188,10 +152,11 @@
         </plugins>
       </build>
     </profile>
-      </profiles>
+  </profiles>
   <modules>
     <module>java-analyzer-bundle.core</module>
     <module>java-analyzer-bundle.site</module>
     <module>java-analyzer-bundle.test</module>
+    <module>java-analyzer-bundle.tp</module>
   </modules>
 </project>
