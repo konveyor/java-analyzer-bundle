@@ -5,12 +5,11 @@ RUN curl -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.16.0/jd
 	chmod 755 /jdtls/bin/jdtls
 
 FROM registry.access.redhat.com/ubi9/ubi AS addon-build
-RUN dnf install -y maven
-RUN dnf install -y java-17-openjdk
+RUN dnf install -y maven-openjdk17
 WORKDIR /app
 COPY ./ /app/
-RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk 
-RUN mvn clean install -DskipTests=true
+RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+RUN JAVA_HOME=/usr/lib/jvm/java-17-openjdk mvn clean install -DskipTests=true
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 RUN microdnf install -y python39 java-17-openjdk go-toolset
