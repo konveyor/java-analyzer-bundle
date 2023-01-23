@@ -4,12 +4,14 @@ import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.net.URI;
 
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.Range;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -20,6 +22,7 @@ import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
+import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IType;
@@ -44,7 +47,6 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
 
         @Override
         public void acceptSearchMatch(SearchMatch match) throws CoreException {
-            //logInfo("match: " + match);
             if (maxResults > 0 && symbols.size() >= maxResults) {
                 monitor.setCanceled(true);
                 logInfo("maxResults > 0 && symbols.size() >= maxResults");
@@ -61,7 +63,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             SymbolKind k = convertSymbolKind(element);
             
             switch (this.symbolKind) {
-            case 7:
+            case 4:
                 try {
                     IAnnotatable mod = (IAnnotatable)match.getElement();
                     for (IAnnotation annotation: mod.getAnnotations()) {
@@ -70,11 +72,35 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                         symbol.setKind(k);
                         symbol.setContainerName(annotation.getParent().getElementName());
                         symbol.setLocation(getLocation(element));
-                        logInfo("symbol: " + symbol);
                         this.symbols.add(symbol);
                     }
                     return;
                 } catch (Exception e) {
+                    logInfo("unable to get method from case 4(annotations): " + e);
+                    return;
+                }
+            // Dealing with methods and constructors.
+            case 2:
+            case 3:
+                try {
+                    IMethod mod = (IMethod)match.getElement();
+                    SymbolInformation symbol = new SymbolInformation();
+                    symbol.setName(mod.getElementName());
+                    symbol.setKind(k);
+                    symbol.setContainerName(mod.getParent().getElementName());
+                    IClassFile classFile = mod.getClassFile();
+		            String packageName = classFile.getParent().getElementName();
+		            String jarName = classFile.getParent().getParent().getElementName();
+                    String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR + classFile.getElementName(), classFile.getHandleIdentifier(), null).toASCIIString();
+                    if (uriString == null) {
+                        uriString = mod.getPath().toString();
+                    }
+                    Range range = JDTUtils.toRange(mod.getOpenable(), mod.getNameRange().getOffset(), mod.getNameRange().getLength());
+                    Location loc = new Location(uriString, range);
+                    symbol.setLocation(loc);
+                    this.symbols.add(symbol);
+                } catch (Exception e) {
+                    logInfo("unable to get method from symbol kind 2 and 3(method and constructor): " + e);
                     return;
                 }
             default:
@@ -86,13 +112,11 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                 if (location != null) {
                     symbol.setLocation(location);
                 }
-                logInfo("symbol: " + symbol);
                 this.symbols.add(symbol);
             }
         }
 
         private Location getLocation(IJavaElement element) {
-            Location location = null;
             try {
                 // This casting is safe or is assumed to be safer because the ToString on SearchMatch does it
                 return JDTUtils.toLocation(element);

@@ -1,0 +1,44 @@
+name: Multiarch build
+
+on:
+  push:
+            
+env:
+  IMAGE_NAME: jdtls-server-base
+  IMAGE_TAG: latest
+  IMAGE_REGISTRY: quay.io
+  IMAGE_NAMESPACE: konveyor
+
+jobs:
+  build:
+    name: Build and push multi-arch image
+    runs-on: ubuntu-20.04
+                                            
+    steps:
+      - uses: actions/checkout@v2
+                                                              
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+                                                                                
+      - name: Build image 
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ env.IMAGE_TAG }}
+          archs: amd64, ppc64le, s390x, arm64
+          dockerfiles: |
+            ./Dockerfile
+                                                                                                                                                                                      
+      - name: Push To quay.io
+        id: push-to-quay
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}
+          username: ${{ secrets.QUAY_PUBLISH_ROBOT }}
+          password: ${{ secrets.QUAY_PUBLISH_TOKEN }}
+
+      - name: Print image url
+        run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"

@@ -17,7 +17,7 @@ RUN microdnf clean all
 RUN go install golang.org/x/tools/gopls@latest
 ENV JAVA_HOME /etc/alternatives/jre
 COPY --from=jdtls-download /jdtls /jdtls/
-COPY --from=addon-build /app/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
+COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
 COPY --from=addon-build /app/hack/lsp-cli /bin/lsp-cli
 CMD [ "/jdtls/bin/jdtls" ]
 
