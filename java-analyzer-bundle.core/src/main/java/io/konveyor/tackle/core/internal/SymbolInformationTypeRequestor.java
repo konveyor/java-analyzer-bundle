@@ -63,6 +63,33 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             SymbolKind k = convertSymbolKind(element);
             
             switch (this.symbolKind) {
+            case 1:
+                try {
+                    IType mod = (IType)match.getElement();
+                    logInfo("match: " + mod);
+                    SymbolInformation symbol = new SymbolInformation();
+                    symbol.setName(mod.getElementName());
+                    symbol.setKind(k);
+                    symbol.setContainerName(mod.getParent().getElementName());
+                    Location location = JDTUtils.toLocation(mod);
+                    if (location == null) {
+                        IClassFile classFile = mod.getClassFile();
+		                String packageName = classFile.getParent().getElementName();
+		                String jarName = classFile.getParent().getParent().getElementName();
+                        String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR + classFile.getElementName(), classFile.getHandleIdentifier(), null).toASCIIString();
+                        if (uriString == null) {
+                            uriString = mod.getPath().toString();
+                        }
+                        Range range = JDTUtils.toRange(mod.getOpenable(), mod.getNameRange().getOffset(), mod.getNameRange().getLength());
+                        location = new Location(uriString, range);
+                    }
+                    symbol.setLocation(location);
+                    this.symbols.add(symbol);
+
+                } catch (Exception e) {
+                    logInfo("element:" + match.getElement() + " Unable to convert for inheritance: " + e);
+
+                }
             case 4:
                 try {
                     IAnnotatable mod = (IAnnotatable)match.getElement();

@@ -65,7 +65,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         case 4:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
         case 1:
-            throw new Exception("Inheritance is not implemented");
+            return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.IMPLEMENTORS, SearchPattern.R_PATTERN_MATCH);
         case 2: 
             return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
         case 3:
@@ -101,6 +101,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             
         }
 
+        logInfo("pattern: " + pattern);
+
         SearchEngine searchEngine = new SearchEngine();
 
         List<SymbolInformation> symbols = new ArrayList<SymbolInformation>();
@@ -117,6 +119,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             //TODO: handle exception
             logInfo("unable to get search " + e);
         }
+        logInfo("symbols: " + requestor.getSymbols());
         return requestor.getSymbols();
 
     }
