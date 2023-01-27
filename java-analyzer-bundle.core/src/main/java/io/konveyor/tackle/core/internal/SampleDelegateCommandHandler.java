@@ -64,6 +64,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         case 0:
         case 4:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
+        case 5:
         case 1:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.IMPLEMENTORS, SearchPattern.R_PATTERN_MATCH);
         case 2: 
