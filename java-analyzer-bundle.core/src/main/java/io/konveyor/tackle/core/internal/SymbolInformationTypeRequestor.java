@@ -62,7 +62,75 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             IJavaElement element = (IJavaElement)match.getElement();
             SymbolKind k = convertSymbolKind(element);
             
+            logInfo("symbolKind: " + this.symbolKind);
             switch (this.symbolKind) {
+            case 5:
+                try {
+                    IType mod = (IType)match.getElement();
+                    // A interface can not impment another interface
+                    // this allows us to easily filter this search down.
+                    if (mod.isInterface()) {
+                        return;
+                    }
+                    SymbolInformation symbol = new SymbolInformation();
+                    symbol.setName(mod.getElementName());
+                    symbol.setKind(k);
+                    symbol.setContainerName(mod.getParent().getElementName());
+                    Location location = JDTUtils.toLocation(mod);
+                    if (location == null) {
+                        IClassFile classFile = mod.getClassFile();
+                        String packageName = classFile.getParent().getElementName();
+                        String jarName = classFile.getParent().getParent().getElementName();
+                        String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR + classFile.getElementName(), classFile.getHandleIdentifier(), null).toASCIIString();
+                        if (uriString == null) {
+                            uriString = mod.getPath().toString();
+                        }
+                        Range range = JDTUtils.toRange(mod.getOpenable(), mod.getNameRange().getOffset(), mod.getNameRange().getLength());
+                        location = new Location(uriString, range);
+                    }
+                    symbol.setLocation(location);
+                    this.symbols.add(symbol);
+                    return;
+                } catch (Exception e) {
+                    logInfo("element:" + match.getElement() + " Unable to convert for implements: " + e);
+                    return;
+                }
+            case 1:
+                try {
+                    IType mod = (IType)match.getElement();
+                    // Only add things that have a super class. This is an itermediate filtration.
+                    // TODO: add ability to find the actual super type and find the correct type of object (interface or class) based on super
+                    // TODO: I think that this is starting to get to the point where more than one symbol acceptor is going to be useful.
+                    logInfo("mod: " + mod + " superclass name: " + mod.getSuperclassName());
+                    if (mod.isClass() && (mod.getSuperclassName() == null || mod.getSuperclassName() == "java.lang.Object")) {
+                        return;
+                    }
+                    if (mod.isInterface() && mod.getSuperInterfaceNames().length == 0) {
+                        return;
+                    }
+                    SymbolInformation symbol = new SymbolInformation();
+                    symbol.setName(mod.getElementName());
+                    symbol.setKind(k);
+                    symbol.setContainerName(mod.getParent().getElementName());
+                    Location location = JDTUtils.toLocation(mod);
+                    if (location == null) {
+                        IClassFile classFile = mod.getClassFile();
+		                String packageName = classFile.getParent().getElementName();
+		                String jarName = classFile.getParent().getParent().getElementName();
+                        String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR + classFile.getElementName(), classFile.getHandleIdentifier(), null).toASCIIString();
+                        if (uriString == null) {
+                            uriString = mod.getPath().toString();
+                        }
+                        Range range = JDTUtils.toRange(mod.getOpenable(), mod.getNameRange().getOffset(), mod.getNameRange().getLength());
+                        location = new Location(uriString, range);
+                    }
+                    symbol.setLocation(location);
+                    this.symbols.add(symbol);
+                    return;
+                } catch (Exception e) {
+                    logInfo("element:" + match.getElement() + " Unable to convert for inheritance: " + e);
+
+                }
             case 4:
                 try {
                     IAnnotatable mod = (IAnnotatable)match.getElement();
@@ -99,6 +167,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                     Location loc = new Location(uriString, range);
                     symbol.setLocation(loc);
                     this.symbols.add(symbol);
+                    return;
                 } catch (Exception e) {
                     logInfo("unable to get method from symbol kind 2 and 3(method and constructor): " + e);
                     return;
