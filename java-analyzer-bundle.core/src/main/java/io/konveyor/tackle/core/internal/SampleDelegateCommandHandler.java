@@ -58,7 +58,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
     // the search patterns are responsible for finding as many locations/symbols as possible. We will relay on the client
     // to filter.
     private static SearchPattern mapLocationToSearchPatternLocation(int location, String query) throws Exception {
-        //TODO: Normalize queries and/or verify for each location.
+        //TODO: #21 Normalize queries and/or verify for each location.
         switch (location) {
         // Using type for both type and annotation.
         case 0:
@@ -71,6 +71,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
         case 3:
             return SearchPattern.createPattern(query, IJavaSearchConstants.CONSTRUCTOR, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
+        case 8:
+            return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
         }
         throw new Exception("unable to create search pattern"); 
     }

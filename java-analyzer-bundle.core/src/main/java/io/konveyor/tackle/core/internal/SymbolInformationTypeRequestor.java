@@ -7,6 +7,9 @@ import java.util.List;
 import java.net.URI;
 
 import org.eclipse.jdt.core.search.SearchRequestor;
+import org.eclipse.jdt.internal.core.ImportDeclaration;
+import org.eclipse.jdt.internal.core.ResolvedBinaryMethod;
+import org.eclipse.jdt.internal.core.ResolvedSourceType;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
@@ -25,9 +28,11 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageDeclaration;
 
 public class SymbolInformationTypeRequestor extends SearchRequestor {
         private List<SymbolInformation> symbols;
@@ -64,6 +69,20 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             
             logInfo("symbolKind: " + this.symbolKind);
             switch (this.symbolKind) {
+            case 8:
+                try {
+                    IImportDeclaration mod = (IImportDeclaration)match.getElement();
+                    logInfo("match: " + mod);
+                    SymbolInformation symbol = new SymbolInformation();
+                    symbol.setName(mod.getElementName());
+                    symbol.setKind(k);
+                    symbol.setContainerName(mod.getParent().getElementName());
+                    symbol.setLocation(JDTUtils.toLocation(mod));
+                    this.symbols.add(symbol);
+                } catch (Exception e) {
+                    logInfo("element:" + match.getElement() + " Unable to convert for package: " + e);
+                    return;
+                }
             case 5:
                 try {
                     IType mod = (IType)match.getElement();
@@ -129,8 +148,8 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                     return;
                 } catch (Exception e) {
                     logInfo("element:" + match.getElement() + " Unable to convert for inheritance: " + e);
-
-                }
+		    return;
+		}
             case 4:
                 try {
                     IAnnotatable mod = (IAnnotatable)match.getElement();
