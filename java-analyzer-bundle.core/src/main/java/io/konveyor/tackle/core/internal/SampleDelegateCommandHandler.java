@@ -6,10 +6,14 @@ import java.util.ArrayList;
 import java.util.Map;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
+import org.eclipse.jdt.ls.core.internal.corext.refactoring.CollectingSearchRequestor;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchParticipant;
@@ -73,6 +77,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             return SearchPattern.createPattern(query, IJavaSearchConstants.CONSTRUCTOR, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
         case 8:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
+        case 9:
+            return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.REFERENCES, SearchPattern.R_PATTERN_MATCH);
         }
         throw new Exception("unable to create search pattern"); 
     }
@@ -104,6 +110,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             
         }
 
+
         logInfo("pattern: " + pattern);
 
         SearchEngine searchEngine = new SearchEngine();
@@ -122,7 +129,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             //TODO: handle exception
             logInfo("unable to get search " + e);
         }
-        logInfo("symbols: " + requestor.getSymbols());
+
         return requestor.getSymbols();
 
     }
