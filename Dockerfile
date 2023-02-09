@@ -11,11 +11,11 @@ COPY ./ /app/
 RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 RUN JAVA_HOME=/usr/lib/jvm/java-17-openjdk mvn clean install -DskipTests=true
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal
-RUN microdnf install -y python39 java-17-openjdk go-toolset
+FROM registry.access.redhat.com/ubi9/ubi-minimal
+RUN microdnf install -y python39 java-17-openjdk go-toolset maven-openjdk17
 RUN microdnf clean all
 RUN go install golang.org/x/tools/gopls@latest
-ENV JAVA_HOME /etc/alternatives/jre
+ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
 COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
 COPY --from=addon-build /app/hack/lsp-cli /bin/lsp-cli
