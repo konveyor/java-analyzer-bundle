@@ -75,6 +75,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
         case 3:
             return SearchPattern.createPattern(query, IJavaSearchConstants.CONSTRUCTOR, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
+        case 7:
+            return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.REFERENCES, SearchPattern.R_PATTERN_MATCH);
         case 8:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
         case 9:
@@ -117,7 +119,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
         List<SymbolInformation> symbols = new ArrayList<SymbolInformation>();
 
-        SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor, location);
+        SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor, location, query);
 
         //Use the default search participents
         SearchParticipant participent = new JavaSearchParticipant();

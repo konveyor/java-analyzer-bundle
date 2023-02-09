@@ -46,12 +46,14 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
 		private boolean isSymbolTagSupported;
 		private IProgressMonitor monitor;
         private int symbolKind;
+        private String query;
 
-		public SymbolInformationTypeRequestor(List<SymbolInformation> symbols, int maxResults, IProgressMonitor monitor, int symbolKind) {
+		public SymbolInformationTypeRequestor(List<SymbolInformation> symbols, int maxResults, IProgressMonitor monitor, int symbolKind, String query) {
 			this.symbols = symbols;
 			this.maxResults = maxResults;
 			this.monitor = monitor;
             this.symbolKind = symbolKind;
+            this.query = query;
 		}
 
 
@@ -103,6 +105,49 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                     this.symbols.add(symbol);
                 } catch (Exception e) {
                     logInfo("element:" + match.getElement() + " Unable to convert for package: " + e);
+                    return;
+                }
+            case 7:
+                try {
+                    IMethod method = (IMethod)match.getElement();
+                    String signature = method.getReturnType();
+                    String[] strings = this.query.split("\\.");
+                    logInfo("signature: " + signature + "query: " + this.query);
+                    for (String string : strings) {
+                        // remove regex pattern match character
+                        String s = string.replaceAll("\\*", "");
+                        s = s.replaceAll("[", "");
+                        // check if the string found is apart of the signature.
+                        // TODO: Handle array cases. need to map [] to [ at the beginning.
+                        logInfo("signature: " + signature + "replaced string" + s);
+                        if (signature.contains(s)) {
+                            logInfo(s);
+                            SymbolInformation symbol = new SymbolInformation();
+                            symbol.setName(method.getElementName());
+                            symbol.setKind(k);
+                            symbol.setContainerName(method.getParent().getElementName());
+                            Location location = JDTUtils.toLocation(method);
+                            if (location == null) {
+                                IClassFile classFile = method.getClassFile();
+                                String packageName = classFile.getParent().getElementName();
+                                String jarName = classFile.getParent().getParent().getElementName();
+                                String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR + classFile.getElementName(), classFile.getHandleIdentifier(), null).toASCIIString();
+                                if (uriString == null) {
+                                    uriString = method.getPath().toString();
+                                }
+                                Range range = JDTUtils.toRange(method.getOpenable(), method.getNameRange().getOffset(), method.getNameRange().getLength());
+                                location = new Location(uriString, range);
+                            }
+                            symbol.setLocation(location);
+                            this.symbols.add(symbol);
+                            return;
+                        }
+                    }
+                    logInfo("not found: " + signature);
+                    return;
+
+                } catch (Exception e) {
+                    logInfo("Exception: " + e);
                     return;
                 }
             case 5:
