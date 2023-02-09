@@ -7,9 +7,12 @@ import java.util.List;
 import java.net.URI;
 
 import org.eclipse.jdt.core.search.SearchRequestor;
+import org.eclipse.jdt.core.search.TypeReferenceMatch;
 import org.eclipse.jdt.internal.core.ImportDeclaration;
+import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.ResolvedBinaryMethod;
 import org.eclipse.jdt.internal.core.ResolvedSourceType;
+import org.eclipse.jdt.internal.core.SourceRefElement;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
@@ -21,8 +24,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.SourceRange;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClassFile;
@@ -67,8 +72,25 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             IJavaElement element = (IJavaElement)match.getElement();
             SymbolKind k = convertSymbolKind(element);
             
-            logInfo("symbolKind: " + this.symbolKind);
+            // logInfo("symbolKind: " + k);
             switch (this.symbolKind) {
+            case 9: 
+                try {
+                    TypeReferenceMatch m = (TypeReferenceMatch)match;
+                    ILocalVariable var = (ILocalVariable)m.getLocalElement();
+                    if (var == null ) {
+                        return;
+                    }
+                    SymbolInformation symbol = new SymbolInformation();
+                    symbol.setName(var.getElementName());
+                    symbol.setKind(convertSymbolKind(var));
+                    symbol.setContainerName(var.getParent().getElementName());
+                    symbol.setLocation(JDTUtils.toLocation(var));
+                    this.symbols.add(symbol);
+                } catch (Exception e) {
+                    logInfo("match:" + match + " Unable to convert for variable: " + e);
+                    return;
+                }
             case 8:
                 try {
                     IImportDeclaration mod = (IImportDeclaration)match.getElement();
@@ -148,8 +170,8 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                     return;
                 } catch (Exception e) {
                     logInfo("element:" + match.getElement() + " Unable to convert for inheritance: " + e);
-		    return;
-		}
+                    return;
+                }
             case 4:
                 try {
                     IAnnotatable mod = (IAnnotatable)match.getElement();
