@@ -13,6 +13,7 @@ import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.ResolvedBinaryMethod;
 import org.eclipse.jdt.internal.core.ResolvedSourceType;
 import org.eclipse.jdt.internal.core.SourceRefElement;
+import org.eclipse.jdt.core.search.MethodReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
@@ -235,6 +236,32 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                 }
             // Dealing with methods and constructors.
             case 2:
+                // For Method Calls we will need to do the local variable trick
+                try {
+                    SymbolInformation symbol = new SymbolInformation();
+                    MethodReferenceMatch m = (MethodReferenceMatch)match;
+                    IMethod e = (IMethod)m.getElement();
+                    symbol.setName(e.getElementName());
+                    symbol.setKind(convertSymbolKind(e));
+                    symbol.setContainerName(e.getParent().getElementName());
+                    Location location = JDTUtils.toLocation(e);
+                    if (location == null) {
+                        IClassFile classFile = e.getClassFile();
+		                String packageName = classFile.getParent().getElementName();
+		                String jarName = classFile.getParent().getParent().getElementName();
+                        String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR + classFile.getElementName(), classFile.getHandleIdentifier(), null).toASCIIString();
+                        if (uriString == null) {
+                            uriString = e.getPath().toString();
+                        }
+                        Range range = JDTUtils.toRange(e.getOpenable(), e.getNameRange().getOffset(), e.getNameRange().getLength());
+                        location = new Location(uriString, range);
+                    }
+                    symbol.setLocation(location);
+                    this.symbols.add(symbol);
+                } catch (Exception e) {
+                    logInfo("match:" + match + " Unable to convert for variable: " + e);
+                    return;
+                }
             case 3:
                 try {
                     IMethod mod = (IMethod)match.getElement();
@@ -255,6 +282,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                     this.symbols.add(symbol);
                     return;
                 } catch (Exception e) {
+                    logInfo("Location: " + (JDTUtils.toLocation((JavaElement)match.getElement())));
                     logInfo("unable to get method from symbol kind 2 and 3(method and constructor): " + e);
                     return;
                 }
