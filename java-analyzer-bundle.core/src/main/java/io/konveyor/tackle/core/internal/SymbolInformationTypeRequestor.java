@@ -75,7 +75,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             IJavaElement element = (IJavaElement)match.getElement();
             SymbolKind k = convertSymbolKind(element);
             
-            // logInfo("symbolKind: " + k);
+            logInfo("symbolKind: " + k + " kind passed in " + this.symbolKind );
             switch (this.symbolKind) {
             case 9: 
                 try {
@@ -238,9 +238,10 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             case 2:
                 // For Method Calls we will need to do the local variable trick
                 try {
-                    SymbolInformation symbol = new SymbolInformation();
+                    logInfo("match: " + match);
                     MethodReferenceMatch m = (MethodReferenceMatch)match;
                     IMethod e = (IMethod)m.getElement();
+                    SymbolInformation symbol = new SymbolInformation();
                     symbol.setName(e.getElementName());
                     symbol.setKind(convertSymbolKind(e));
                     symbol.setContainerName(e.getParent().getElementName());
@@ -258,6 +259,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
                     }
                     symbol.setLocation(location);
                     this.symbols.add(symbol);
+                    return;
                 } catch (Exception e) {
                     logInfo("match:" + match + " Unable to convert for variable: " + e);
                     return;

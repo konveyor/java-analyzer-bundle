@@ -4,21 +4,24 @@ import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.dom.ImportDeclaration;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
-import org.eclipse.jdt.ls.core.internal.corext.refactoring.CollectingSearchRequestor;
+import org.eclipse.jdt.ls.core.internal.JobHelpers;
+import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchParticipant;
-import org.eclipse.jdt.internal.core.DeltaProcessingState;
-import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
 
 public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
@@ -28,7 +31,9 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
     @Override
     public Object executeCommand(String commandId, List<Object> arguments, IProgressMonitor progress) throws Exception {
-
+        logInfo("waiting for source downloads");
+        waitForJavaSourceDownloads();
+        logInfo("waited for source downloads");
         switch (commandId) {
             case COMMAND_ID:
                 return "Hello World";
@@ -39,6 +44,12 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             default:
                 throw new UnsupportedOperationException(String.format("Unsupported command '%s'!", commandId));
         }
+    }
+
+    private void waitForJavaSourceDownloads() throws CoreException {
+        JobHelpers.waitForInitializeJobs();
+        JobHelpers.waitForBuildJobs(JobHelpers.MAX_TIME_MILLIS);
+        JobHelpers.waitForDownloadSourcesJobs(JobHelpers.MAX_TIME_MILLIS);
     }
 
     private RuleEntryParams getRuleEntryParams(String commandId, List<Object> arguments) {
@@ -72,7 +83,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         case 1:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.IMPLEMENTORS, SearchPattern.R_PATTERN_MATCH);
         case 2: 
-            return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.REFERENCES, SearchPattern.R_PATTERN_MATCH);
+            // Switched back to referenced
+            return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.REFERENCES, SearchPattern.R_PATTERN_MATCH | SearchPattern.R_ERASURE_MATCH);
         case 3:
             return SearchPattern.createPattern(query, IJavaSearchConstants.CONSTRUCTOR, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
         case 7:
@@ -86,21 +98,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
     }
 
     private static List<SymbolInformation> search(String projectName, String query, int location, IProgressMonitor monitor) throws Exception {
-        JavaModelManager.getIndexManager().waitForIndex(true, monitor);
-        DeltaProcessingState state = JavaModelManager.getDeltaState();
-        logInfo("sourceAttachements: " + state.sourceAttachments);
-
-        // TODO: Hopefully we can eventually find a way that will alert this thread, when sourceAttachments are downloaded.
-        // https://github.com/konveyor/java-analyzer-bundle/issues/14
-        Map<IPath, IPath> attachments = state.sourceAttachments;
-        Thread.sleep(5000);
-        while (attachments.size() != state.sourceAttachments.size()) {
-            logInfo("waiting size: " + state.sourceAttachments.size());
-            attachments = state.sourceAttachments;
-            Thread.sleep(10000);
-        }
-
         IJavaSearchScope scope = SearchEngine.createWorkspaceScope();
+        logInfo("scope: " + scope);
 
         SearchPattern pattern;
         try {
@@ -109,10 +108,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             // TODO Auto-generated catch block
             logInfo("Unable to get search pattern: " + e);
             throw e;
-            
         }
-
-
         logInfo("pattern: " + pattern);
 
         SearchEngine searchEngine = new SearchEngine();
