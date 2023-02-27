@@ -1,28 +1,21 @@
 package io.konveyor.tackle.core.internal;
 
-import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.core.search.SearchParticipant;
+import org.eclipse.jdt.core.search.SearchPattern;
+import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JobHelpers;
-import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.lsp4j.SymbolInformation;
-import org.eclipse.jdt.core.search.SearchPattern;
-import org.eclipse.jdt.core.search.SearchParticipant;
-import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.String.format;
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
@@ -39,34 +32,17 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
                 return "Hello World";
             case RULE_ENTRY_COMMAND_ID:
                 logInfo("Here we get the arguments for rule entry: "+arguments);
-                RuleEntryParams params = this.getRuleEntryParams(commandId, arguments);
-                return search(params.projectName, params.query, params.location, progress);
+                RuleEntryParams params = new RuleEntryParams(commandId, arguments);
+                return search(params.getProjectName(), params.getQuery(), params.getLocation(), progress);
             default:
-                throw new UnsupportedOperationException(String.format("Unsupported command '%s'!", commandId));
+                throw new UnsupportedOperationException(format("Unsupported command '%s'!", commandId));
         }
     }
 
-    private void waitForJavaSourceDownloads() throws CoreException {
+    private void waitForJavaSourceDownloads() {
         JobHelpers.waitForInitializeJobs();
         JobHelpers.waitForBuildJobs(JobHelpers.MAX_TIME_MILLIS);
         JobHelpers.waitForDownloadSourcesJobs(JobHelpers.MAX_TIME_MILLIS);
-    }
-
-    private RuleEntryParams getRuleEntryParams(String commandId, List<Object> arguments) {
-
-        Map<String, Object> obj = ParamUtils.getFirst(arguments);
-
-        if (obj == null) {
-            throw new UnsupportedOperationException(String.format(
-                "Command '%s' must be called with one rule entry argument!", commandId));
-        }
-
-        RuleEntryParams params = new RuleEntryParams();
-
-        params.projectName = ParamUtils.getString(obj, "project");
-        params.query = ParamUtils.getString(obj, "query");
-        params.location = Integer.parseInt(ParamUtils.getString(obj, "location"));
-        return params;
     }
 
     // mapLocationToSearchPatternLocation will create the correct search pattern or throw an error if one can not be built.
