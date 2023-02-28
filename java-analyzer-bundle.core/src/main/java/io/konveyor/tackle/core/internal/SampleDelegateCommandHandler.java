@@ -50,6 +50,35 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
     // to filter.
     private static SearchPattern mapLocationToSearchPatternLocation(int location, String query) throws Exception {
         //TODO: #21 Normalize queries and/or verify for each location.
+
+        if (query.contains("(") || query.contains(")")) {
+            // We know that this is a list of things to loook for, broken by a | command. We should get this intra string and create an OR search pattern for each one. 
+            // ex java.io.((FileWriter|FileReader|PrintStream|File|PrintWriter|RandomAccessFile))*
+            // startQuery will contain java.io. and endQuery will contain *
+            var startListIndex = query.indexOf("(");
+            var endListIndex = query.indexOf(")");
+            var startQuery = query.substring(0, startListIndex);
+            var endQuery = query.substring(endListIndex+1, query.length());
+
+            // This should strip the ( ) chars
+            var listString = query.substring(startListIndex+1, endListIndex);
+            var list = listString.split("\\|");
+            ArrayList<SearchPattern> l = new ArrayList<SearchPattern>();
+
+            for (String s: list) {
+                var p = getPatternSingleQuery(location, startQuery + s + endQuery);
+                l.add(p);
+            }
+            
+            // Get the end pattern
+            SearchPattern p = l.subList(1, l.size()).stream().reduce(l.get(0), (SearchPattern::createOrPattern));
+            return p;
+
+        }
+        return getPatternSingleQuery(location, query);
+    }
+
+    private static SearchPattern getPatternSingleQuery(int location, String query) throws Exception {
         switch (location) {
         // Using type for both type and annotation.
         case 0:
