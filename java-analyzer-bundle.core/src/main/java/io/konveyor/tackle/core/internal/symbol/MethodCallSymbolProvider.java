@@ -24,8 +24,11 @@ public class MethodCallSymbolProvider implements SymbolProvider {
         List<SymbolInformation> symbols = new ArrayList<>();
         // For Method Calls we will need to do the local variable trick
         try {
-            logInfo("match: " + match);
             MethodReferenceMatch m = (MethodReferenceMatch) match;
+            if (m.getAccuracy() != SearchMatch.A_ACCURATE) {
+                logInfo("Found match that was not exact: " + m);
+                return symbols;
+            }
             IMethod e = (IMethod) m.getElement();
             SymbolInformation symbol = new SymbolInformation();
             symbol.setName(e.getElementName());
