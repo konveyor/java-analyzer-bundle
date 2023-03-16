@@ -1,25 +1,21 @@
 package io.konveyor.tackle.core.internal.symbol;
 
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.IClassFile;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.search.MethodReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
-import org.eclipse.jdt.core.search.TypeReferenceMatch;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 public class ConstructorCallSymbolProvider implements SymbolProvider {
     @Override
@@ -52,6 +48,7 @@ public class ConstructorCallSymbolProvider implements SymbolProvider {
         } catch (Exception e) {
             logInfo("Location: " + (JDTUtils.toLocation((JavaElement) match.getElement())));
             logInfo("unable to get method from symbol kind 2 and 3(method and constructor): " + e);
+            return null;
         }
         return symbols;
     }
