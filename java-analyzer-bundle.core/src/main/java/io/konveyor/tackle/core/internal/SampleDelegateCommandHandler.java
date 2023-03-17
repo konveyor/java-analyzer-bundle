@@ -1,5 +1,11 @@
 package io.konveyor.tackle.core.internal;
 
+import static java.lang.String.format;
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
@@ -10,12 +16,6 @@ import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JobHelpers;
 import org.eclipse.lsp4j.SymbolInformation;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.lang.String.format;
-import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
@@ -75,13 +75,33 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             return p;
 
         }
+
+        if (location == 0) {
+            logInfo("default query passed, searching everything");
+            ArrayList<SearchPattern> l = new ArrayList<SearchPattern>();
+            
+            for (int i=2; i <= 9; i++) {
+                logInfo("getting pattern for int: " + i);
+                // 6 has not been implemented yet.
+                if (i == 6) {
+                    continue;
+                }
+                var p = getPatternSingleQuery(i, query);
+                l.add(p);
+            }
+            // Get the end pattern
+            SearchPattern p = l.subList(1, l.size()).stream().reduce(l.get(0), (SearchPattern::createOrPattern));
+            return p;
+        }
+
         return getPatternSingleQuery(location, query);
     }
 
     private static SearchPattern getPatternSingleQuery(int location, String query) throws Exception {
         switch (location) {
         // Using type for both type and annotation.
-        case 0:
+        // Type and annotation
+        case 10:
         case 4:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.ALL_OCCURRENCES, SearchPattern.R_PATTERN_MATCH);
         case 5:

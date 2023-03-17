@@ -10,32 +10,34 @@ import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.search.SearchMatch;
+import org.eclipse.jdt.core.search.TypeDeclarationMatch;
+import org.eclipse.jdt.core.search.TypeParameterDeclarationMatch;
+import org.eclipse.jdt.core.search.TypeParameterReferenceMatch;
+import org.eclipse.jdt.core.search.TypeReferenceMatch;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
-public class InheritanceSymbolProvider implements SymbolProvider {
+public class TypeSymbolProvider implements SymbolProvider {
     @Override
     public List<SymbolInformation> get(SearchMatch match) {
         SymbolKind k = convertSymbolKind((IJavaElement) match.getElement());
         List<SymbolInformation> symbols = new ArrayList<>();
+        // For Method Calls we will need to do the local variable trick
+        if (!(match instanceof TypeReferenceMatch || 
+            match instanceof TypeDeclarationMatch || 
+            match instanceof TypeParameterDeclarationMatch || 
+            match instanceof TypeParameterReferenceMatch)) {
+                return null;
+            }
         try {
-            IType mod = (IType)match.getElement();
-            // Only add things that have a super class. This is an itermediate filtration.
-            // TODO: add ability to find the actual super type and find the correct type of object (interface or class) based on super
-            // TODO: I think that this is starting to get to the point where more than one symbol acceptor is going to be useful.
-            logInfo("mod: " + mod + " superclass name: " + mod.getSuperclassName());
-            if (mod.isClass() && (mod.getSuperclassName() == null || mod.getSuperclassName() == "java.lang.Object")) {
-                return null;
-            }
-            if (mod.isInterface() && mod.getSuperInterfaceNames().length == 0) {
-                return null;
-            }
+            var mod = (IType) match.getElement();
+            logInfo("match: " + mod);
             SymbolInformation symbol = new SymbolInformation();
             symbol.setName(mod.getElementName());
-            symbol.setKind(k);
+            symbol.setKind((SymbolKind) match.getElement());
             symbol.setContainerName(mod.getParent().getElementName());
             Location location = JDTUtils.toLocation(mod);
             if (location == null) {
@@ -47,15 +49,17 @@ public class InheritanceSymbolProvider implements SymbolProvider {
                     uriString = mod.getPath().toString();
                 }
                 Range range = JDTUtils.toRange(mod.getOpenable(), mod.getNameRange().getOffset(), mod.getNameRange().getLength());
-                location = new Location(uriString, range);
+               location = new Location(uriString, range);
             }
             symbol.setLocation(location);
             symbols.add(symbol);
+            
+
         } catch (Exception e) {
-            logInfo("element:" + match.getElement() + " Unable to convert for inheritance: " + e);
+            logInfo("match:" + match + " Unable to convert for variable: " + e);
             return null;
         }
-        return symbols;
 
+        return symbols;
     }
 }

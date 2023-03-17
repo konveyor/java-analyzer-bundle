@@ -1,8 +1,11 @@
 package io.konveyor.tackle.core.internal;
 
-import io.konveyor.tackle.core.internal.symbol.SymbolProvider;
-import io.konveyor.tackle.core.internal.symbol.SymbolProviderResolver;
-import io.konveyor.tackle.core.internal.symbol.WithQuery;
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -10,11 +13,9 @@ import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.lsp4j.SymbolInformation;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+import io.konveyor.tackle.core.internal.symbol.SymbolProvider;
+import io.konveyor.tackle.core.internal.symbol.SymbolProviderResolver;
+import io.konveyor.tackle.core.internal.symbol.WithQuery;
 
 public class SymbolInformationTypeRequestor extends SearchRequestor {
     private List<SymbolInformation> symbols;
@@ -48,10 +49,8 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             return;
 
         }
-//        SymbolKind k = convertSymbolKind(element);
-//        logInfo("symbolKind: " + k + " kind passed in " + this.symbolKind);
 
-        SymbolProvider symbolProvider = SymbolProviderResolver.resolve(this.symbolKind);
+        SymbolProvider symbolProvider = SymbolProviderResolver.resolve(this.symbolKind, match);
         if (symbolProvider instanceof WithQuery) {
             ((WithQuery) symbolProvider).setQuery(this.query);
         }
