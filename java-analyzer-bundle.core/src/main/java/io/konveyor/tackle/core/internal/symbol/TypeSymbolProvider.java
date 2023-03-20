@@ -2,13 +2,10 @@ package io.konveyor.tackle.core.internal.symbol;
 
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.TypeDeclarationMatch;
 import org.eclipse.jdt.core.search.TypeParameterDeclarationMatch;
@@ -16,7 +13,6 @@ import org.eclipse.jdt.core.search.TypeParameterReferenceMatch;
 import org.eclipse.jdt.core.search.TypeReferenceMatch;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
@@ -33,23 +29,26 @@ public class TypeSymbolProvider implements SymbolProvider {
                 return null;
             }
         try {
-            var mod = (IType) match.getElement();
+            var mod = (IJavaElement) match.getElement();
             logInfo("match: " + mod);
             SymbolInformation symbol = new SymbolInformation();
             symbol.setName(mod.getElementName());
-            symbol.setKind((SymbolKind) match.getElement());
+            symbol.setKind(convertSymbolKind(mod));
             symbol.setContainerName(mod.getParent().getElementName());
             Location location = JDTUtils.toLocation(mod);
             if (location == null) {
-                IClassFile classFile = mod.getClassFile();
-                String packageName = classFile.getParent().getElementName();
-                String jarName = classFile.getParent().getParent().getElementName();
-                String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR + classFile.getElementName(), classFile.getHandleIdentifier(), null).toASCIIString();
-                if (uriString == null) {
-                    uriString = mod.getPath().toString();
-                }
-                Range range = JDTUtils.toRange(mod.getOpenable(), mod.getNameRange().getOffset(), mod.getNameRange().getLength());
-               location = new Location(uriString, range);
+                return null;
+            /// TODO: We should be able to find this but need to figure out how to get the Class File
+            // This will also change the output and could be considered breaking and will require analyzer test updates
+            //     IClassFile classFile = mod.getClassFile();
+            //     String packageName = classFile.getParent().getElementName();
+            //     String jarName = classFile.getParent().getParent().getElementName();
+            //     String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR + classFile.getElementName(), classFile.getHandleIdentifier(), null).toASCIIString();
+            //     if (uriString == null) {
+            //         uriString = mod.getPath().toString();
+            //     }
+            //     Range range = JDTUtils.toRange(mod.getOpenable(), match.getOffset(), match.getLength());
+            //    location = new Location(uriString, range);
             }
             symbol.setLocation(location);
             symbols.add(symbol);
