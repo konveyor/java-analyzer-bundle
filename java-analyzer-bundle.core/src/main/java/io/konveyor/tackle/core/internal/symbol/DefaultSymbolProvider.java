@@ -1,5 +1,8 @@
 package io.konveyor.tackle.core.internal.symbol;
 
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,13 +31,18 @@ public class DefaultSymbolProvider implements SymbolProvider {
     public List<SymbolInformation> get(SearchMatch match) throws CoreException {
 
         // Given a default search match, we have to ask each individual 
+        List<SymbolInformation> symbols = new ArrayList<SymbolInformation>();
         for (int i=1; i < 10; i++) {
             SymbolProvider p = map.get(i);
-            var symbols = p.get(match);
-            if (symbols != null) {
-                return symbols;
+            if(p instanceof DefaultSymbolProvider) {
+                continue;
+            }
+            var specificSymbols = p.get(match);
+            if (specificSymbols != null || !specificSymbols.isEmpty()) {
+                symbols.addAll(specificSymbols);
             }
         }
-        return null;
+        logInfo("got all symbols: " + symbols);
+        return symbols;
     }
 }
