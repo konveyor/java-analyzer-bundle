@@ -1,5 +1,11 @@
 package io.konveyor.tackle.core.internal.symbol;
 
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
@@ -11,13 +17,9 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
-
-public class MethodCallSymbolProvider implements SymbolProvider {
+public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
+    private String query;
+    
     @Override
     public List<SymbolInformation> get(SearchMatch match) {
         SymbolKind k = convertSymbolKind((IJavaElement) match.getElement());
@@ -25,7 +27,14 @@ public class MethodCallSymbolProvider implements SymbolProvider {
         // For Method Calls we will need to do the local variable trick
         try {
             MethodReferenceMatch m = (MethodReferenceMatch) match;
-            if (m.getAccuracy() != SearchMatch.A_ACCURATE) {
+
+            // Default to filter to only accurate matches
+            var filterOut = m.getAccuracy() != SearchMatch.A_ACCURATE;
+            if (query.contains("*")) {
+                filterOut = false;
+            }
+
+            if (filterOut) {
                 logInfo("Found match that was not exact: " + m);
                 return symbols;
             }
@@ -53,5 +62,9 @@ public class MethodCallSymbolProvider implements SymbolProvider {
         }
 
         return symbols;
+    }
+    @Override
+    public void setQuery(String query) {
+        this.query = query;
     }
 }
