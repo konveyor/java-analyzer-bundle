@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -15,6 +16,7 @@ import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JobHelpers;
+import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.lsp4j.SymbolInformation;
 
 public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
@@ -66,7 +68,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             ArrayList<SearchPattern> l = new ArrayList<SearchPattern>();
 
             for (String s: list) {
-                var p = getPatternSingleQuery(location, startQuery + s + endQuery);
+                var p = mapLocationToSearchPatternLocation(location, startQuery + s + endQuery);
                 l.add(p);
             }
             
@@ -123,7 +125,20 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
     }
 
     private static List<SymbolInformation> search(String projectName, String query, int location, IProgressMonitor monitor) throws Exception {
-        IJavaSearchScope scope = SearchEngine.createWorkspaceScope();
+        //IJavaSearchScope scope = SearchEngine.createWorkspaceScope();
+        IJavaProject[] targetProjects;
+        IJavaProject project = ProjectUtils.getJavaProject(projectName);
+        logInfo("Searching in project: " + project + " Query: " + query);
+        if (project != null) {
+			targetProjects = new IJavaProject[] { project };
+		} else {
+			targetProjects= ProjectUtils.getJavaProjects();
+		}
+
+		int s = IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.SOURCES | IJavaSearchScope.APPLICATION_LIBRARIES;
+
+		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(targetProjects, s);
+
         logInfo("scope: " + scope);
 
         SearchPattern pattern;

@@ -15,6 +15,7 @@ import org.eclipse.lsp4j.SymbolInformation;
 
 import io.konveyor.tackle.core.internal.symbol.SymbolProvider;
 import io.konveyor.tackle.core.internal.symbol.SymbolProviderResolver;
+import io.konveyor.tackle.core.internal.symbol.WithMaxResults;
 import io.konveyor.tackle.core.internal.symbol.WithQuery;
 
 public class SymbolInformationTypeRequestor extends SearchRequestor {
@@ -53,6 +54,9 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
         SymbolProvider symbolProvider = SymbolProviderResolver.resolve(this.symbolKind, match);
         if (symbolProvider instanceof WithQuery) {
             ((WithQuery) symbolProvider).setQuery(this.query);
+        }
+        if (symbolProvider instanceof WithMaxResults) {
+            ((WithMaxResults) symbolProvider).setMaxResultes(this.maxResults);
         }
 
         List<SymbolInformation> symbols = Optional.ofNullable(symbolProvider.get(match)).orElse(new ArrayList<>());

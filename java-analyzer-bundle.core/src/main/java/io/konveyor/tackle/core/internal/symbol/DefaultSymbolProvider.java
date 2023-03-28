@@ -1,7 +1,5 @@
 package io.konveyor.tackle.core.internal.symbol;
 
-import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +9,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.lsp4j.SymbolInformation;
 
-public class DefaultSymbolProvider implements SymbolProvider {
+public class DefaultSymbolProvider implements SymbolProvider, WithQuery, WithMaxResults {
     private static Map<Integer, SymbolProvider> map;
     static {
         map = new HashMap<>();
@@ -27,6 +25,9 @@ public class DefaultSymbolProvider implements SymbolProvider {
         map.put(10, new TypeSymbolProvider());
     }
 
+    private int maxResults; 
+    private String query;
+
     @Override
     public List<SymbolInformation> get(SearchMatch match) throws CoreException {
 
@@ -37,12 +38,34 @@ public class DefaultSymbolProvider implements SymbolProvider {
             if(p instanceof DefaultSymbolProvider) {
                 continue;
             }
+            if (p instanceof WithQuery) {
+                ((WithQuery) p).setQuery(this.query);
+            }
+            if (p instanceof WithMaxResults) {
+                ((WithMaxResults) p).setMaxResultes(this.maxResults);
+            }
             var specificSymbols = p.get(match);
-            if (specificSymbols != null || !specificSymbols.isEmpty()) {
-                symbols.addAll(specificSymbols);
+            if (specificSymbols == null) {
+                continue;
+            }
+            
+            symbols.addAll(specificSymbols);
+            // Have to handle here, the search matches can not ballon
+            // for now this will be fine
+            if (symbols.size() >= this.maxResults) {
+                return symbols;
             }
         }
-        logInfo("got all symbols: " + symbols);
         return symbols;
+    }
+
+    @Override
+    public void setMaxResultes(int maxResults) {
+        this.maxResults = maxResults;
+    }
+
+    @Override
+    public void setQuery(String query) {
+        this.query = query;
     }
 }
