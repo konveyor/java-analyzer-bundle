@@ -46,8 +46,7 @@ public class ConstructorCallSymbolProvider implements SymbolProvider {
             symbol.setLocation(loc);
             symbols.add(symbol);
         } catch (Exception e) {
-            logInfo("Location: " + (JDTUtils.toLocation((JavaElement) match.getElement())));
-            logInfo("unable to get method from symbol kind 2 and 3(method and constructor): " + e);
+            logInfo("unable to get constructor: " + e);
             return null;
         }
         return symbols;

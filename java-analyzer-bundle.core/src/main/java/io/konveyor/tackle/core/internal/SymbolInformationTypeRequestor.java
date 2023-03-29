@@ -33,6 +33,9 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
         this.monitor = monitor;
         this.symbolKind = symbolKind;
         this.query = query;
+        if (maxResults == 0) {
+            this.maxResults = 10000;
+        }
     }
 
 
@@ -59,6 +62,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             ((WithMaxResults) symbolProvider).setMaxResultes(this.maxResults);
         }
 
+        logInfo("getting match: " + match + "with provider: " + symbolProvider);
         List<SymbolInformation> symbols = Optional.ofNullable(symbolProvider.get(match)).orElse(new ArrayList<>());
         this.symbols.addAll(symbols);
 

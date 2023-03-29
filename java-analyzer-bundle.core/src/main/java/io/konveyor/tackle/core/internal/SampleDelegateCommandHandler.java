@@ -81,16 +81,11 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         if (location == 0) {
             logInfo("default query passed, searching everything");
             ArrayList<SearchPattern> l = new ArrayList<SearchPattern>();
+            // Searching for Type, Method, and Constructor's.
+            l.add(getPatternSingleQuery(10, query));
+            l.add(getPatternSingleQuery(2, query));
+            l.add(getPatternSingleQuery(3, query));
             
-            for (int i=2; i <= 9; i++) {
-                logInfo("getting pattern for int: " + i);
-                // 6 has not been implemented yet.
-                if (i == 6) {
-                    continue;
-                }
-                var p = getPatternSingleQuery(i, query);
-                l.add(p);
-            }
             // Get the end pattern
             SearchPattern p = l.subList(1, l.size()).stream().reduce(l.get(0), (SearchPattern::createOrPattern));
             return p;
@@ -135,7 +130,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 			targetProjects= ProjectUtils.getJavaProjects();
 		}
 
-		int s = IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.SOURCES | IJavaSearchScope.APPLICATION_LIBRARIES;
+		int s = IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.APPLICATION_LIBRARIES;
 
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(targetProjects, s);
 

@@ -1,5 +1,11 @@
 package io.konveyor.tackle.core.internal.symbol;
 
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IType;
@@ -8,13 +14,6 @@ import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
-import org.eclipse.lsp4j.SymbolKind;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 public class ImplementsTypeSymbolProvider implements SymbolProvider {
     @Override
@@ -29,7 +28,7 @@ public class ImplementsTypeSymbolProvider implements SymbolProvider {
             }
             SymbolInformation symbol = new SymbolInformation();
             symbol.setName(mod.getElementName());
-            symbol.setKind((SymbolKind) match.getElement());
+            symbol.setKind(convertSymbolKind(mod));
             symbol.setContainerName(mod.getParent().getElementName());
             Location location = JDTUtils.toLocation(mod);
             if (location == null) {
@@ -46,7 +45,7 @@ public class ImplementsTypeSymbolProvider implements SymbolProvider {
             symbol.setLocation(location);
             symbols.add(symbol);
         } catch (Exception e) {
-            logInfo("element:" + match.getElement() + " Unable to convert for implements: " + e);
+            logInfo("unable to convert for implements type: " + e);
             return null;
         }
         return symbols;

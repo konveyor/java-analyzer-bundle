@@ -30,7 +30,6 @@ public class TypeSymbolProvider implements SymbolProvider {
             }
         try {
             var mod = (IJavaElement) match.getElement();
-            logInfo("match: " + mod);
             SymbolInformation symbol = new SymbolInformation();
             symbol.setName(mod.getElementName());
             symbol.setKind(convertSymbolKind(mod));
@@ -55,7 +54,7 @@ public class TypeSymbolProvider implements SymbolProvider {
             
 
         } catch (Exception e) {
-            logInfo("match:" + match + " Unable to convert for variable: " + e);
+            logInfo("Unable to convert for TypeSymbolProvider: " + e);
             return null;
         }
 
