@@ -26,7 +26,6 @@ public class InheritanceSymbolProvider implements SymbolProvider {
             // Only add things that have a super class. This is an itermediate filtration.
             // TODO: add ability to find the actual super type and find the correct type of object (interface or class) based on super
             // TODO: I think that this is starting to get to the point where more than one symbol acceptor is going to be useful.
-            logInfo("mod: " + mod + " superclass name: " + mod.getSuperclassName());
             if (mod.isClass() && (mod.getSuperclassName() == null || mod.getSuperclassName() == "java.lang.Object")) {
                 return null;
             }
@@ -52,7 +51,7 @@ public class InheritanceSymbolProvider implements SymbolProvider {
             symbol.setLocation(location);
             symbols.add(symbol);
         } catch (Exception e) {
-            logInfo("element:" + match.getElement() + " Unable to convert for inheritance: " + e);
+            logInfo("unable to convert for inheritance: " + e);
             return null;
         }
         return symbols;

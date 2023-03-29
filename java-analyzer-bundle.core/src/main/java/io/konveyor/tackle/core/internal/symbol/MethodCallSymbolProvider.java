@@ -35,7 +35,6 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
             }
 
             if (filterOut) {
-                logInfo("Found match that was not exact: " + m);
                 return symbols;
             }
             IMethod e = (IMethod) m.getElement();
@@ -58,7 +57,7 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
             symbol.setLocation(location);
             symbols.add(symbol);
         } catch (Exception e) {
-            logInfo("match:" + match + " Unable to convert for variable: " + e);
+            logInfo("unable to convert for variable: " + e);
         }
 
         return symbols;

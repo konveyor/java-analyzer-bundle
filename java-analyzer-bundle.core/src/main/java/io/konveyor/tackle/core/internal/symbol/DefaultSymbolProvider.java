@@ -1,28 +1,22 @@
 package io.konveyor.tackle.core.internal.symbol;
 
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.lsp4j.SymbolInformation;
 
 public class DefaultSymbolProvider implements SymbolProvider, WithQuery, WithMaxResults {
-    private static Map<Integer, SymbolProvider> map;
+    private static List<SymbolProvider> defaultProviders;
     static {
-        map = new HashMap<>();
-        map.put(1, new InheritanceSymbolProvider());
-        map.put(2, new MethodCallSymbolProvider());
-        map.put(3, new ConstructorCallSymbolProvider());
-        map.put(4, new AnnotationSymbolProvider());
-        map.put(5, new ImplementsTypeSymbolProvider());
-        map.put(6, new DefaultSymbolProvider());
-        map.put(7, new ReturnTypeSymbolProvider());
-        map.put(8, new ImportSymbolProvider());
-        map.put(9, new VariableDeclarationSymbolProvider());
-        map.put(10, new TypeSymbolProvider());
+        defaultProviders= new ArrayList<SymbolProvider>();
+        defaultProviders.add(new MethodCallSymbolProvider());
+        defaultProviders.add(new ConstructorCallSymbolProvider());
+        defaultProviders.add(new ImportSymbolProvider());
+        defaultProviders.add( new TypeSymbolProvider());
     }
 
     private int maxResults; 
@@ -33,26 +27,24 @@ public class DefaultSymbolProvider implements SymbolProvider, WithQuery, WithMax
 
         // Given a default search match, we have to ask each individual 
         List<SymbolInformation> symbols = new ArrayList<SymbolInformation>();
-        for (int i=1; i < 10; i++) {
-            SymbolProvider p = map.get(i);
-            if(p instanceof DefaultSymbolProvider) {
-                continue;
-            }
+        for (SymbolProvider p: defaultProviders) {
             if (p instanceof WithQuery) {
                 ((WithQuery) p).setQuery(this.query);
             }
             if (p instanceof WithMaxResults) {
                 ((WithMaxResults) p).setMaxResultes(this.maxResults);
             }
+            logInfo("default provider: " + p);
             var specificSymbols = p.get(match);
-            if (specificSymbols == null) {
+            if (specificSymbols == null || specificSymbols.isEmpty()) {
                 continue;
             }
             
             symbols.addAll(specificSymbols);
+            logInfo("got Symbols: " + symbols.size());
             // Have to handle here, the search matches can not ballon
             // for now this will be fine
-            if (symbols.size() >= this.maxResults) {
+            if (this.maxResults != 0 && symbols.size() >= this.maxResults) {
                 return symbols;
             }
         }
@@ -61,7 +53,9 @@ public class DefaultSymbolProvider implements SymbolProvider, WithQuery, WithMax
 
     @Override
     public void setMaxResultes(int maxResults) {
-        this.maxResults = maxResults;
+        // For a given search match, we should not find more than 100.
+        //TODO: come back and make this configurable.
+        this.maxResults = 100;
     }
 
     @Override

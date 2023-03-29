@@ -1,5 +1,11 @@
 package io.konveyor.tackle.core.internal.symbol;
 
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IMethod;
@@ -8,13 +14,6 @@ import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
-import org.eclipse.lsp4j.SymbolKind;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 public class ReturnTypeSymbolProvider implements SymbolProvider, WithQuery {
     private String query;
@@ -38,7 +37,7 @@ public class ReturnTypeSymbolProvider implements SymbolProvider, WithQuery {
                     logInfo(s);
                     SymbolInformation symbol = new SymbolInformation();
                     symbol.setName(method.getElementName());
-                    symbol.setKind((SymbolKind) match.getElement());
+                    symbol.setKind(convertSymbolKind(method));
                     symbol.setContainerName(method.getParent().getElementName());
                     Location location = JDTUtils.toLocation(method);
                     if (location == null) {
@@ -57,10 +56,9 @@ public class ReturnTypeSymbolProvider implements SymbolProvider, WithQuery {
                     return symbols;
                 }
             }
-            logInfo("not found: " + signature);
             return null;
         } catch (Exception e) {
-            logInfo("Exception: " + e);
+            logInfo("unable to get for return type: " + e);
             return null;
         }
     }

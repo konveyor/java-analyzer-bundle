@@ -29,7 +29,7 @@ public class VariableDeclarationSymbolProvider implements SymbolProvider {
             symbol.setLocation(JDTUtils.toLocation(var));
             symbols.add(symbol);
         } catch (Exception e) {
-            logInfo("match:" + match + " Unable to convert for variable: " + e);
+            logInfo("unable to convert for variable: " + e);
             return null;
         }
         return symbols;
