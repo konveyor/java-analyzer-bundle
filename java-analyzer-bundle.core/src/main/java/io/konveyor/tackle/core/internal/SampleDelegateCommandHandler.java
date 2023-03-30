@@ -61,11 +61,18 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             var endListIndex = query.indexOf(")");
             var startQuery = query.substring(0, startListIndex);
             var endQuery = query.substring(endListIndex+1, query.length());
+            var optionalList = endQuery.startsWith("?");
 
             // This should strip the ( ) chars
             var listString = query.substring(startListIndex+1, endListIndex);
             var list = listString.split("\\|");
             ArrayList<SearchPattern> l = new ArrayList<SearchPattern>();
+
+            if (optionalList) {
+                // remove the ? from the endQueryString
+                endQuery = endQuery.substring(1, endQuery.length());
+                l.add(mapLocationToSearchPatternLocation(location, startQuery + endQuery));
+            }
 
             for (String s: list) {
                 var p = mapLocationToSearchPatternLocation(location, startQuery + s + endQuery);
