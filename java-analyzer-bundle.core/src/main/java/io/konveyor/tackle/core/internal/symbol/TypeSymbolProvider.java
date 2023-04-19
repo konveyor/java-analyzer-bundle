@@ -29,7 +29,7 @@ public class TypeSymbolProvider implements SymbolProvider {
                 return null;
             }
         try {
-            var mod = (IJavaElement) match.getElement();
+            var mod = getElement(match);
             SymbolInformation symbol = new SymbolInformation();
             symbol.setName(mod.getElementName());
             symbol.setKind(convertSymbolKind(mod));

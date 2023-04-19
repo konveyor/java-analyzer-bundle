@@ -18,7 +18,7 @@ public class AnnotationSymbolProvider implements SymbolProvider {
         List<SymbolInformation> symbols = new ArrayList<>();
         try {
             IAnnotatable mod = (IAnnotatable) match.getElement();
-            IJavaElement element = (IJavaElement) match.getElement();
+            IJavaElement element = getElement(match);
             for (IAnnotation annotation : mod.getAnnotations()) {
                 SymbolInformation symbol = new SymbolInformation();
                 symbol.setName(annotation.getElementName());

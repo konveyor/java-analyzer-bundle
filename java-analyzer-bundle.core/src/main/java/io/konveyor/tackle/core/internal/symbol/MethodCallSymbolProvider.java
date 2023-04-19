@@ -2,18 +2,14 @@ package io.konveyor.tackle.core.internal.symbol;
 
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.search.MethodReferenceMatch;
+import org.eclipse.jdt.core.search.MethodDeclarationMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
@@ -24,9 +20,9 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
     public List<SymbolInformation> get(SearchMatch match) {
         SymbolKind k = convertSymbolKind((IJavaElement) match.getElement());
         List<SymbolInformation> symbols = new ArrayList<>();
-        // For Method Calls we will need to do the local variable trick
+        // We need to find the Declartions for the given search, from here, we need to find the references.
         try {
-            MethodReferenceMatch m = (MethodReferenceMatch) match;
+            MethodDeclarationMatch m = (MethodDeclarationMatch) match;
 
             // Default to filter to only accurate matches
             var filterOut = m.getAccuracy() != SearchMatch.A_ACCURATE;
@@ -37,22 +33,15 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
             if (filterOut) {
                 return symbols;
             }
-            IMethod e = (IMethod) m.getElement();
+            //IMethod e = (IMethod) m.getElement();
+            IJavaElement e = (IJavaElement) m.getElement();
             SymbolInformation symbol = new SymbolInformation();
             symbol.setName(e.getElementName());
             symbol.setKind(convertSymbolKind(e));
             symbol.setContainerName(e.getParent().getElementName());
             Location location = JDTUtils.toLocation(e);
             if (location == null) {
-                IClassFile classFile = e.getClassFile();
-                String packageName = classFile.getParent().getElementName();
-                String jarName = classFile.getParent().getParent().getElementName();
-                String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR + classFile.getElementName(), classFile.getHandleIdentifier(), null).toASCIIString();
-                if (uriString == null) {
-                    uriString = e.getPath().toString();
-                }
-                Range range = JDTUtils.toRange(e.getOpenable(), e.getNameRange().getOffset(), e.getNameRange().getLength());
-                location = new Location(uriString, range);
+                logInfo("Found match: "  + match + " must implement decompliation to get location correectly, skipping.");
             }
             symbol.setLocation(location);
             symbols.add(symbol);

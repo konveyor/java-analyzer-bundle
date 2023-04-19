@@ -1,5 +1,7 @@
 package io.konveyor.tackle.core.internal.symbol;
 
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IField;
@@ -7,14 +9,13 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.search.ReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
-
-import java.util.List;
 
 public interface SymbolProvider {
     List<SymbolInformation> get(SearchMatch match) throws CoreException;
@@ -89,4 +90,13 @@ public interface SymbolProvider {
         }
     }
 
+    default IJavaElement getElement(SearchMatch match) {
+        if (match instanceof ReferenceMatch) {
+            IJavaElement element = ((ReferenceMatch) match).getLocalElement();
+            if (element != null ){
+                return element;
+            }
+        }
+        return (IJavaElement) match.getElement();
+    }
 }
