@@ -12,8 +12,6 @@ import org.eclipse.jdt.core.search.MethodReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
@@ -41,9 +39,8 @@ public class ConstructorCallSymbolProvider implements SymbolProvider {
             if (uriString == null) {
                 uriString = mod.getPath().toString();
             }
-            Range range = JDTUtils.toRange(mod.getOpenable(), mod.getNameRange().getOffset(), mod.getNameRange().getLength());
-            Location loc = new Location(uriString, range);
-            symbol.setLocation(loc);
+            
+            symbol.setLocation(getLocation(mod, match));
             symbols.add(symbol);
         } catch (Exception e) {
             logInfo("unable to get constructor: " + e);

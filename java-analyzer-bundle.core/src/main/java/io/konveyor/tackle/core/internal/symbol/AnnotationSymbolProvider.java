@@ -24,7 +24,7 @@ public class AnnotationSymbolProvider implements SymbolProvider {
                 symbol.setName(annotation.getElementName());
                 symbol.setKind(convertSymbolKind(element));
                 symbol.setContainerName(annotation.getParent().getElementName());
-                symbol.setLocation(getLocation(element));
+                symbol.setLocation(getLocation(element, match));
                 symbols.add(symbol);
             }
             return symbols;

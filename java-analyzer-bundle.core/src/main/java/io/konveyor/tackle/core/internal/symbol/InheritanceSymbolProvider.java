@@ -36,7 +36,7 @@ public class InheritanceSymbolProvider implements SymbolProvider {
             symbol.setName(mod.getElementName());
             symbol.setKind(k);
             symbol.setContainerName(mod.getParent().getElementName());
-            Location location = JDTUtils.toLocation(mod);
+            var location = getLocation(mod, match);
             if (location == null) {
                 IClassFile classFile = mod.getClassFile();
                 String packageName = classFile.getParent().getElementName();
