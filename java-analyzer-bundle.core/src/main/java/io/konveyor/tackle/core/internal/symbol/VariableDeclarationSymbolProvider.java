@@ -9,7 +9,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.TypeReferenceMatch;
-import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.lsp4j.SymbolInformation;
 
 public class VariableDeclarationSymbolProvider implements SymbolProvider {
@@ -26,7 +25,7 @@ public class VariableDeclarationSymbolProvider implements SymbolProvider {
             symbol.setName(var.getElementName());
             symbol.setKind(convertSymbolKind(var));
             symbol.setContainerName(var.getParent().getElementName());
-            symbol.setLocation(JDTUtils.toLocation(var));
+            symbol.setLocation(getLocation(var, match));
             symbols.add(symbol);
         } catch (Exception e) {
             logInfo("unable to convert for variable: " + e);

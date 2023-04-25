@@ -42,7 +42,8 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
             symbol.setName(e.getElementName());
             symbol.setKind(convertSymbolKind(e));
             symbol.setContainerName(e.getParent().getElementName());
-            Location location = JDTUtils.toLocation(e);
+
+            Location location = getLocation(e, match);
             if (location == null) {
                 IClassFile classFile = e.getClassFile();
                 String packageName = classFile.getParent().getElementName();

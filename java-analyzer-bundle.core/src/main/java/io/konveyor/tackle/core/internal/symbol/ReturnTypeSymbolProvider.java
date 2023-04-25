@@ -39,7 +39,7 @@ public class ReturnTypeSymbolProvider implements SymbolProvider, WithQuery {
                     symbol.setName(method.getElementName());
                     symbol.setKind(convertSymbolKind(method));
                     symbol.setContainerName(method.getParent().getElementName());
-                    Location location = JDTUtils.toLocation(method);
+                    Location location =getLocation(method, match);
                     if (location == null) {
                         IClassFile classFile = method.getClassFile();
                         String packageName = classFile.getParent().getElementName();

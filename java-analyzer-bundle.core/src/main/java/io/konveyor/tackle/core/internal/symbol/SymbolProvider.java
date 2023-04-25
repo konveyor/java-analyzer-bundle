@@ -1,7 +1,11 @@
 package io.konveyor.tackle.core.internal.symbol;
 
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
@@ -13,8 +17,6 @@ import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
-
-import java.util.List;
 
 public interface SymbolProvider {
     List<SymbolInformation> get(SearchMatch match) throws CoreException;
@@ -79,7 +81,15 @@ public interface SymbolProvider {
         return SymbolKind.String;
     }
 
-    default Location getLocation(IJavaElement element) {
+    default Location getLocation(IJavaElement element, SearchMatch match) throws JavaModelException {
+        ICompilationUnit compilationUnit = (ICompilationUnit) element.getAncestor(IJavaElement.COMPILATION_UNIT);
+		if (compilationUnit != null) {
+		    return JDTUtils.toLocation(compilationUnit, match.getOffset(), match.getLength());
+		} 
+		IClassFile cf = (IClassFile) element.getAncestor(IJavaElement.CLASS_FILE);
+		if (cf != null && cf.getSourceRange() != null) {
+			return JDTUtils.toLocation(cf, match.getOffset(), match.getLength());
+        }
         try {
             // This casting is safe or is assumed to be safer because the ToString on SearchMatch does it
             return JDTUtils.toLocation(element);
