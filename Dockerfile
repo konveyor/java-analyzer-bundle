@@ -4,6 +4,14 @@ RUN curl -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.16.0/jd
 	tar -xvf jdtls.tar.gz --no-same-owner &&\
 	chmod 755 /jdtls/bin/jdtls
 
+FROM registry.access.redhat.com/ubi9/ubi AS fernflower
+RUN dnf install -y maven-openjdk17 wget
+RUN wget https://github.com/JetBrains/intellij-community/archive/refs/tags/idea/231.9011.34.tar.gz -O intellij-community.tar && tar xf intellij-community.tar
+WORKDIR /intellij-community-idea-231.9011.34/plugins/java-decompiler/engine
+RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+RUN ./gradlew build -x test
+RUN mkdir /output && cp ./build/libs/fernflower.jar /output
+
 FROM registry.access.redhat.com/ubi9/ubi AS addon-build
 RUN dnf install -y maven-openjdk17
 WORKDIR /app
@@ -18,12 +26,6 @@ RUN go install golang.org/x/tools/gopls@latest
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
 COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
+COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
 COPY --from=addon-build /app/hack/lsp-cli /bin/lsp-cli
 CMD [ "/jdtls/bin/jdtls" ]
-
-
-
-
-
-
-
