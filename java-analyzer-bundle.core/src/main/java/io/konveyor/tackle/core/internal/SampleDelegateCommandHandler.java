@@ -24,24 +24,25 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
     public static final String COMMAND_ID = "io.konveyor.tackle.samplecommand";
     public static final String RULE_ENTRY_COMMAND_ID = "io.konveyor.tackle.ruleEntry";
 
+    private static final String FullAnalysisMode = "full";
+    private static final String sourceOnlyAnalysisMode = "source-only";
+    
+
     @Override
     public Object executeCommand(String commandId, List<Object> arguments, IProgressMonitor progress) throws Exception {
-        logInfo("waiting for source downloads");
-        waitForJavaSourceDownloads();
-        logInfo("waited for source downloads");
         switch (commandId) {
             case COMMAND_ID:
                 return "Hello World";
             case RULE_ENTRY_COMMAND_ID:
                 logInfo("Here we get the arguments for rule entry: "+arguments);
                 RuleEntryParams params = new RuleEntryParams(commandId, arguments);
-                return search(params.getProjectName(), params.getQuery(), params.getLocation(), progress);
+                return search(params.getProjectName(), params.getQuery(), params.getLocation(), params.getAnalysisMode(), progress);
             default:
                 throw new UnsupportedOperationException(format("Unsupported command '%s'!", commandId));
         }
     }
 
-    private void waitForJavaSourceDownloads() {
+    private static void waitForJavaSourceDownloads() {
         JobHelpers.waitForInitializeJobs();
         JobHelpers.waitForBuildJobs(JobHelpers.MAX_TIME_MILLIS);
         JobHelpers.waitForDownloadSourcesJobs(JobHelpers.MAX_TIME_MILLIS);
@@ -126,8 +127,9 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         throw new Exception("unable to create search pattern"); 
     }
 
-    private static List<SymbolInformation> search(String projectName, String query, int location, IProgressMonitor monitor) throws Exception {
+    private static List<SymbolInformation> search(String projectName, String query, int location, String analsysisMode, IProgressMonitor monitor) throws Exception {
         //IJavaSearchScope scope = SearchEngine.createWorkspaceScope();
+         
         IJavaProject[] targetProjects;
         IJavaProject project = ProjectUtils.getJavaProject(projectName);
         logInfo("Searching in project: " + project + " Query: " + query);
@@ -137,7 +139,17 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 			targetProjects= ProjectUtils.getJavaProjects();
 		}
 
+
+        //  For Partial results, we are going to filter out based on a list in the engine
 		int s = IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.APPLICATION_LIBRARIES;
+        if (analsysisMode.equals(sourceOnlyAnalysisMode)) {
+            logInfo("source-only analysis mode only scoping to Sources");
+            s = IJavaSearchScope.SOURCES;
+        } else {
+            logInfo("waiting for source downloads");
+            waitForJavaSourceDownloads();
+            logInfo("waited for source downloads");
+        }
 
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(targetProjects, s);
 

@@ -1,15 +1,16 @@
 package io.konveyor.tackle.core.internal;
 
+import static java.lang.String.format;
+
 import java.util.List;
 import java.util.Map;
-
-import static java.lang.String.format;
 
 public class RuleEntryParams {
     
     private final String projectName;
     private final String query;
     private final int location;
+    private final String analysisMode;
 
     public RuleEntryParams(final String commandId, final List<Object> arguments) {
         @SuppressWarnings("unchecked")
@@ -19,6 +20,7 @@ public class RuleEntryParams {
         this.projectName = (String) obj.get("project");
         this.query = (String) obj.get("query");
         this.location = Integer.parseInt((String) obj.get("location"));
+        this.analysisMode = (String) obj.get("analysisMode");
     }
 
     public String getProjectName() {
@@ -31,6 +33,10 @@ public class RuleEntryParams {
 
     public int getLocation() {
         return location;
+    }
+
+    public String getAnalysisMode() {
+        return analysisMode;
     }
 
 }
