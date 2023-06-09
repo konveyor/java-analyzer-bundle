@@ -46,6 +46,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         JobHelpers.waitForInitializeJobs();
         JobHelpers.waitForBuildJobs(JobHelpers.MAX_TIME_MILLIS);
         JobHelpers.waitForDownloadSourcesJobs(JobHelpers.MAX_TIME_MILLIS);
+        
     }
 
     // mapLocationToSearchPatternLocation will create the correct search pattern or throw an error if one can not be built.
@@ -139,7 +140,6 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 			targetProjects= ProjectUtils.getJavaProjects();
 		}
 
-
         //  For Partial results, we are going to filter out based on a list in the engine
 		int s = IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.APPLICATION_LIBRARIES;
         if (analsysisMode.equals(sourceOnlyAnalysisMode)) {
@@ -150,6 +150,13 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             waitForJavaSourceDownloads();
             logInfo("waited for source downloads");
         }
+
+        var referencedLibs = ProjectUtils.listReferencedLibraries(project);
+        var sourcePaths = ProjectUtils.listSourcePaths(project);
+
+        logInfo("Referenced Libs: " + referencedLibs);
+        logInfo("Source paths Libs: " + sourcePaths);
+
 
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(targetProjects, s);
 

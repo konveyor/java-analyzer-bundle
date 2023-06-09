@@ -2,7 +2,6 @@ package io.konveyor.tackle.core.internal.symbol;
 
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +10,6 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.search.MethodReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.internal.core.JavaElement;
-import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
@@ -33,13 +31,6 @@ public class ConstructorCallSymbolProvider implements SymbolProvider {
                 return null;
             }
             symbol.setContainerName(mod.getParent().getElementName());
-            String packageName = mod.getParent().getElementName();
-            String jarName = mod.getParent().getParent().getElementName();
-            String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR,  mod.getHandleIdentifier(), null).toASCIIString();
-            if (uriString == null) {
-                uriString = mod.getPath().toString();
-            }
-            
             symbol.setLocation(getLocation(mod, match));
             symbols.add(symbol);
         } catch (Exception e) {
