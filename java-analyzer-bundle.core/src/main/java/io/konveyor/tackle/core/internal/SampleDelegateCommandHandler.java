@@ -139,6 +139,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 		} else {
 			targetProjects= ProjectUtils.getJavaProjects();
 		}
+        logInfo("Searching in target project: " + targetProjects);
 
         //  For Partial results, we are going to filter out based on a list in the engine
 		int s = IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.APPLICATION_LIBRARIES;
@@ -150,13 +151,6 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             waitForJavaSourceDownloads();
             logInfo("waited for source downloads");
         }
-
-        var referencedLibs = ProjectUtils.listReferencedLibraries(project);
-        var sourcePaths = ProjectUtils.listSourcePaths(project);
-
-        logInfo("Referenced Libs: " + referencedLibs);
-        logInfo("Source paths Libs: " + sourcePaths);
-
 
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(targetProjects, s);
 
