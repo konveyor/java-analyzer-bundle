@@ -2,17 +2,12 @@ package io.konveyor.tackle.core.internal.symbol;
 
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.search.SearchMatch;
-import org.eclipse.jdt.ls.core.internal.JDTUtils;
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 
 public class ReturnTypeSymbolProvider implements SymbolProvider, WithQuery {
@@ -39,19 +34,7 @@ public class ReturnTypeSymbolProvider implements SymbolProvider, WithQuery {
                     symbol.setName(method.getElementName());
                     symbol.setKind(convertSymbolKind(method));
                     symbol.setContainerName(method.getParent().getElementName());
-                    Location location =getLocation(method, match);
-                    if (location == null) {
-                        IClassFile classFile = method.getClassFile();
-                        String packageName = classFile.getParent().getElementName();
-                        String jarName = classFile.getParent().getParent().getElementName();
-                        String uriString = new URI("jdt", "contents", JDTUtils.PATH_SEPARATOR + jarName + JDTUtils.PATH_SEPARATOR + packageName + JDTUtils.PATH_SEPARATOR + classFile.getElementName(), classFile.getHandleIdentifier(), null).toASCIIString();
-                        if (uriString == null) {
-                            uriString = method.getPath().toString();
-                        }
-                        Range range = JDTUtils.toRange(method.getOpenable(), method.getNameRange().getOffset(), method.getNameRange().getLength());
-                        location = new Location(uriString, range);
-                    }
-                    symbol.setLocation(location);
+                    symbol.setLocation(getLocation(method, match));
                     symbols.add(symbol);
                     return symbols;
                 }
