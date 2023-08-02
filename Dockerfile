@@ -4,6 +4,11 @@ RUN curl -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.16.0/jd
 	tar -xvf jdtls.tar.gz --no-same-owner &&\
 	chmod 755 /jdtls/bin/jdtls
 
+FROM registry.access.redhat.com/ubi9/ubi AS maven-index
+RUN curl -o nexus-maven-repository-index.gz https://repo.maven.apache.org/maven2/.index/nexus-maven-repository-index.gz &&\
+	gunzip -k nexus-maven-repository-index.gz &&\
+	grep -oaP '[a-z][a-zA-Z0-9_.-]+\|[a-zA-Z][a-zA-Z0-9_.-]+\|([a-zA-Z0-9_.-]+\|)?(sources|pom|jar|maven-plugin|ear|ejb|ejb-client|java-source|rar|war)\|(jar|war|ear|pom|war|rar)' nexus-maven-repository-index | cut -d'|' -f1 | sed 's/$/.*/' | sort | uniq > /maven.default.index
+
 FROM registry.access.redhat.com/ubi9/ubi AS fernflower
 RUN dnf install -y maven-openjdk17 wget
 RUN wget https://github.com/JetBrains/intellij-community/archive/refs/tags/idea/231.9011.34.tar.gz -O intellij-community.tar && tar xf intellij-community.tar
@@ -28,4 +33,5 @@ COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
 COPY --from=addon-build /app/hack/lsp-cli /bin/lsp-cli
+COPY --from=maven-index /maven.default.index /maven.default.index
 CMD [ "/jdtls/bin/jdtls" ]
