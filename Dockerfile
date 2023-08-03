@@ -33,5 +33,5 @@ COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
 COPY --from=addon-build /app/hack/lsp-cli /bin/lsp-cli
-COPY --from=maven-index /maven.default.index /maven.default.index
+COPY --from=maven-index /maven.default.index /usr/local/etc/maven.default.index
 CMD [ "/jdtls/bin/jdtls" ]
