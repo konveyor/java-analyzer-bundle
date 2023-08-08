@@ -20,14 +20,21 @@ jobs:
     strategy:
       fail-fast: false
     steps:
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
+      with:
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
     - name: Checkout Push to Registry action
       uses: konveyor/release-tools/build-push-quay@main
       with:
         architectures: "amd64, arm64, ppc64le, s390x"
         containerfile: "./Dockerfile"
         image_name: "jdtls-server-base"
-        image_namespace: "konveyor"
+        image_namespace: "pranavgaikwad"
         image_registry: "quay.io"
-        quay_publish_robot: ${{ secrets.QUAY_PUBLISH_ROBOT }}
-        quay_publish_token: ${{ secrets.QUAY_PUBLISH_TOKEN }}
+        quay_publish_robot: ${{ secrets.QUAY_PUBLISH_ROBOT_PERSONAL }}
+        quay_publish_token: ${{ secrets.QUAY_PUBLISH_TOKEN_PERSONAL }}
         ref: ${{ github.ref }}
