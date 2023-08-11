@@ -1,0 +1,14 @@
+# Fake maven.default.index to COPY when BUILDENV=local
+#
+# This file takes far too long to generate on alternate architectures using
+# emulation in GitHub actions.
+#
+# It is not possible to conditionally run a Dockerfile / Containerfile COPY
+# But we can use an ARG to manipulate what happens in a RUN command, so we
+# either overwrite this file in GitHub before starting the container build,
+# copy it into the container and skip generating it within the container or
+# copy it in and overwrite it within the container when building locally.
+#
+# This means no additional steps have to be added to the development workflow.
+#
+# If this message appears in a container image something went wrong.

@@ -25,9 +25,15 @@ jobs:
       with:
         architectures: "amd64, arm64, ppc64le, s390x"
         containerfile: "./Dockerfile"
+        extra-args: "--build-arg BUILDENV=github"
         image_name: "jdtls-server-base"
         image_namespace: "konveyor"
         image_registry: "quay.io"
         quay_publish_robot: ${{ secrets.QUAY_PUBLISH_ROBOT }}
         quay_publish_token: ${{ secrets.QUAY_PUBLISH_TOKEN }}
+        pre_build_cmd: |
+                    curl -s -o nexus-maven-repository-index.gz https://repo.maven.apache.org/maven2/.index/nexus-maven-repository-index.gz
+                    unpigz nexus-maven-repository-index.gz
+                    cat nexus-maven-repository-index | parallel -j150% --pipe --block 100M --cat grep -oaP "'[a-z][a-zA-Z0-9_.-]+\|[a-zA-Z][a-zA-Z0-9_.-]+\|([a-zA-Z0-9_.-]+\|)?(sources|pom|jar|maven-plugin|ear|ejb|ejb-client|java-source|rar|war)\|(jar|war|ear|pom|war|rar)'" {} | cut -d'|' -f1 | sed 's/$/.*/' | sort | uniq > hack/maven.default.index
+                    rm -rf nexus-maven-repository-index
         ref: ${{ github.ref }}
