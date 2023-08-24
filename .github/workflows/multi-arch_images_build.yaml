@@ -20,6 +20,9 @@ jobs:
     strategy:
       fail-fast: false
     steps:
+    - name: Install pigz
+      shell: bash
+      run: sudo apt-get install -y pigz
     - name: Checkout Push to Registry action
       uses: konveyor/release-tools/build-push-quay@main
       with:
