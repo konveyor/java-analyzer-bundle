@@ -20,6 +20,7 @@ public class SymbolProviderResolver {
         map.put(8, new ImportSymbolProvider());
         map.put(9, new VariableDeclarationSymbolProvider());
         map.put(10, new TypeSymbolProvider());
+        map.put(11, new ReferenceSymbolProvider());
     }
 
     public static SymbolProvider resolve(Integer i, SearchMatch SearchMatch) {
