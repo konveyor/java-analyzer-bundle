@@ -1,0 +1,25 @@
+name: 'Generate Maven Index and Commit'
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: '0 3 * * 0'
+
+jobs:
+  build_and_commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install podman
+      shell: bash
+      run: sudo apt-get install -y podman
+    - name:
+      run: |
+        podman build -f hack/Dockerfile -t export hack/
+        podman cp $(podman create export):/unpack/maven.default.index ./hack
+    - name: Commit Updated maven.default.index update
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: ":ghost: Update Maven Index"

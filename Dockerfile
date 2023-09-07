@@ -6,12 +6,7 @@ RUN curl -s -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.16.0
         rm -rf jdtls.tar.gz
 
 FROM registry.access.redhat.com/ubi9/ubi AS maven-index
-ARG BUILDENV=local
 COPY hack/maven.default.index /maven.default.index
-RUN if [ $BUILDENV == "local" ]; then curl -s -o nexus-maven-repository-index.gz https://repo.maven.apache.org/maven2/.index/nexus-maven-repository-index.gz &&\
-	zgrep -oaP '[a-z][a-zA-Z0-9_.-]+\|[a-zA-Z][a-zA-Z0-9_.-]+\|([a-zA-Z0-9_.-]+\|)?(sources|pom|jar|maven-plugin|ear|ejb|ejb-client|java-source|rar|war)\|(jar|war|ear|pom|war|rar)' nexus-maven-repository-index.gz | cut -d'|' -f1 | sed 's/$/.*/' | sort | uniq > /maven.default.index &&\
-        rm -rf nexus-maven-repository-index.gz; fi
-
 FROM registry.access.redhat.com/ubi9/ubi AS fernflower
 RUN dnf install -y maven-openjdk17 wget --setopt=install_weak_deps=False && dnf clean all && rm -rf /var/cache/dnf
 RUN wget --quiet https://github.com/JetBrains/intellij-community/archive/refs/tags/idea/231.9011.34.tar.gz -O intellij-community.tar && tar xf intellij-community.tar intellij-community-idea-231.9011.34/plugins/java-decompiler/engine && rm -rf intellij-community.tar
