@@ -27,7 +27,7 @@ RUN microdnf install -y go-toolset && microdnf clean all && rm -rf /var/cache/dn
 RUN go install golang.org/x/tools/gopls@latest
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
-RUN microdnf install -y python39 maven-openjdk17 golang-bin --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
+RUN microdnf install -y python39 maven-openjdk17 java-17-openjdk-devel golang-bin --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
 COPY --from=gopls-build /root/go/bin/gopls /root/go/bin/gopls
 COPY --from=jdtls-download /jdtls /jdtls/
