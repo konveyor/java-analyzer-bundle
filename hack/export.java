@@ -27,7 +27,8 @@ public class export {
     {
         Document d = storedFields.document(i);
         if (d.get("u") != null) {
-          groupIds.add(d.get("u").split("\\|")[0] + ".*");
+          String[] artifact = d.get("u").split("\\|");
+          groupIds.add(artifact[0] + "." + artifact[1] + ".*");
         }
     }
 
