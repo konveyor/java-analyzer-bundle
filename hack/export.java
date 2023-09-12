@@ -28,7 +28,14 @@ public class export {
         Document d = storedFields.document(i);
         if (d.get("u") != null) {
           String[] artifact = d.get("u").split("\\|");
-          groupIds.add(artifact[0] + "." + artifact[1] + ".*");
+          String[] groupIdElements = artifact[0].split("\\.");
+          if (groupIdElements.length > 1) {
+            groupIds.add(artifact[0] + ".*" );
+          } else {
+            String groupIdArtifactId = artifact[0] + "." + artifact[1];
+            String[] indexString = groupIdArtifactId.split("\\.");
+            groupIds.add(indexString[0] + "." + indexString[1] + ".*" );
+          }
         }
     }
 
