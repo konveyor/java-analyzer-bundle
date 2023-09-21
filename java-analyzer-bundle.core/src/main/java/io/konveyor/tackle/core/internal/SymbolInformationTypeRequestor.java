@@ -34,7 +34,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
         this.symbolKind = symbolKind;
         this.query = query;
         if (maxResults == 0) {
-            this.maxResults = 10000;
+            this.maxResults = 100000;
         }
     }
 

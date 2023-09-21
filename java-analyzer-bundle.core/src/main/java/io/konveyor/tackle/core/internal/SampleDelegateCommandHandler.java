@@ -3,11 +3,18 @@ package io.konveyor.tackle.core.internal;
 import static java.lang.String.format;
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -18,6 +25,7 @@ import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JobHelpers;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.m2e.jdt.internal.BuildPathManager;
 
 public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
@@ -46,7 +54,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         JobHelpers.waitForInitializeJobs();
         JobHelpers.waitForBuildJobs(JobHelpers.MAX_TIME_MILLIS);
         JobHelpers.waitForDownloadSourcesJobs(JobHelpers.MAX_TIME_MILLIS);
-        
+        JobHelpers.waitForJobsToComplete();
     }
 
     // mapLocationToSearchPatternLocation will create the correct search pattern or throw an error if one can not be built.
@@ -152,11 +160,43 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             logInfo("waiting for source downloads");
             waitForJavaSourceDownloads();
             logInfo("waited for source downloads");
+            for (var p: targetProjects) {
+                var container = p.getResolvedClasspath(false);
+                IClasspathEntry[] newClassPaths = new IClasspathEntry[container.length];
+                for (var i = 0; i < container.length; i++) {
+                    var c = container[i];
+                    logInfo("checking if we need to get source: " + c.getSourceAttachmentPath() + ": for path " + c.getPath());
+                    String fileName = c.getPath().lastSegment();
+                    fileName = fileName.replace(".jar", "-sources.jar");
+                    var outputPath = new Path(c.getPath().toFile().getParent().toString() + "/" + fileName);
+                    
+                    if (c.getSourceAttachmentPath() == null &&
+                     c.getPath().toFile().getAbsoluteFile().toString().startsWith(JavaCore.getClasspathVariable(BuildPathManager.M2_REPO).toString()) &&
+                     !outputPath.toFile().exists()) {
+                        File theDir = new File(c.getPath().toFile().getParent().toString() + "/source");
+                        if (!theDir.exists()){
+                            theDir.mkdirs();
+                        }
+
+                        ProcessBuilder builder = new ProcessBuilder();
+                        builder.command("java", "-jar", "/bin/fernflower.jar", c.getPath().toFile().getAbsolutePath(), theDir.getAbsolutePath());
+                        Process process = builder.start();
+                        process.waitFor(50, TimeUnit.SECONDS);
+                        if (process.exitValue() != 0) {
+                            logInfo("unable to decompile: " + c.getPath());
+                        }
+                        var newPath = new Path(theDir.getAbsolutePath()+"/"+c.getPath().lastSegment());
+                        Files.move(newPath.toFile().toPath(), outputPath.toFile().toPath());
+                   } else {
+                    newClassPaths[i] = c;
+                   }
+                }
+                p.getJavaModel().refreshExternalArchives(new IJavaElement[]{p}, monitor);
+            }
+            waitForJavaSourceDownloads();
         }
 
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(targetProjects, s);
-
-        logInfo("scope: " + scope);
 
         SearchPattern pattern;
         try {
