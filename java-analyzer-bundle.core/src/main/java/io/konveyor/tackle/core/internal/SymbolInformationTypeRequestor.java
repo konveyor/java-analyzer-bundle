@@ -53,6 +53,10 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             return;
 
         }
+        if ((!this.query.contains("?") || this.query.contains("*")) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
+            logInfo("exact match is looking for accurate results");
+            return;
+        }
 
         SymbolProvider symbolProvider = SymbolProviderResolver.resolve(this.symbolKind, match);
         if (symbolProvider instanceof WithQuery) {
