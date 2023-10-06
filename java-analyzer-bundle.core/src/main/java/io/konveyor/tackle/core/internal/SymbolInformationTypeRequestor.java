@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.lsp4j.SymbolInformation;
@@ -52,6 +53,23 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             logInfo("match.getResource().getType() | IResource.FILE");
             return;
 
+        }
+        if ((!this.query.contains("?") && !this.query.contains("*")) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
+            var e = (IJavaElement) match.getElement();
+            //TODO: This is a hack, this will give use some clue of what we are looking at, if the search is exact then this should match
+            // I don't love this, but seems to be the right way
+            logInfo("attempting: " + e.getHandleIdentifier());
+            if (!e.getHandleIdentifier().contains(query)) {
+                logInfo("exact match is looking for accurate results" + match);
+                return;
+            }
+        }
+        
+        if ((this.query.contains("?") && (this.query.contains("(") || this.query.contains(")"))) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
+            if(!this.query.contains("*")) {
+                logInfo("exact match is looking for accurate results " + match);
+                return;
+            }
         }
 
         SymbolProvider symbolProvider = SymbolProviderResolver.resolve(this.symbolKind, match);
