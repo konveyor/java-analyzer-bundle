@@ -105,7 +105,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
     private static SearchPattern getPatternSingleQuery(int location, String query) throws Exception {
         var pattern = SearchPattern.R_PATTERN_MATCH;
-        if (!query.contains("?") || !query.contains("*")) {
+        if ((!query.contains("?") || !query.contains("*")) && (location != 11)) {
             logInfo("Using full match");
             pattern = SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE;
         }
@@ -114,21 +114,19 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         // Type and annotation
         case 10:
         case 4:
+        case 8:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
         case 5:
         case 1:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.IMPLEMENTORS, pattern);
+        case 7:
+        case 9:
+            return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.REFERENCES, pattern);
         case 2: 
             // Switched back to referenced
             return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.REFERENCES, SearchPattern.R_PATTERN_MATCH | SearchPattern.R_ERASURE_MATCH);
         case 3:
             return SearchPattern.createPattern(query, IJavaSearchConstants.CONSTRUCTOR, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
-        case 7:
-            return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.REFERENCES, pattern);
-        case 8:
-            return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
-        case 9:
-            return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.REFERENCES, pattern);
         case 11:
             return SearchPattern.createPattern(query, IJavaSearchConstants.PACKAGE, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
         }
