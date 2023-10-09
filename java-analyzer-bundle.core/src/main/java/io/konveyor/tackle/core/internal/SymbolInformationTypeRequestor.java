@@ -60,7 +60,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             // I don't love this, but seems to be the right way
             logInfo("attempting: " + e.getHandleIdentifier());
             // Adding specific case for annotations, they will always be inaccurrate.
-            if (!e.getHandleIdentifier().contains(query) && this.symbolKind != 4) {
+            if (!e.getHandleIdentifier().contains(query) && !(this.symbolKind == 4 || this.symbolKind == 5 || this.symbolKind == 1)) {
                 logInfo("exact match is looking for accurate results" + match);
                 return;
             }
