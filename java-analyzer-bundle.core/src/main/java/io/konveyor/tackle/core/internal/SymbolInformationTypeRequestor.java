@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.lsp4j.SymbolInformation;
@@ -46,12 +47,37 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             logInfo("maxResults > 0 && symbols.size() >= maxResults");
             return;
         }
+
+        if (match.isInsideDocComment()) {
+            logInfo("found match inside doc comment: " + match);
+            return;
+        }
+
         // If we are not looking at files, then we don't want to return anytyhing for the match.
         //logInfo("getResource().getType()" + match.getResource().getType());
         if ((match.getResource().getType() | IResource.FILE) == 0 || match.getElement() == null) {
             logInfo("match.getResource().getType() | IResource.FILE");
             return;
 
+        }
+
+        if ((!this.query.contains("?") && !this.query.contains("*")) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
+            var e = (IJavaElement) match.getElement();
+            //TODO: This is a hack, this will give use some clue of what we are looking at, if the search is exact then this should match
+            // I don't love this, but seems to be the right way
+            logInfo("attempting: " + e.getHandleIdentifier());
+            // Adding specific case for annotations, they will always be inaccurrate.
+            if (!e.getHandleIdentifier().contains(query) && !(this.symbolKind == 4 || this.symbolKind == 5 || this.symbolKind == 1)) {
+                logInfo("exact match is looking for accurate results" + match);
+                return;
+            }
+        }
+        
+        if ((this.query.contains("?") && (this.query.contains("(") || this.query.contains(")"))) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
+            if(!this.query.contains("*")) {
+                logInfo("exact match is looking for accurate results " + match);
+                return;
+            }
         }
 
         SymbolProvider symbolProvider = SymbolProviderResolver.resolve(this.symbolKind, match);
