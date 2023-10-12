@@ -47,6 +47,12 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             logInfo("maxResults > 0 && symbols.size() >= maxResults");
             return;
         }
+
+        if (match.isInsideDocComment()) {
+            logInfo("found match inside doc comment: " + match);
+            return;
+        }
+
         // If we are not looking at files, then we don't want to return anytyhing for the match.
         //logInfo("getResource().getType()" + match.getResource().getType());
         if ((match.getResource().getType() | IResource.FILE) == 0 || match.getElement() == null) {
@@ -54,6 +60,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             return;
 
         }
+
         if ((!this.query.contains("?") && !this.query.contains("*")) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
             var e = (IJavaElement) match.getElement();
             //TODO: This is a hack, this will give use some clue of what we are looking at, if the search is exact then this should match
