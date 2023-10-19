@@ -17,6 +17,7 @@ import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
 import org.eclipse.jdt.ls.core.internal.JobHelpers;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
+import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.lsp4j.SymbolInformation;
 
 public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
@@ -138,12 +139,12 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
          
         IJavaProject[] targetProjects;
         IJavaProject project = ProjectUtils.getJavaProject(projectName);
-        logInfo("Searching in project: " + project + " Query: " + query);
         if (project != null) {
 			targetProjects = new IJavaProject[] { project };
 		} else {
 			targetProjects= ProjectUtils.getJavaProjects();
 		}
+    
         logInfo("Searching in target project: " + targetProjects);
 
         //  For Partial results, we are going to filter out based on a list in the engine
@@ -155,6 +156,12 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             logInfo("waiting for source downloads");
             waitForJavaSourceDownloads();
             logInfo("waited for source downloads");
+        }
+
+        for (IJavaProject iJavaProject : targetProjects) {
+            var errors = ResourceUtils.getErrorMarkers(iJavaProject.getProject());
+            var warnings = ResourceUtils.getWarningMarkers(iJavaProject.getProject());
+            logInfo("for project: " + iJavaProject + " found errors: " + errors + " warnings: " + warnings);
         }
 
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(targetProjects, s);

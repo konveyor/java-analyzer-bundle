@@ -12,6 +12,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.SearchRequestor;
+import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.lsp4j.SymbolInformation;
 
 import io.konveyor.tackle.core.internal.symbol.SymbolProvider;
@@ -48,6 +49,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             return;
         }
 
+
         if (match.isInsideDocComment()) {
             logInfo("found match inside doc comment: " + match);
             return;
@@ -61,22 +63,26 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
 
         }
 
-        if ((!this.query.contains("?") && !this.query.contains("*")) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
-            var e = (IJavaElement) match.getElement();
-            //TODO: This is a hack, this will give use some clue of what we are looking at, if the search is exact then this should match
-            // I don't love this, but seems to be the right way
-            logInfo("attempting: " + e.getHandleIdentifier());
-            // Adding specific case for annotations, they will always be inaccurrate.
-            if (!e.getHandleIdentifier().contains(query) && !(this.symbolKind == 4 || this.symbolKind == 5 || this.symbolKind == 1)) {
-                logInfo("exact match is looking for accurate results" + match);
-                return;
+        var e = (IJavaElement) match.getElement();
+        if (shouldCheckAccuracy(e)) {
+
+            if ((!this.query.contains("?") && !this.query.contains("*")) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
+            
+                //TODO: This is a hack, this will give use some clue of what we are looking at, if the search is exact then this should match
+                // I don't love this, but seems to be the right way
+                logInfo("attempting: " + e.getHandleIdentifier());
+                // Adding specific case for annotations, they will always be inaccurrate.
+                if (!e.getHandleIdentifier().contains(query) && !(this.symbolKind == 4 || this.symbolKind == 5 || this.symbolKind == 1 || this.symbolKind == 3)) {
+                    logInfo("exact match is looking for accurate results" + match);
+                    return;
+                }
             }
-        }
         
-        if ((this.query.contains("?") && (this.query.contains("(") || this.query.contains(")"))) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
-            if(!this.query.contains("*")) {
-                logInfo("exact match is looking for accurate results " + match);
-                return;
+            if ((this.query.contains("?") && (this.query.contains("(") || this.query.contains(")"))) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
+                if(!this.query.contains("*")) {
+                    logInfo("exact match is looking for accurate results " + match);
+                    return;
+                }
             }
         }
 
@@ -96,5 +102,18 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
 
     public List<SymbolInformation> getSymbols() {
         return this.symbols;
+    }
+
+    // This will determine if there are error markers for the primary element that is associated with this
+    // element. This then will tell us if there is a reason that some results may be inaccurrate. 
+    // TODO: We still need for each provider, to actually determine if it is a match when 
+    //   inaccurate but this will give us a quick win when there are not issues in the java projects/compilation units.
+    private boolean shouldCheckAccuracy(IJavaElement element) throws CoreException{
+        var errors = ResourceUtils.getErrorMarkers(element.getPrimaryElement().getResource());
+        if (!errors.isEmpty()) {
+            logInfo("unable to check accuracy for element: " + element + " got errors: " + errors);
+            return false;
+        }
+        return true;
     }
 }
