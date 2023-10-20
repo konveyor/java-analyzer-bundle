@@ -110,7 +110,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
     //   inaccurate but this will give us a quick win when there are not issues in the java projects/compilation units.
     private boolean shouldCheckAccuracy(IJavaElement element) throws CoreException{
         var errors = ResourceUtils.getErrorMarkers(element.getPrimaryElement().getResource());
-        if (!errors.isEmpty()) {
+        if (errors != null && !errors.isEmpty()) {
             logInfo("unable to check accuracy for element: " + element + " got errors: " + errors);
             return false;
         }
