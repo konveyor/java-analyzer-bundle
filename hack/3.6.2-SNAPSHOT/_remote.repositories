@@ -1,0 +1,4 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Nov 08 10:17:18 CET 2023
+maven-dependency-plugin-3.6.2-SNAPSHOT.jar>=
+maven-dependency-plugin-3.6.2-SNAPSHOT.pom>=
