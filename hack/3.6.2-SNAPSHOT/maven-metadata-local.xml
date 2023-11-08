@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-dependency-plugin</artifactId>
+  <versioning>
+    <lastUpdated>20231108091705</lastUpdated>
+    <snapshot>
+      <localCopy>true</localCopy>
+    </snapshot>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>3.6.2-SNAPSHOT</value>
+        <updated>20231108091705</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>3.6.2-SNAPSHOT</value>
+        <updated>20231108091705</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+  <version>3.6.2-SNAPSHOT</version>
+</metadata>
