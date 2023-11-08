@@ -27,7 +27,7 @@ RUN microdnf install -y go-toolset && microdnf clean all && rm -rf /var/cache/dn
 RUN go install golang.org/x/tools/gopls@latest
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
-RUN microdnf install -y python39 java-17-openjdk-devel golang-bin git tar gzip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
+RUN microdnf install -y python39 java-17-openjdk-devel golang-bin tar gzip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
 RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.5/binaries/apache-maven-3.9.5-bin.tar.gz && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
