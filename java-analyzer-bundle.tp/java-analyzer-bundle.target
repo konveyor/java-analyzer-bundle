@@ -7,7 +7,7 @@
 		<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner"
 			includeSource="true" type="InstallableUnit">
 			<unit id="org.eclipse.jdt.ls.core" version="0.0.0" />
-			<repository location="https://download.eclipse.org/jdtls/snapshots/repository/1.26.0.202307271613" />
+			<repository location="https://download.eclipse.org/jdtls/snapshots/repository/1.31.0.202312111429" />
 		</location>
 		
 		
@@ -50,7 +50,7 @@
             <unit id="org.eclipse.jdt.source.feature.group" version="0.0.0"/>
             <unit id="org.eclipse.sdk.feature.group" version="0.0.0"/>
             <unit id="org.mockito.mockito-core" version="0.0.0"/>
-            <repository location="https://download.eclipse.org/eclipse/updates/4.27"/>
+            <repository location="https://download.eclipse.org/eclipse/updates/4.30"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
             <unit id="org.eclipse.xtend.sdk.feature.group" version="0.0.0"/>
