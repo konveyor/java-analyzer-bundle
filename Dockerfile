@@ -34,10 +34,6 @@ RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-
     ln -s /usr/local/apache-maven-3.9.5/bin/mvn /usr/bin/mvn && \
     rm /tmp/apache-maven.tar.gz
 ENV M2_HOME /usr/local/apache-maven-3.9.5
-
-# TODO(jmle): remove this when plugin is fixed - installs fixed dependency plugin to fetch sources
-COPY ./hack/3.6.2-SNAPSHOT /root/.m2/repository/org/apache/maven/plugins/maven-dependency-plugin/3.6.2-SNAPSHOT
-
 COPY --from=gopls-build /root/go/bin/gopls /root/go/bin/gopls
 COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
