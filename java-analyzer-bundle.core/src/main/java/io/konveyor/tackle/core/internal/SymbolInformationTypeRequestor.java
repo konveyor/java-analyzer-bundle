@@ -63,29 +63,6 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
 
         }
 
-        var e = (IJavaElement) match.getElement();
-        if (shouldCheckAccuracy(e)) {
-
-            if ((!this.query.contains("?") && !this.query.contains("*")) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
-            
-                //TODO: This is a hack, this will give use some clue of what we are looking at, if the search is exact then this should match
-                // I don't love this, but seems to be the right way
-                logInfo("attempting: " + e.getHandleIdentifier());
-                // Adding specific case for annotations, they will always be inaccurrate.
-                if (!e.getHandleIdentifier().contains(query) && !(this.symbolKind == 4 || this.symbolKind == 5 || this.symbolKind == 1 || this.symbolKind == 3)) {
-                    logInfo("exact match is looking for accurate results" + match);
-                    return;
-                }
-            }
-        
-            if ((this.query.contains("?") && (this.query.contains("(") || this.query.contains(")"))) && match.getAccuracy() == SearchMatch.A_INACCURATE) {
-                if(!this.query.contains("*")) {
-                    logInfo("exact match is looking for accurate results " + match);
-                    return;
-                }
-            }
-        }
-
         SymbolProvider symbolProvider = SymbolProviderResolver.resolve(this.symbolKind, match);
         if (symbolProvider instanceof WithQuery) {
             ((WithQuery) symbolProvider).setQuery(this.query);
@@ -97,7 +74,6 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
         logInfo("getting match: " + match + "with provider: " + symbolProvider);
         List<SymbolInformation> symbols = Optional.ofNullable(symbolProvider.get(match)).orElse(new ArrayList<>());
         this.symbols.addAll(symbols);
-
     }
 
     public List<SymbolInformation> getSymbols() {
