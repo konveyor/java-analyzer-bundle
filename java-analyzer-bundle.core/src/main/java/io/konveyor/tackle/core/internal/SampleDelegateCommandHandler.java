@@ -123,7 +123,10 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         case 7:
         case 9:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.REFERENCES, pattern);
-        case 2: 
+        case 2:
+            if (query.contains(".")) {
+                return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.QUALIFIED_REFERENCE, SearchPattern.R_PATTERN_MATCH | SearchPattern.R_ERASURE_MATCH);
+            }
             // Switched back to referenced
             return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.REFERENCES, SearchPattern.R_PATTERN_MATCH | SearchPattern.R_ERASURE_MATCH);
         case 3:
