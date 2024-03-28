@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.search.MethodReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.lsp4j.SymbolInformation;
@@ -22,16 +24,6 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
         // For Method Calls we will need to do the local variable trick
         try {
             MethodReferenceMatch m = (MethodReferenceMatch) match;
-
-            // Default to filter to only accurate matches
-            var filterOut = m.getAccuracy() != SearchMatch.A_ACCURATE;
-            if (query.contains("*")) {
-                filterOut = false;
-            }
-
-            if (filterOut) {
-                return symbols;
-            }
             IMethod e = (IMethod) m.getElement();
             SymbolInformation symbol = new SymbolInformation();
             symbol.setName(e.getElementName());
