@@ -74,7 +74,7 @@ public class TypeSymbolProvider implements SymbolProvider, WithQuery {
                     }
                     // if the file contains explicit imports for the fully qualified name
                     // or a .* import with partial qualified name then type must be accurate
-                    if (isAccurate) {
+                    if (!isAccurate) {
                         for (IImportDeclaration importDecl : compilationUnit.getImports()) {
                             String importElement = importDecl.getElementName();
                             if (importElement.matches(this.query)) {
