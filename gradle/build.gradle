@@ -1,0 +1,90 @@
+// buildscript {
+//     repositories {
+//         mavenLocal()
+//     }
+
+//     dependencies {
+//         classpath 'org.konveyor.java.plugin:konveyor-download-sources:1.0-SNAPSHOT'
+//     }
+// }
+
+// apply plugin: 'konveyor-download-sources'
+
+// if (gradle.getParent() == null) {
+//   beforeSettings { settings ->
+//     settings.buildscript.repositories { mavenLocal() }
+//     settings.buildscript.dependencies.add("classpath", "org.konveyor.java.plugin:konveyor-download-sources:1.0-SNAPSHOT")
+//   }
+//   settingsEvaluated { settings ->
+//     if (!settings.pluginManager.hasPlugin("konveyor-download-sources")) {
+//       settings.pluginManager.apply("konveyor-download-sources")
+//     }
+//   }
+// }
+
+// buildscript {
+//     repositories {
+//         mavenLocal()
+//     }
+//     dependencies {
+//         classpath 'org.konveyor.java.plugin:konveyor-download-sources:1.0-SNAPSHOT'
+//     }
+// }
+// settingsEvaluated { // or rootProject or allprojects, depending on the desired target(s)
+//     pluginManager.apply("konveyor-download-sources")
+// }
+
+
+apply plugin: ResolveSourcesPlugin
+
+class ResolveSourcesPlugin implements Plugin<Gradle> {
+
+    private static String ENTERPRISE_REPOSITORY_URL = "https://repo.gradle.org/gradle/repo"
+
+    void apply(Gradle gradle) {
+        // ONLY USE ENTERPRISE REPO FOR DEPENDENCIES
+        gradle.allprojects { project ->
+            project.getPlugins().apply(JavaPlugin.class);
+
+            Configuration runtimeClasspath = project.getConfigurations().getByName("runtimeClasspath");
+            project.getTasks().register("resolveSources", ResolveDocsTask.class, task -> {
+                task.setGroup("documentation");
+                task.setDescription("Resolve source artifacts for all runtime dependencies");
+
+                // Set task input and output conventions
+                ArtifactView docsView = buildDocumentationView(runtimeClasspath, DocsType.SOURCES);
+                task.getDocs().from(docsView.getFiles());
+                task.getDestinationDir().convention(project.getLayout().getBuildDirectory().dir("sources"));
+
+                // Always rerun this task
+                task.getOutputs().upToDateWhen(e -> false);
+            });
+        }
+    }
+}
+
+public abstract class ResolveDocsTask extends org.gradle.api.DefaultTask {
+    @OutputDirectory
+    public abstract DirectoryProperty getDestinationDir();
+
+    @InputFiles
+    public abstract ConfigurableFileCollection getDocs();
+
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
+
+    @TaskAction
+    public void resolveSources() {
+        // Fetch the documentation from the ArtifactView, causing resolution
+        Set<File> sourceFiles = getDocs().getFiles();
+
+        // Copy them to the output folder
+        getFileSystemOperations().sync(spec -> {
+            spec.from(sourceFiles);
+            spec.into(getDestinationDir());
+        });
+
+        // And print the result to the console
+        getLogger().lifecycle("Resolved the following files: {}", sourceFiles.stream().map(File::getName).sorted().collect(Collectors.toList()));
+    }
+}
