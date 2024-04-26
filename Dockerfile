@@ -27,16 +27,22 @@ RUN microdnf install -y go-toolset && microdnf clean all && rm -rf /var/cache/dn
 RUN go install golang.org/x/tools/gopls@latest
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
-RUN microdnf install -y python39 java-17-openjdk-devel golang-bin tar gzip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
+RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-17-openjdk-devel golang-bin tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
+ENV JAVA8_HOME /usr/lib/jvm/java-1.8.0-openjdk
 RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.5/binaries/apache-maven-3.9.5-bin.tar.gz && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
     ln -s /usr/local/apache-maven-3.9.5/bin/mvn /usr/bin/mvn && \
     rm /tmp/apache-maven.tar.gz
 ENV M2_HOME /usr/local/apache-maven-3.9.5
 
-# TODO(jmle): remove this when plugin is fixed - installs fixed dependency plugin to fetch sources
-COPY ./hack/3.6.2-SNAPSHOT /root/.m2/repository/org/apache/maven/plugins/maven-dependency-plugin/3.6.2-SNAPSHOT
+# Potentially needed in the future
+#RUN curl -L https://services.gradle.org/distributions/gradle-8.7-bin.zip --output gradle.zip && \
+#    mkdir /opt/gradle && \
+#    unzip gradle.zip -d /opt/gradle && \
+#    ln -s /opt/gradle/gradle-8.7/bin/gradle /usr/local/bin/gradle
+#RUN mkdir ~/.gradle
+#COPY ./gradle/build.gradle ~/.gradle/build.gradle
 
 COPY --from=gopls-build /root/go/bin/gopls /root/go/bin/gopls
 COPY --from=jdtls-download /jdtls /jdtls/
