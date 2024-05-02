@@ -1,45 +1,16 @@
-// buildscript {
-//     repositories {
-//         mavenLocal()
-//     }
-
-//     dependencies {
-//         classpath 'org.konveyor.java.plugin:konveyor-download-sources:1.0-SNAPSHOT'
-//     }
-// }
-
-// apply plugin: 'konveyor-download-sources'
-
-// if (gradle.getParent() == null) {
-//   beforeSettings { settings ->
-//     settings.buildscript.repositories { mavenLocal() }
-//     settings.buildscript.dependencies.add("classpath", "org.konveyor.java.plugin:konveyor-download-sources:1.0-SNAPSHOT")
-//   }
-//   settingsEvaluated { settings ->
-//     if (!settings.pluginManager.hasPlugin("konveyor-download-sources")) {
-//       settings.pluginManager.apply("konveyor-download-sources")
-//     }
-//   }
-// }
-
-// buildscript {
-//     repositories {
-//         mavenLocal()
-//     }
-//     dependencies {
-//         classpath 'org.konveyor.java.plugin:konveyor-download-sources:1.0-SNAPSHOT'
-//     }
-// }
-// settingsEvaluated { // or rootProject or allprojects, depending on the desired target(s)
-//     pluginManager.apply("konveyor-download-sources")
-// }
-
+/**
+ * Sources download task for Gradle 8+
+ */
+import java.util.stream.Collectors;
 
 apply plugin: ResolveSourcesPlugin
 
-class ResolveSourcesPlugin implements Plugin<Gradle> {
+public abstract class ResolveSourcesPlugin implements Plugin<Gradle> {
 
     private static String ENTERPRISE_REPOSITORY_URL = "https://repo.gradle.org/gradle/repo"
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     void apply(Gradle gradle) {
         // ONLY USE ENTERPRISE REPO FOR DEPENDENCIES
@@ -52,7 +23,19 @@ class ResolveSourcesPlugin implements Plugin<Gradle> {
                 task.setDescription("Resolve source artifacts for all runtime dependencies");
 
                 // Set task input and output conventions
-                ArtifactView docsView = buildDocumentationView(runtimeClasspath, DocsType.SOURCES);
+//                ArtifactView docsView = buildDocumentationView(runtimeClasspath, DocsType.SOURCES);
+                ArtifactView docsView = runtimeClasspath.getIncoming().artifactView(view -> {
+                    view.setLenient(true);
+
+                    // Uncomment me to view the new behavior
+                    view.withVariantReselection();
+
+                    AttributeContainer attributes = view.getAttributes();
+                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.DOCUMENTATION));
+                    attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, getObjectFactory().named(Bundling.class, Bundling.EXTERNAL));
+                    attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, getObjectFactory().named(DocsType.class, DocsType.SOURCES));
+                    attributes.attribute(Usage.USAGE_ATTRIBUTE, getObjectFactory().named(Usage.class, Usage.JAVA_RUNTIME));
+                })
                 task.getDocs().from(docsView.getFiles());
                 task.getDestinationDir().convention(project.getLayout().getBuildDirectory().dir("sources"));
 
@@ -61,9 +44,32 @@ class ResolveSourcesPlugin implements Plugin<Gradle> {
             });
         }
     }
+
+    /**
+     * Sets up an ArtifactView based on this project's runtime classpath which will fetch documentation.
+     *
+     * @param graph the resolution graph to retrieve artifacts from
+     * @param docsType the type of documentation artifact the returned view will fetch
+     * @return ArtifactView which will fetch documentation
+     */
+    private ArtifactView buildDocumentationView(Configuration graph, String docsType) {
+        return graph.getIncoming().artifactView(view -> {
+            view.setLenient(true);
+
+            // Uncomment me to view the new behavior
+            view.withVariantReselection();
+
+            AttributeContainer attributes = view.getAttributes();
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.DOCUMENTATION));
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, getObjectFactory().named(Bundling.class, Bundling.EXTERNAL));
+            attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, getObjectFactory().named(DocsType.class, docsType));
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, getObjectFactory().named(Usage.class, Usage.JAVA_RUNTIME));
+        })
+
+    }
 }
 
-public abstract class ResolveDocsTask extends org.gradle.api.DefaultTask {
+abstract class ResolveDocsTask extends org.gradle.api.DefaultTask {
     @OutputDirectory
     public abstract DirectoryProperty getDestinationDir();
 

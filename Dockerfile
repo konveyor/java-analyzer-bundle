@@ -41,8 +41,8 @@ ENV M2_HOME /usr/local/apache-maven-3.9.5
 #    mkdir /opt/gradle && \
 #    unzip gradle.zip -d /opt/gradle && \
 #    ln -s /opt/gradle/gradle-8.7/bin/gradle /usr/local/bin/gradle
-#RUN mkdir ~/.gradle
-#COPY ./gradle/build.gradle ~/.gradle/build.gradle
+RUN mkdir ~/.gradle
+COPY ./gradle/build.gradle ~/.gradle/build.gradle
 
 COPY --from=gopls-build /root/go/bin/gopls /root/go/bin/gopls
 COPY --from=jdtls-download /jdtls /jdtls/
