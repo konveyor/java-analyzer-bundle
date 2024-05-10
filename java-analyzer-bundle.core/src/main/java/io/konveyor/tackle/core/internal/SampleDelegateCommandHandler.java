@@ -4,10 +4,19 @@ import static java.lang.String.format;
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.io.File;
 
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -37,7 +46,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             case RULE_ENTRY_COMMAND_ID:
                 logInfo("Here we get the arguments for rule entry: "+arguments);
                 RuleEntryParams params = new RuleEntryParams(commandId, arguments);
-                return search(params.getProjectName(), params.getQuery(), params.getLocation(), params.getAnalysisMode(), progress);
+                return search(params.getProjectName(), params.getIncludedPaths(), params.getQuery(), params.getLocation(), params.getAnalysisMode(), progress);
             default:
                 throw new UnsupportedOperationException(format("Unsupported command '%s'!", commandId));
         }
@@ -137,9 +146,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         throw new Exception("unable to create search pattern"); 
     }
 
-    private static List<SymbolInformation> search(String projectName, String query, int location, String analsysisMode, IProgressMonitor monitor) throws Exception {
-        //IJavaSearchScope scope = SearchEngine.createWorkspaceScope();
-         
+    private static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, int location, String analsysisMode, IProgressMonitor monitor) throws Exception {
         IJavaProject[] targetProjects;
         IJavaProject project = ProjectUtils.getJavaProject(projectName);
         if (project != null) {
@@ -167,7 +174,38 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             logInfo("for project: " + iJavaProject + " found errors: " + errors + " warnings: " + warnings);
         }
 
-		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(targetProjects, s);
+		IJavaSearchScope scope;
+        if (includedPaths != null && includedPaths.size() > 0) {
+            ArrayList<IJavaElement> includedFragments = new ArrayList<IJavaElement>();
+            for (IJavaProject proj : targetProjects) {
+                for (IPackageFragment fragment : proj.getPackageFragments()) {
+                    IPath fragmentPath = fragment.getPath();
+                    // if there's no file extension, it's a path to java package from source
+                    // else it is a path pointing to jar, ear, etc. we ignore deps for now
+                    if (fragmentPath.getFileExtension() == null) {
+                        // fragment paths are not actual filesystem paths
+                        // they are of form /<artifact>/src/main/java
+                        // we can only compare the relative path
+                        fragmentPath = fragmentPath.removeFirstSegments(1);
+                        for (String includedPath : includedPaths) {
+                            IPath includedIPath = Path.fromOSString(includedPath);
+                            // instead of comparing path strings, comparing segments is better for 2 reasons:
+                            // - we don't have to worry about redundant . / etc in input
+                            // - matching sub-trees is easier with segments than strings
+                            if (includedIPath.segmentCount() <= fragmentPath.segmentCount() && 
+                                includedIPath.matchingFirstSegments(fragmentPath) == includedIPath.segmentCount()) {
+                                includedFragments.add(fragment);
+                            }
+                        }
+                    }
+                }
+            }
+            IJavaElement[] includedElements = new IJavaElement[includedFragments.size()];
+            includedElements = includedFragments.toArray(includedElements);
+            scope = SearchEngine.createJavaSearchScope(true, includedElements, s);
+        } else {
+            scope = SearchEngine.createJavaSearchScope(true, targetProjects, s);
+        }
 
         logInfo("scope: " + scope);
 
