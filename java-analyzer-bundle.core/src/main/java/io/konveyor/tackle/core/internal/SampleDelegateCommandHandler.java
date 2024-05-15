@@ -189,6 +189,11 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
                         fragmentPath = fragmentPath.removeFirstSegments(1);
                         for (String includedPath : includedPaths) {
                             IPath includedIPath = Path.fromOSString(includedPath);
+                            // when there are more than one sub-projects, the paths are of form
+                            // <project-name>/src/main/java/
+                            if (includedPath.startsWith(proj.getElementName())) {
+                                includedIPath = includedIPath.removeFirstSegments(1);
+                            }
                             // instead of comparing path strings, comparing segments is better for 2 reasons:
                             // - we don't have to worry about redundant . / etc in input
                             // - matching sub-trees is easier with segments than strings
