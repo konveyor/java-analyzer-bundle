@@ -1,0 +1,35 @@
+/**
+ * Sources download task for Gradle, tested in versions 4+
+ */
+task konveyorDownloadSources {
+    allprojects { project ->
+        project.getConfigurations().each { config ->
+            config.setCanBeResolved(true)
+
+            inputs.files config
+            outputs.dir "${buildDir}/download"
+            doLast {
+                def componentIds = config.incoming.resolutionResult.allDependencies.collect { it.selected.id }
+                ArtifactResolutionResult result = dependencies.createArtifactResolutionQuery()
+                        .forComponents(componentIds)
+                        .withArtifacts(JvmLibrary, SourcesArtifact)
+                        .execute()
+                def sourceArtifacts = []
+                result.resolvedComponents.each { ComponentArtifactsResult component ->
+                    Set<ArtifactResult> sources = component.getArtifacts(SourcesArtifact)
+                    println "Found ${sources.size()} sources for ${component.id}"
+                    sources.each { ArtifactResult ar ->
+                        if (ar instanceof ResolvedArtifactResult) {
+                            sourceArtifacts << ar.file
+                        }
+                    }
+                }
+
+                copy {
+                    from sourceArtifacts
+                    into "${buildDir}/download"
+                }
+            }
+        }
+    }
+}

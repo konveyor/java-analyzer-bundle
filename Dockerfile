@@ -27,16 +27,20 @@ RUN microdnf install -y go-toolset && microdnf clean all && rm -rf /var/cache/dn
 RUN go install golang.org/x/tools/gopls@latest
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
-RUN microdnf install -y python39 java-17-openjdk-devel golang-bin tar gzip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
+# Java 1.8 is required for backwards compatibility with older versions of Gradle
+RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-17-openjdk-devel golang-bin tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
+# Specify Java 1.8 home for usage with gradle wrappers
+ENV JAVA8_HOME /usr/lib/jvm/java-1.8.0-openjdk
 RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.5/binaries/apache-maven-3.9.5-bin.tar.gz && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
     ln -s /usr/local/apache-maven-3.9.5/bin/mvn /usr/bin/mvn && \
     rm /tmp/apache-maven.tar.gz
 ENV M2_HOME /usr/local/apache-maven-3.9.5
 
-# TODO(jmle): remove this when plugin is fixed - installs fixed dependency plugin to fetch sources
-COPY ./hack/3.6.2-SNAPSHOT /root/.m2/repository/org/apache/maven/plugins/maven-dependency-plugin/3.6.2-SNAPSHOT
+# Copy "download sources" gradle task. This is needed to download project sources.
+RUN mkdir /root/.gradle
+COPY ./gradle/build.gradle /root/.gradle/task.gradle
 
 COPY --from=gopls-build /root/go/bin/gopls /root/go/bin/gopls
 COPY --from=jdtls-download /jdtls /jdtls/
