@@ -27,8 +27,10 @@ RUN microdnf install -y go-toolset && microdnf clean all && rm -rf /var/cache/dn
 RUN go install golang.org/x/tools/gopls@latest
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
+# Java 1.8 is required for backwards compatibility with older versions of Gradle
 RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-17-openjdk-devel golang-bin tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
+# Specify Java 1.8 home for usage with gradle wrappers
 ENV JAVA8_HOME /usr/lib/jvm/java-1.8.0-openjdk
 RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.5/binaries/apache-maven-3.9.5-bin.tar.gz && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
@@ -36,13 +38,9 @@ RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-
     rm /tmp/apache-maven.tar.gz
 ENV M2_HOME /usr/local/apache-maven-3.9.5
 
-# Potentially needed in the future
-#RUN curl -L https://services.gradle.org/distributions/gradle-8.7-bin.zip --output gradle.zip && \
-#    mkdir /opt/gradle && \
-#    unzip gradle.zip -d /opt/gradle && \
-#    ln -s /opt/gradle/gradle-8.7/bin/gradle /usr/local/bin/gradle
-RUN mkdir ~/.gradle
-COPY ./gradle/build.gradle ~/.gradle/build.gradle
+# Copy "download sources" gradle task. This is needed to download project sources.
+RUN mkdir /root/.gradle
+COPY ./gradle/build.gradle /root/.gradle/task.gradle
 
 COPY --from=gopls-build /root/go/bin/gopls /root/go/bin/gopls
 COPY --from=jdtls-download /jdtls /jdtls/
