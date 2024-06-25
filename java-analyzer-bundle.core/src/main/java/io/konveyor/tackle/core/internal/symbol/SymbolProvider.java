@@ -167,4 +167,13 @@ public interface SymbolProvider {
 		position.setLine(coords[0]);
 		position.setCharacter(coords[1]);
 	}
+
+    /*
+     * When comparing query pattern with an actual found java element's fqn
+     * we need to make sure that * that are not preceded with a . are replaced
+     * by .* so that java regex works as expected on them
+     */
+    default String getCleanedQuery(String query) {
+        return query.replaceAll("(?<!\\.)\\*", ".*");
+    }
 }
