@@ -142,6 +142,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             return SearchPattern.createPattern(query, IJavaSearchConstants.CONSTRUCTOR, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
         case 11:
             return SearchPattern.createPattern(query, IJavaSearchConstants.PACKAGE, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
+        case 12:
+            return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.FIELD_DECLARATION_TYPE_REFERENCE, pattern);
         }
         throw new Exception("unable to create search pattern"); 
     }
