@@ -44,31 +44,11 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
                 astParser.setSource(unit);
                 astParser.setResolveBindings(true);
                 CompilationUnit cu = (CompilationUnit) astParser.createAST(null);
-                cu.accept(new ASTVisitor() {
-                    // we are only doing this for MethodInvocation right now
-                    // look into MethodDeclaration if needed
-                    public boolean visit(MethodInvocation node) {
-                        try {
-                            IMethodBinding binding = node.resolveMethodBinding();
-                            if (binding != null) {
-                                // get fqn of the method being called
-                                ITypeBinding declaringClass = binding.getDeclaringClass();
-                                if (declaringClass != null) {
-                                    String fullyQualifiedName = declaringClass.getQualifiedName() + "." + binding.getName();
-                                    // match fqn with query pattern
-                                    if (fullyQualifiedName.matches(getCleanedQuery(query))) {
-                                        symbols.add(symbol);
-                                    } else {
-                                        logInfo("fqn " + fullyQualifiedName + " did not match with " + query);
-                                    }
-                                }
-                            } 
-                        } catch (Exception e) {
-                            logInfo("error determining accuracy of match: " + e);
-                        }
-                        return true;
-                    }
-                });
+                CustomASTVisitor visitor = new CustomASTVisitor(query, match);
+                cu.accept(visitor);
+                if (visitor.symbolMatches()) {
+                    symbols.add(symbol);
+                }
             } else {
                 symbols.add(symbol);
             }
