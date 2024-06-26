@@ -33,6 +33,11 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
         try {
             MethodReferenceMatch m = (MethodReferenceMatch) match;
             IMethod e = (IMethod) m.getElement();
+            SymbolInformation symbol = new SymbolInformation();
+            symbol.setName(e.getElementName());
+            symbol.setKind(convertSymbolKind(e));
+            symbol.setContainerName(e.getParent().getElementName());
+            symbol.setLocation(getLocation(e, match));
             if (this.query.contains(".")) {
                 ICompilationUnit unit = e.getCompilationUnit();
                 ASTParser astParser = ASTParser.newParser(AST.getJLSLatest());
@@ -52,11 +57,6 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
                                     String fullyQualifiedName = declaringClass.getQualifiedName() + "." + binding.getName();
                                     // match fqn with query pattern
                                     if (fullyQualifiedName.matches(getCleanedQuery(query))) {
-                                        SymbolInformation symbol = new SymbolInformation();
-                                        symbol.setName(e.getElementName());
-                                        symbol.setKind(convertSymbolKind(e));
-                                        symbol.setContainerName(e.getParent().getElementName());
-                                        symbol.setLocation(getLocation(e, match));
                                         symbols.add(symbol);
                                     } else {
                                         logInfo("fqn " + fullyQualifiedName + " did not match with " + query);
@@ -70,11 +70,6 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
                     }
                 });
             } else {
-                SymbolInformation symbol = new SymbolInformation();
-                symbol.setName(e.getElementName());
-                symbol.setKind(convertSymbolKind(e));
-                symbol.setContainerName(e.getParent().getElementName());
-                symbol.setLocation(getLocation(e, match));
                 symbols.add(symbol);
             }
         } catch (Exception e) {
