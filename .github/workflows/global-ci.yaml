@@ -6,17 +6,26 @@ jobs:
   build-addon:
     name: Build tackle2-addon-analyzer
     runs-on: ubuntu-20.04
+    outputs:
+      api_tests_ref: ${{ steps.extract_info.outputs.API_TESTS_REF }}
     strategy:
       fail-fast: false
     steps:
     - name: Extract pull request number from PR description
-      id: extract_analyzer_pull_request_number
+      id: extract_info
       run: |
-        PULL_REQUEST_NUMBER=$(echo "${{ github.event.pull_request.body }}" | grep -oP '[A|a]nalyzer.?[P|p][R|r]: \K\d+' || true)
-        if [ -z "$PULL_REQUEST_NUMBER" ]; then
-          echo "::set-output name=ref::main"
+        ANALYZER_PR=$(echo "${{ github.event.pull_request.body }}" | grep -oP '[A|a]nalyzer.?[P|p][R|r]: \K\d+' || true)
+        if [ -z "$ANALYZER_PR" ]; then
+          echo "ANALYZER_REF=${GITHUB_BASE_REF}" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=ref::refs/pull/$PULL_REQUEST_NUMBER/merge"
+          echo "ANALYZER_REF=refs/pull/$ANALYZER_PR/merge" >> $GITHUB_OUTPUT
+        fi
+
+        API_TESTS_PR=$(echo "${{ github.event.pull_request.body }}" | grep -oP '[A|a]pi *[T|t]ests *[P|p][R|r]: \K\d+' || true)
+        if [ -z "$API_TESTS_PR" ]; then
+          echo "API_TESTS_REF=${GITHUB_BASE_REF}" >> $GITHUB_OUTPUT
+        else
+          echo "API_TESTS_REF=refs/pull/$API_TESTS_PR/merge" >> $GITHUB_OUTPUT
         fi
     
     - name: checkout
@@ -27,7 +36,7 @@ jobs:
       with:
         repository: konveyor/analyzer-lsp
         path: analyzer-lsp
-        ref: "${{ steps.extract_analyzer_pull_request_number.outputs.ref }}"
+        ref: "${{ steps.extract_info.outputs.ANALYZER_REF }}"
 
     - uses: actions/checkout@v3
       with:
@@ -58,3 +67,4 @@ jobs:
     uses: konveyor/ci/.github/workflows/global-ci.yml@main
     with:
       component_name: java-provider
+      api_tests_ref: "${{ needs.build-addon.outputs.api_tests_ref }}"
