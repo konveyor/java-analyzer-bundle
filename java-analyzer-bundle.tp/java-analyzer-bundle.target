@@ -7,7 +7,7 @@
 		<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner"
 			includeSource="true" type="InstallableUnit">
 			<unit id="org.eclipse.jdt.ls.core" version="0.0.0" />
-			<repository location="https://download.eclipse.org/jdtls/snapshots/repository/1.31.0.202312111429" />
+			<repository location="https://download.eclipse.org/jdtls/snapshots/repository/1.36.0.202405301306/" />
 		</location>
 		
 		
@@ -61,7 +61,7 @@
             <repository location="https://download.eclipse.org/releases/2021-09/202109151000/"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-           <repository location="https://download.eclipse.org/lsp4j/updates/releases/0.21.0/"/>
+           <repository location="https://download.eclipse.org/lsp4j/updates/releases/0.22.0/"/>
            <unit id="org.eclipse.lsp4j.sdk.feature.group" version="0.0.0"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">

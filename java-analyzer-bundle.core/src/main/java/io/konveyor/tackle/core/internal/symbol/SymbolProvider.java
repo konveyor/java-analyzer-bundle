@@ -20,7 +20,6 @@ import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.SourceRange;
-import org.eclipse.jdt.core.search.MethodReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
@@ -193,6 +192,7 @@ public interface SymbolProvider {
         if (queryQualification != "" && location.getUri().contains(queryQualification.replaceAll(".", "/"))) {
             return true;
         }
+        query = query.replaceAll("(?<!\\.)\\*", ".*");
         if (unit != null) {
             try {
                 // check if the package declaration on the unit matches query
