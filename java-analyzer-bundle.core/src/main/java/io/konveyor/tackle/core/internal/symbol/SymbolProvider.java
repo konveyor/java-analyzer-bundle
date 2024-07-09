@@ -192,7 +192,6 @@ public interface SymbolProvider {
         if (queryQualification != "" && location.getUri().contains(queryQualification.replaceAll(".", "/"))) {
             return true;
         }
-        query = query.replaceAll("(?<!\\.)\\*", ".*");
         if (unit != null) {
             try {
                 // check if the package declaration on the unit matches query
