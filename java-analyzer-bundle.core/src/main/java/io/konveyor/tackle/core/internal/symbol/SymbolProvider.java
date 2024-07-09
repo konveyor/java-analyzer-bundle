@@ -182,6 +182,7 @@ public interface SymbolProvider {
      * we do this so that we can rule out a lot of matches before going the AST route
      */
     default boolean queryQualificationMatches(String query, ICompilationUnit unit, Location location) {
+        query = query.replaceAll("(?<!\\.)\\*", ".*");
         String queryQualification = "";
         int dotIndex = query.lastIndexOf('.');
         if (dotIndex > 0) {
