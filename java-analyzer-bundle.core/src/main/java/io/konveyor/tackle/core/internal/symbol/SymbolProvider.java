@@ -12,9 +12,11 @@ import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IOpenable;
+import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.SourceRange;
@@ -167,4 +169,68 @@ public interface SymbolProvider {
 		position.setLine(coords[0]);
 		position.setCharacter(coords[1]);
 	}
+
+    /*
+     * Given a query, class and location of a Match, tells whether CompilationUnit of the match
+     * matches the qualification part of the query. For example, if the query is `konveyor.io.Util.get*`,
+     * qualification means `konveyor.io.Util`. This is so that we can improve accuracy of a match of 
+     * queries that are looking for FQNs. For query `konveyor.io.Util.get*`, returns true if either one is true:
+     *  1. match is found in the package `konveyor.io` or class `konveyor.io.Util` 
+     *  2. the compilation unit imports package `konveyor.io.Util` or `konveyor.io.*`
+     *  3. the compilation unit has a package declaration as `konveyor.io.Util`
+     * we do this so that we can rule out a lot of matches before going the AST route
+     */
+    default boolean queryQualificationMatches(String query, ICompilationUnit unit, Location location) {
+        query = query.replaceAll("(?<!\\.)\\*", ".*");
+        String queryQualification = "";
+        int dotIndex = query.lastIndexOf('.');
+        if (dotIndex > 0) {
+            // for a query, java.io.paths.File*, queryQualification is java.io.paths
+            queryQualification = query.substring(0, dotIndex);
+        }
+        // check if the match was found in the same package as the query was looking for
+        if (queryQualification != "" && location.getUri().contains(queryQualification.replaceAll(".", "/"))) {
+            return true;
+        }
+        if (unit != null) {
+            try {
+                // check if the package declaration on the unit matches query
+                for (IPackageDeclaration packageDecl : unit.getPackageDeclarations()) {
+                    if (queryQualification != "" && packageDecl.getElementName().matches(queryQualification)) {
+                        return true;
+                    }
+                }
+                for (IImportDeclaration importDecl : unit.getImports()) {
+                    String importElement = importDecl.getElementName();
+                    String importQualification = "";
+                    int importDotIndex = query.lastIndexOf('.');
+                    if (importDotIndex > 0) {
+                        importQualification = query.substring(0, dotIndex);
+                    }
+                    // import can be absolute like java.io.paths.FileReader
+                    if (query.matches(importElement)) {
+                        return true;
+                    }
+                    if (importElement.matches(query)) {
+                        return true;
+                    }
+                    // an import can be java.io.paths.* or java.io.*
+                    if (importElement.contains("*")) {                     
+                        if (queryQualification != "") {
+                            // query is java.io.paths.File*, import is java.io.paths.*
+                            if (queryQualification.startsWith(importQualification)) {
+                                return true;
+                            }
+                            if (importElement.replaceAll(".*", "").matches(queryQualification)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logInfo("unable to determine accuracy of the match");
+            }
+        }
+        return false;
+    }
 }

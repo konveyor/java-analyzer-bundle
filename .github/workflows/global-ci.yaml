@@ -6,26 +6,38 @@ jobs:
   build-addon:
     name: Build tackle2-addon-analyzer
     runs-on: ubuntu-20.04
+    outputs:
+      api_tests_ref: ${{ steps.extract_info.outputs.API_TESTS_REF }}
     strategy:
       fail-fast: false
     steps:
     - name: Extract pull request number from PR description
-      id: extract_analyzer_pull_request_number
+      id: extract_info
       run: |
-        PULL_REQUEST_NUMBER=$(echo "${{ github.event.pull_request.body }}" | grep -oP '[A|a]nalyzer.?[P|p][R|r]: \K\d+' || true)
-        if [ -z "$PULL_REQUEST_NUMBER" ]; then
-          echo "::set-output name=ref::main"
+        ANALYZER_PR=$(echo "${{ github.event.pull_request.body }}" | grep -oP '[A|a]nalyzer.?[P|p][R|r]: \K\d+' || true)
+        if [ -z "$ANALYZER_PR" ]; then
+          echo "ANALYZER_REF=${GITHUB_BASE_REF}" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=ref::refs/pull/$PULL_REQUEST_NUMBER/merge"
+          echo "ANALYZER_REF=refs/pull/$ANALYZER_PR/merge" >> $GITHUB_OUTPUT
         fi
+
+        API_TESTS_PR=$(echo "${{ github.event.pull_request.body }}" | grep -oP '[A|a]pi *[T|t]ests *[P|p][R|r]: \K\d+' || true)
+        if [ -z "$API_TESTS_PR" ]; then
+          echo "API_TESTS_REF=${GITHUB_BASE_REF}" >> $GITHUB_OUTPUT
+        else
+          echo "API_TESTS_REF=refs/pull/$API_TESTS_PR/merge" >> $GITHUB_OUTPUT
+        fi
+    
     - name: checkout
       uses: actions/checkout@v3
+    
     - name: Checkout tools repo
       uses: actions/checkout@v3
       with:
         repository: konveyor/analyzer-lsp
         path: analyzer-lsp
-        ref: "${{ steps.extract_analyzer_pull_request_number.outputs.ref }}"
+        ref: "${{ steps.extract_info.outputs.ANALYZER_REF }}"
+
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
@@ -35,24 +47,24 @@ jobs:
 
     - name: Build bundle base image
       run: |
-        docker build -t quay.io/konveyor/jdtls-server-base:latest .
-    - name: build analyzer-lsp Dockerfile
+        podman build -t quay.io/konveyor/jdtls-server-base:latest .
+    
+    - name: build java provider and save image
+      working-directory: analyzer-lsp
       run: |
-        docker build -f analyzer-lsp/Dockerfile -t quay.io/konveyor/analyzer-lsp:latest analyzer-lsp
-        docker tag quay.io/konveyor/analyzer-lsp:latest analyzer-lsp
-    - name: Build addon and save image
-      working-directory: tackle2-addon-analyzer
-      run: |
-        IMG=quay.io/konveyor/tackle2-addon-analyzer:latest make image-podman
-        podman save -o /tmp/tackle2-addon-analyzer.tar quay.io/konveyor/tackle2-addon-analyzer:latest
+        make build-java-provider
+        podman tag java-provider quay.io/konveyor/java-external-provider:latest
+        podman save -o /tmp/java-provider.tar quay.io/konveyor/java-external-provider:latest
+    
     - name: Upload image as artifact
       uses: actions/upload-artifact@v3
       with:
-        name: tackle2-addon-analyzer
-        path: /tmp/tackle2-addon-analyzer.tar
+        name: java-provider
+        path: /tmp/java-provider.tar
         retention-days: 1
   e2e:
     needs: build-addon
     uses: konveyor/ci/.github/workflows/global-ci.yml@main
     with:
-      component_name: tackle2-addon-analyzer
+      component_name: java-provider
+      api_tests_ref: "${{ needs.build-addon.outputs.api_tests_ref }}"
