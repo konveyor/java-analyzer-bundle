@@ -157,18 +157,20 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         //  For Partial results, we are going to filter out based on a list in the engine
 		int s = IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.APPLICATION_LIBRARIES;
         if (analsysisMode.equals(sourceOnlyAnalysisMode)) {
-            logInfo("source-only analysis mode only scoping to Sources");
+            logInfo("KONVEYOR_LOG: source-only analysis mode only scoping to Sources");
             s = IJavaSearchScope.SOURCES;
         } else {
-            logInfo("waiting for source downloads");
+            logInfo("KONVEYOR_LOG: waiting for source downloads");
             waitForJavaSourceDownloads();
-            logInfo("waited for source downloads");
+            logInfo("KONVEYOR_LOG: waited for source downloads");
         }
 
         for (IJavaProject iJavaProject : targetProjects) {
             var errors = ResourceUtils.getErrorMarkers(iJavaProject.getProject());
             var warnings = ResourceUtils.getWarningMarkers(iJavaProject.getProject());
-            logInfo("for project: " + iJavaProject + " found errors: " + errors + " warnings: " + warnings);
+            logInfo("KONVEYOR_LOG:" +  
+                " found errors: " + errors.toString().replace("\n", " ") +
+                " warnings: " + warnings.toString().replace("\n", " "));
         }
 
 		IJavaSearchScope scope;
@@ -216,10 +218,10 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             pattern = mapLocationToSearchPatternLocation(location, query);
         } catch (Exception e) {
             // TODO Auto-generated catch block
-            logInfo("Unable to get search pattern: " + e);
+            logInfo("KONVEYOR_LOG: Unable to get search pattern: " + e.toString().replace("\n", " "));
             throw e;
         }
-        logInfo("pattern: " + pattern);
+        logInfo("KONVEYOR_LOG: pattern: " + pattern.toString().replace("\n", " "));
 
         SearchEngine searchEngine = new SearchEngine();
 
@@ -235,10 +237,13 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             searchEngine.search(pattern, participents, scope, requestor, monitor);
         } catch (Exception e) {
             //TODO: handle exception
-            logInfo("unable to get search " + e);
+            logInfo("KONVEYOR_LOG: unable to get search " + e.toString().replace("\n", " "));
         }
 
-        logInfo("got: " + requestor.getAllSearchMatches() + " search matches for " + query + " location " + location);
+        logInfo("KONVEYOR_LOG: got: " + requestor.getAllSearchMatches() + 
+            " search matches for " + query + 
+            " location " + location 
+            + " matches" + requestor.getSymbols().size());
 
         return requestor.getSymbols();
 
