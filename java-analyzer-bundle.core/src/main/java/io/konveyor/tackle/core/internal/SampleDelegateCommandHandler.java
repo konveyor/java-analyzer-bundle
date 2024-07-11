@@ -4,11 +4,7 @@ import static java.lang.String.format;
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.io.File;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -16,7 +12,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -242,6 +237,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             //TODO: handle exception
             logInfo("unable to get search " + e);
         }
+
+        logInfo("got: " + requestor.getAllSearchMatches() + " search matches for " + query + " location " + location);
 
         return requestor.getSymbols();
 
