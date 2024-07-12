@@ -23,6 +23,7 @@ import io.konveyor.tackle.core.internal.symbol.WithQuery;
 public class SymbolInformationTypeRequestor extends SearchRequestor {
     private List<SymbolInformation> symbols;
     private int maxResults;
+    private int numberSearchMatches;
     private boolean sourceOnly;
     private boolean isSymbolTagSupported;
     private IProgressMonitor monitor;
@@ -35,6 +36,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
         this.monitor = monitor;
         this.symbolKind = symbolKind;
         this.query = query;
+        this.numberSearchMatches = 0;
         if (maxResults == 0) {
             this.maxResults = 10000;
         }
@@ -43,6 +45,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
 
     @Override
     public void acceptSearchMatch(SearchMatch match) throws CoreException {
+        this.numberSearchMatches = this.numberSearchMatches + 1;
         if (maxResults > 0 && symbols.size() >= maxResults) {
             monitor.setCanceled(true);
             logInfo("maxResults > 0 && symbols.size() >= maxResults");
@@ -78,6 +81,10 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
 
     public List<SymbolInformation> getSymbols() {
         return this.symbols;
+    }
+
+    public int getAllSearchMatches() {
+        return this.numberSearchMatches;
     }
 
     // This will determine if there are error markers for the primary element that is associated with this

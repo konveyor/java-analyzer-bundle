@@ -188,6 +188,13 @@ public interface SymbolProvider {
             // for a query, java.io.paths.File*, queryQualification is java.io.paths
             queryQualification = query.substring(0, dotIndex);
         }
+        String packageQueryQualification = "";
+        int packageDotIndex = queryQualification.lastIndexOf('.');
+        if (packageDotIndex > 0) {
+            // for a query, java.io.paths.File*, queryQualification is java.io.paths
+            packageQueryQualification = queryQualification.substring(0, packageDotIndex);
+        }
+
         // check if the match was found in the same package as the query was looking for
         if (queryQualification != "" && location.getUri().contains(queryQualification.replaceAll(".", "/"))) {
             return true;
@@ -196,7 +203,7 @@ public interface SymbolProvider {
             try {
                 // check if the package declaration on the unit matches query
                 for (IPackageDeclaration packageDecl : unit.getPackageDeclarations()) {
-                    if (queryQualification != "" && packageDecl.getElementName().matches(queryQualification)) {
+                    if (packageQueryQualification!= "" && packageDecl.getElementName().matches(packageQueryQualification)) {
                         return true;
                     }
                 }

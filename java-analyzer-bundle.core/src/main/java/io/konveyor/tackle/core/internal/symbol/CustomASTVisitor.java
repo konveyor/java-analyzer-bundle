@@ -1,15 +1,15 @@
 package io.konveyor.tackle.core.internal.symbol;
 
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
+
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
-import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.search.SearchMatch;
-
-import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 /*
  * SearchEngine we use often gives us more matches than needed when
@@ -78,6 +78,10 @@ public class CustomASTVisitor extends ASTVisitor {
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
                 if (declaringClass != null) {
+                    // Handle Erasure results
+                    if (declaringClass.getErasure() != null) {
+                        declaringClass = declaringClass.getErasure();
+                    }
                     String fullyQualifiedName = declaringClass.getQualifiedName() + "." + binding.getName();
                     // match fqn with query pattern
                     if (fullyQualifiedName.matches(this.query)) {
