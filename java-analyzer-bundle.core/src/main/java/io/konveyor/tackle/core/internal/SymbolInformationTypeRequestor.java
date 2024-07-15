@@ -32,6 +32,8 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
     private int symbolKind;
     private String query;
     private AnnotationQuery annotationQuery;
+    private SymbolProviderResolver resolver;
+
 
     public SymbolInformationTypeRequestor(List<SymbolInformation> symbols, int maxResults, IProgressMonitor monitor, int symbolKind, String query, AnnotationQuery annotationQuery) {
         this.symbols = symbols;
@@ -44,6 +46,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
         if (maxResults == 0) {
             this.maxResults = 10000;
         }
+        resolver = new SymbolProviderResolver();
     }
 
 
@@ -70,7 +73,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
 
         }
 
-        SymbolProvider symbolProvider = SymbolProviderResolver.resolve(this.symbolKind);
+        SymbolProvider symbolProvider = resolver.resolve(this.symbolKind);
         if (symbolProvider instanceof WithQuery) {
             ((WithQuery) symbolProvider).setQuery(this.query);
         }

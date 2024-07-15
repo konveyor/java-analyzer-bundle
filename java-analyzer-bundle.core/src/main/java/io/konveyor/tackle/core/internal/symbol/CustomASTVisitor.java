@@ -99,7 +99,7 @@ public class CustomASTVisitor extends ASTVisitor {
             this.symbolMatches = true;
             return false;
         } catch (Exception e) {
-            logInfo("error visiting MethodInvocation node: " + e);
+            logInfo("KONVEYOR_LOG: error visiting MethodInvocation node: " + e);
             // this is so that we fallback and don't lose a match when we fail
             this.symbolMatches = true;
             return false;
@@ -122,7 +122,7 @@ public class CustomASTVisitor extends ASTVisitor {
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
                 if (declaringClass != null) {
-                    String fullyQualifiedName = declaringClass.getQualifiedName() + "." + binding.getName();
+                    String fullyQualifiedName = declaringClass.getQualifiedName();
                     // match fqn with query pattern
                     if (fullyQualifiedName.matches(this.query)) {
                         this.symbolMatches = true;
@@ -139,7 +139,7 @@ public class CustomASTVisitor extends ASTVisitor {
             this.symbolMatches = true;
             return false;
         } catch (Exception e) {
-            logInfo("error visiting ConstructorInvocation node: " + e);
+            logInfo("KONVEYOR_LOG: error visiting ConstructorInvocation node: " + e);
             // this is so that we fallback and don't lose a match when we fail
             this.symbolMatches = true;
             return false;
@@ -162,7 +162,7 @@ public class CustomASTVisitor extends ASTVisitor {
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
                 if (declaringClass != null) {
-                    String fullyQualifiedName = declaringClass.getQualifiedName() + "." + binding.getName();
+                    String fullyQualifiedName = declaringClass.getQualifiedName();
                     // match fqn with query pattern
                     if (fullyQualifiedName.matches(this.query)) {
                         this.symbolMatches = true;
