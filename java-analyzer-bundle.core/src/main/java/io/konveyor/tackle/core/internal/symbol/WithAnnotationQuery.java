@@ -2,16 +2,19 @@ package io.konveyor.tackle.core.internal.symbol;
 
 import io.konveyor.tackle.core.internal.query.AnnotationQuery;
 import org.eclipse.jdt.core.IAnnotation;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.internal.core.Annotation;
+import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.SourceRefElement;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -106,16 +109,20 @@ public interface WithAnnotationQuery {
             return name;
         } else {
             // If not, the annotation must have been imported. Look in the imports:
-            try {
-                return Arrays.stream(((Annotation) annotation).getCompilationUnit().getImports())
-                        .filter(i -> i.getElementName().endsWith(name))
-                        .findFirst()
-                        .map(IImportDeclaration::getElementName)
-                        .orElse("");
-            } catch (JavaModelException e) {
-                e.printStackTrace();
-                return "";
-            }
+            return tryToGetImports(annotation).stream()
+                    .filter(i -> i.getElementName().endsWith(name))
+                    .findFirst()
+                    .map(IImportDeclaration::getElementName)
+                    .orElse("");
+        }
+    }
+
+    private List<IImportDeclaration> tryToGetImports(IAnnotation annotation) {
+        try {
+            return Optional.ofNullable(((Annotation) annotation).getCompilationUnit().getImports()).map(Arrays::asList).orElse(List.of());
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return List.of();
         }
     }
 }
