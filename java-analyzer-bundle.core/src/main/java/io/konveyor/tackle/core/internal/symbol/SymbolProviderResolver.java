@@ -4,11 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.eclipse.jdt.core.search.SearchMatch;
-
 public class SymbolProviderResolver {
-    private static Map<Integer, SymbolProvider> map;
-    static {
+    private Map<Integer, SymbolProvider> map;
+
+    public SymbolProviderResolver() {
         map = new HashMap<>();
         map.put(1, new InheritanceSymbolProvider());
         map.put(2, new MethodCallSymbolProvider());
@@ -25,7 +24,7 @@ public class SymbolProviderResolver {
         map.put(13, new MethodDeclarationSymbolProvider());
     }
 
-    public static SymbolProvider resolve(Integer i) {
-        return Optional.ofNullable(map.get(i)).orElse(new DefaultSymbolProvider());
+    public SymbolProvider resolve(Integer i) {
+        return Optional.ofNullable(this.map.get(i)).orElse(new DefaultSymbolProvider());
     }
 }

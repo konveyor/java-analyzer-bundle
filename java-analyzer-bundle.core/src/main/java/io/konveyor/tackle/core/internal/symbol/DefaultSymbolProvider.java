@@ -10,13 +10,14 @@ import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.lsp4j.SymbolInformation;
 
 public class DefaultSymbolProvider implements SymbolProvider, WithQuery, WithMaxResults {
-    private static List<SymbolProvider> defaultProviders;
-    static {
-        defaultProviders= new ArrayList<SymbolProvider>();
-        defaultProviders.add(new MethodCallSymbolProvider());
-        defaultProviders.add(new ConstructorCallSymbolProvider());
-        defaultProviders.add(new ImportSymbolProvider());
-        defaultProviders.add( new TypeSymbolProvider());
+    private List<SymbolProvider> defaultProviders;
+
+    public DefaultSymbolProvider() {
+        this. defaultProviders= new ArrayList<SymbolProvider>();
+        this. defaultProviders.add(new MethodCallSymbolProvider());
+        this.defaultProviders.add(new ConstructorCallSymbolProvider());
+        this.defaultProviders.add(new ImportSymbolProvider());
+        this.defaultProviders.add( new TypeSymbolProvider());
     }
 
     private int maxResults; 
