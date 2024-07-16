@@ -4,28 +4,41 @@ import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.URIUtil;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IPackageDeclaration;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.TypeDeclarationMatch;
 import org.eclipse.jdt.core.search.TypeParameterDeclarationMatch;
 import org.eclipse.jdt.core.search.TypeParameterReferenceMatch;
 import org.eclipse.jdt.core.search.TypeReferenceMatch;
+import org.eclipse.jdt.internal.core.Annotation;
+import org.eclipse.jdt.internal.core.ResolvedSourceMethod;
+import org.eclipse.jdt.internal.core.ResolvedSourceType;
+import org.eclipse.jdt.internal.core.SourceRefElement;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
-public class TypeSymbolProvider implements SymbolProvider, WithQuery {
+import io.konveyor.tackle.core.internal.query.AnnotationQuery;
+
+public class TypeSymbolProvider implements SymbolProvider, WithQuery, WithAnnotationQuery {
     private String query;
+    private AnnotationQuery annotationQuery;
 
     @Override
     public List<SymbolInformation> get(SearchMatch match) {
-        SymbolKind k = convertSymbolKind((IJavaElement) match.getElement());
+        SymbolKind kind = convertSymbolKind((IJavaElement) match.getElement());
         List<SymbolInformation> symbols = new ArrayList<>();
         // For Method Calls we will need to do the local variable trick
         if (!(match instanceof TypeReferenceMatch ||
@@ -94,6 +107,14 @@ public class TypeSymbolProvider implements SymbolProvider, WithQuery {
                 logInfo("failed to determine accuracy of TypeReferenceMatch accepting.." + match);
             }
         }
+
+        List<Class<? extends SourceRefElement>> classes = new ArrayList<>();
+        classes.add(ResolvedSourceType.class);
+        classes.add(ResolvedSourceMethod.class);
+        if (!matchesAnnotationQuery(match, classes)) {
+            return null;
+        }
+
         try {
             var mod = (IJavaElement) match.getElement();
             SymbolInformation symbol = new SymbolInformation();
@@ -113,7 +134,16 @@ public class TypeSymbolProvider implements SymbolProvider, WithQuery {
 
     @Override
     public void setQuery(String query) {
-        // TODO Auto-generated method stub
         this.query = query;
+    }
+
+    @Override
+    public AnnotationQuery getAnnotationQuery() {
+        return this.annotationQuery;
+    }
+
+    @Override
+    public void setAnnotationQuery(AnnotationQuery annotationQuery) {
+        this.annotationQuery = annotationQuery;
     }
 }

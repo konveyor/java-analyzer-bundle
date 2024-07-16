@@ -5,7 +5,9 @@ import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import io.konveyor.tackle.core.internal.query.AnnotationQuery;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -41,7 +43,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             case RULE_ENTRY_COMMAND_ID:
                 logInfo("Here we get the arguments for rule entry: "+arguments);
                 RuleEntryParams params = new RuleEntryParams(commandId, arguments);
-                return search(params.getProjectName(), params.getIncludedPaths(), params.getQuery(), params.getLocation(), params.getAnalysisMode(), progress);
+                return search(params.getProjectName(), params.getIncludedPaths(), params.getQuery(), params.getAnnotationQuery(), params.getLocation(), params.getAnalysisMode(), progress);
             default:
                 throw new UnsupportedOperationException(format("Unsupported command '%s'!", commandId));
         }
@@ -60,7 +62,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
     private static SearchPattern mapLocationToSearchPatternLocation(int location, String query) throws Exception {
         //TODO: #21 Normalize queries and/or verify for each location.
 
-        if (query.contains("(") || query.contains(")")) {
+        Pattern orPattern = Pattern.compile(".*\\(.*\\|.*\\).*");
+        if (orPattern.matcher(query).matches()) {
             // We know that this is a list of things to loook for, broken by a | command. We should get this intra string and create an OR search pattern for each one. 
             // ex java.io.((FileWriter|FileReader|PrintStream|File|PrintWriter|RandomAccessFile))*
             // startQuery will contain java.io. and endQuery will contain *
@@ -108,6 +111,28 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         return getPatternSingleQuery(location, query);
     }
 
+    /**
+     * Location correspondence from java provider (TYPE is the default):
+     * 	"":                 0,
+     * 	"inheritance":      1,
+     * 	"method_call":      2,
+     * 	"constructor_call": 3,
+     * 	"annotation":       4,
+     * 	"implements_type":  5,
+     * 	"enum_constant":        6,
+     * 	"return_type":          7,
+     * 	"import":               8,
+     * 	"variable_declaration": 9,
+     * 	"type":                 10,
+     * 	"package":              11,
+     * 	"field":                12,
+     *  "method_declaration":   13,
+     *
+     * @param location
+     * @param query
+     * @return
+     * @throws Exception
+     */
     private static SearchPattern getPatternSingleQuery(int location, String query) throws Exception {
         var pattern = SearchPattern.R_PATTERN_MATCH;
         if ((!query.contains("?") || !query.contains("*")) && (location != 11)) {
@@ -139,11 +164,13 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             return SearchPattern.createPattern(query, IJavaSearchConstants.PACKAGE, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
         case 12:
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.FIELD_DECLARATION_TYPE_REFERENCE, pattern);
+        case 13:
+            return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.DECLARATIONS, SearchPattern.R_EXACT_MATCH | SearchPattern.R_PATTERN_MATCH);
         }
         throw new Exception("unable to create search pattern"); 
     }
 
-    private static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, int location, String analsysisMode, IProgressMonitor monitor) throws Exception {
+    private static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, AnnotationQuery annotationQuery, int location, String analsysisMode, IProgressMonitor monitor) throws Exception {
         IJavaProject[] targetProjects;
         IJavaProject project = ProjectUtils.getJavaProject(projectName);
         if (project != null) {
@@ -168,7 +195,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         for (IJavaProject iJavaProject : targetProjects) {
             var errors = ResourceUtils.getErrorMarkers(iJavaProject.getProject());
             var warnings = ResourceUtils.getWarningMarkers(iJavaProject.getProject());
-            logInfo("KONVEYOR_LOG:" +  
+            logInfo("KONVEYOR_LOG:" +
                 " found errors: " + errors.toString().replace("\n", " ") +
                 " warnings: " + warnings.toString().replace("\n", " "));
         }
@@ -227,7 +254,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
         List<SymbolInformation> symbols = new ArrayList<SymbolInformation>();
 
-        SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor, location, query);
+        SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor, location, query, annotationQuery);
 
         //Use the default search participents
         SearchParticipant participent = new JavaSearchParticipant();
@@ -240,9 +267,9 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             logInfo("KONVEYOR_LOG: unable to get search " + e.toString().replace("\n", " "));
         }
 
-        logInfo("KONVEYOR_LOG: got: " + requestor.getAllSearchMatches() + 
-            " search matches for " + query + 
-            " location " + location 
+        logInfo("KONVEYOR_LOG: got: " + requestor.getAllSearchMatches() +
+            " search matches for " + query +
+            " location " + location
             + " matches" + requestor.getSymbols().size());
 
         return requestor.getSymbols();
