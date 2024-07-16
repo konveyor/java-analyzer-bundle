@@ -21,9 +21,11 @@ public class SymbolProviderResolver {
         map.put(9, new VariableDeclarationSymbolProvider());
         map.put(10, new TypeSymbolProvider());
         map.put(11, new ReferenceSymbolProvider());
+        map.put(12, new FieldSymbolProvider());
+        map.put(13, new MethodDeclarationSymbolProvider());
     }
 
-    public static SymbolProvider resolve(Integer i, SearchMatch SearchMatch) {
+    public static SymbolProvider resolve(Integer i) {
         return Optional.ofNullable(map.get(i)).orElse(new DefaultSymbolProvider());
     }
 }

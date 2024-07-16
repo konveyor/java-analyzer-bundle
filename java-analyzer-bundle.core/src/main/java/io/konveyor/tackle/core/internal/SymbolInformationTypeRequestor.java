@@ -15,8 +15,10 @@ import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.lsp4j.SymbolInformation;
 
+import io.konveyor.tackle.core.internal.query.AnnotationQuery;
 import io.konveyor.tackle.core.internal.symbol.SymbolProvider;
 import io.konveyor.tackle.core.internal.symbol.SymbolProviderResolver;
+import io.konveyor.tackle.core.internal.symbol.WithAnnotationQuery;
 import io.konveyor.tackle.core.internal.symbol.WithMaxResults;
 import io.konveyor.tackle.core.internal.symbol.WithQuery;
 
@@ -29,14 +31,16 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
     private IProgressMonitor monitor;
     private int symbolKind;
     private String query;
+    private AnnotationQuery annotationQuery;
 
-    public SymbolInformationTypeRequestor(List<SymbolInformation> symbols, int maxResults, IProgressMonitor monitor, int symbolKind, String query) {
+    public SymbolInformationTypeRequestor(List<SymbolInformation> symbols, int maxResults, IProgressMonitor monitor, int symbolKind, String query, AnnotationQuery annotationQuery) {
         this.symbols = symbols;
         this.maxResults = maxResults;
         this.monitor = monitor;
         this.symbolKind = symbolKind;
         this.query = query;
         this.numberSearchMatches = 0;
+        this.annotationQuery = annotationQuery;
         if (maxResults == 0) {
             this.maxResults = 10000;
         }
@@ -66,9 +70,12 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
 
         }
 
-        SymbolProvider symbolProvider = SymbolProviderResolver.resolve(this.symbolKind, match);
+        SymbolProvider symbolProvider = SymbolProviderResolver.resolve(this.symbolKind);
         if (symbolProvider instanceof WithQuery) {
             ((WithQuery) symbolProvider).setQuery(this.query);
+        }
+        if (symbolProvider instanceof WithAnnotationQuery) {
+            ((WithAnnotationQuery) symbolProvider).setAnnotationQuery(this.annotationQuery);
         }
         if (symbolProvider instanceof WithMaxResults) {
             ((WithMaxResults) symbolProvider).setMaxResultes(this.maxResults);

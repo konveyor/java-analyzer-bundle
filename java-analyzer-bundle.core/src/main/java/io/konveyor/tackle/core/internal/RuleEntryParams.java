@@ -1,5 +1,7 @@
 package io.konveyor.tackle.core.internal;
 
+import io.konveyor.tackle.core.internal.query.AnnotationQuery;
+
 import static java.lang.String.format;
 
 import java.util.ArrayList;
@@ -10,6 +12,7 @@ public class RuleEntryParams {
 
     private final String projectName;
     private final String query;
+    private final AnnotationQuery annotationQuery;
     private final int location;
     private final String analysisMode;
     private final ArrayList<String> includedPaths;
@@ -22,6 +25,7 @@ public class RuleEntryParams {
 
         this.projectName = (String) obj.get("project");
         this.query = (String) obj.get("query");
+        this.annotationQuery = AnnotationQuery.fromMap((Map<String, Object>) obj.get("annotationQuery"));
         this.location = Integer.parseInt((String) obj.get("location"));
         this.analysisMode = (String) obj.get("analysisMode");
         this.includedPaths = (ArrayList<String>) obj.get("includedPaths");
@@ -33,6 +37,10 @@ public class RuleEntryParams {
 
     public String getQuery() {
         return query;
+    }
+
+    public AnnotationQuery getAnnotationQuery() {
+        return annotationQuery;
     }
 
     public int getLocation() {
