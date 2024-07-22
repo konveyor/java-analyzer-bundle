@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import io.konveyor.tackle.core.internal.query.AnnotationQuery;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -25,6 +24,8 @@ import org.eclipse.jdt.ls.core.internal.JobHelpers;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.lsp4j.SymbolInformation;
+
+import io.konveyor.tackle.core.internal.query.AnnotationQuery;
 
 public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
@@ -96,15 +97,25 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         }
 
         if (location == 0) {
-            logInfo("default query passed, searching everything");
+            logInfo("default query passed " + query + ", searching everything");
             ArrayList<SearchPattern> l = new ArrayList<SearchPattern>();
             // Searching for Type, Method, and Constructor's.
-            l.add(getPatternSingleQuery(10, query));
-            l.add(getPatternSingleQuery(2, query));
-            l.add(getPatternSingleQuery(3, query));
-            
+            var p = getPatternSingleQuery(10, query);
+            if (p != null) {
+                l.add(p);
+            }
+            p = getPatternSingleQuery(2, query);
+            if (p != null) {
+                l.add(p);
+            }
+            p = getPatternSingleQuery(3, query);
+            if (p != null) {
+                l.add(p);
+            }
+            logInfo("list of p: " + p);
+
             // Get the end pattern
-            SearchPattern p = l.subList(1, l.size()).stream().reduce(l.get(0), (SearchPattern::createOrPattern));
+            p = l.subList(1, l.size()).stream().reduce(l.get(0), (SearchPattern::createOrPattern));
             return p;
         }
 
