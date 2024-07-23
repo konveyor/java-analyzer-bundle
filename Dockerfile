@@ -5,6 +5,8 @@ RUN curl -s -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.36.0
 	chmod 755 /jdtls/bin/jdtls &&\
         rm -rf jdtls.tar.gz
 
+COPY jdtls-bin-override/jdtls.py /jdtls/bin/jdtls.py
+
 FROM registry.access.redhat.com/ubi9/ubi AS maven-index
 COPY hack/maven.default.index /maven.default.index
 FROM registry.access.redhat.com/ubi9/ubi AS fernflower
