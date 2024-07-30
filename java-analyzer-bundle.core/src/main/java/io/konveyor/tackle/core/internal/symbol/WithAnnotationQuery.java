@@ -2,13 +2,11 @@ package io.konveyor.tackle.core.internal.symbol;
 
 import io.konveyor.tackle.core.internal.query.AnnotationQuery;
 import org.eclipse.jdt.core.IAnnotation;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.internal.core.Annotation;
-import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.SourceRefElement;
 
 import java.util.Arrays;
@@ -51,7 +49,7 @@ public interface WithAnnotationQuery {
                 for (IAnnotation annotation : annotations) {
                     // See if the annotation's name matches the pattern given in the query for the annotation
                     String fqn = getFQN(annotation);
-                    if (Pattern.matches(getAnnotationQuery().getType(), fqn)) {
+                    if (getAnnotationQuery().matchesAnnotation(fqn)) {
                         // If the query has annotation elements to check, iterate through the annotation's values and check
                         if (getAnnotationQuery().getElements() != null && !getAnnotationQuery().getElements().entrySet().isEmpty()) {
                             IMemberValuePair[] memberValuePairs = annotation.getMemberValuePairs();

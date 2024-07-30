@@ -3,6 +3,7 @@ package io.konveyor.tackle.core.internal.query;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Represents additional query information to inspect annotations in annotated symbols.
@@ -15,13 +16,19 @@ public class AnnotationQuery {
     private String type;
 
     /**
+     * Indicates whether this AnnotationQuery is done on an annotation (location == ANNOTATION)
+     */
+    private boolean isOnAnnotation;
+
+    /**
      * The elements within the annotation, ie, "value" in <code>@BeanAnnotation(value = "value")</code>
      */
     private Map<String, String> elements;
 
-    public AnnotationQuery(String type, Map<String, String> elements) {
+    public AnnotationQuery(String type, Map<String, String> elements, boolean isOnAnnotation) {
         this.type = type;
         this.elements = elements;
+        this.isOnAnnotation = isOnAnnotation;
     }
 
     public String getType() {
@@ -32,7 +39,23 @@ public class AnnotationQuery {
         return elements;
     }
 
-    public static AnnotationQuery fromMap(Map<String, Object> query) {
+    public boolean isOnAnnotation() {
+        return this.isOnAnnotation;
+    }
+
+    /**
+     * Checks whether the query matches against a given annotation
+     */
+    public boolean matchesAnnotation(String annotation) {
+        // If the annotation query is happening on an annotation, the annotation field in the annotation query can be null
+        if (isOnAnnotation() && getType() == null) {
+            return true;
+        } else {
+            return Pattern.matches(getType(), annotation);
+        }
+    }
+
+    public static AnnotationQuery fromMap(Map<String, Object> query, int location) {
         if (query == null) {
             return null;
         }
@@ -46,6 +69,6 @@ public class AnnotationQuery {
             elements.put(key, value);
         }
 
-        return new AnnotationQuery(typePattern, elements);
+        return new AnnotationQuery(typePattern, elements, location == 4);
     }
 }
