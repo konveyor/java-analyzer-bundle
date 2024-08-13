@@ -55,20 +55,21 @@ public class AnnotationQuery {
         }
     }
 
-    public static AnnotationQuery fromMap(Map<String, Object> query, int location) {
-        if (query == null) {
+    public static AnnotationQuery fromMap(String query, Map<String, Object> annotationQuery, int location) {
+        if (annotationQuery == null) {
             return null;
         }
 
-        String typePattern = (String) query.get("pattern");
+        boolean isOnAnnotation = location == 4;
+        String typePattern = isOnAnnotation && annotationQuery.get("pattern").equals("") ? query : (String) annotationQuery.get("pattern");;
         final Map<String, String> elements = new HashMap<>();
-        List<Map<String, String>> mapElements = (List<Map<String, String>>) query.get("elements");
+        List<Map<String, String>> mapElements = (List<Map<String, String>>) annotationQuery.get("elements");
         for (int i = 0; mapElements != null && i < mapElements.size(); i++) {
             String key = mapElements.get(i).get("name");
             String value = mapElements.get(i).get("value");
             elements.put(key, value);
         }
 
-        return new AnnotationQuery(typePattern, elements, location == 4);
+        return new AnnotationQuery(typePattern, elements, isOnAnnotation);
     }
 }

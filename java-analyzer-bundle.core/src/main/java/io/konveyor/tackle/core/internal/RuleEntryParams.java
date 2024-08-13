@@ -26,7 +26,7 @@ public class RuleEntryParams {
         this.projectName = (String) obj.get("project");
         this.query = (String) obj.get("query");
         this.location = Integer.parseInt((String) obj.get("location"));
-        this.annotationQuery = AnnotationQuery.fromMap((Map<String, Object>) obj.get("annotationQuery"), location);
+        this.annotationQuery = AnnotationQuery.fromMap(this.query, (Map<String, Object>) obj.get("annotationQuery"), location);
         this.analysisMode = (String) obj.get("analysisMode");
         this.includedPaths = (ArrayList<String>) obj.get("includedPaths");
     }
