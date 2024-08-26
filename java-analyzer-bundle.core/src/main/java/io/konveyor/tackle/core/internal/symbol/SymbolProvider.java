@@ -233,6 +233,10 @@ public interface SymbolProvider {
                             }
                         }
                     }
+                    // query can be java.io.paths.Path.checkPath()
+                    if (query.startsWith(importElement)) {
+                        return true;
+                    }
                 }
             } catch (Exception e) {
                 logInfo("unable to determine accuracy of the match");
