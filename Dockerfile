@@ -1,6 +1,6 @@
 FROM registry.access.redhat.com/ubi9/ubi AS jdtls-download
 WORKDIR /jdtls
-RUN curl -s -o jdtls.tar.gz https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.38.0/jdt-language-server-1.38.0-202408011337.tar.gz &&\
+RUN curl -s -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.38.0/jdt-language-server-1.38.0-202408011337.tar.gz &&\
 	tar -xvf jdtls.tar.gz --no-same-owner &&\
 	chmod 755 /jdtls/bin/jdtls &&\
         rm -rf jdtls.tar.gz
