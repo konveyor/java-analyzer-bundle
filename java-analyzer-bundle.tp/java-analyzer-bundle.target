@@ -7,7 +7,7 @@
 		<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner"
 			includeSource="true" type="InstallableUnit">
 			<unit id="org.eclipse.jdt.ls.core" version="0.0.0" />
-			<repository location="https://download.eclipse.org/jdtls/snapshots/repository/1.36.0.202405301306/" />
+			<repository location="https://download.eclipse.org/jdtls/snapshots/repository/1.38.0.202408011337/" />
 		</location>
 		
 		
