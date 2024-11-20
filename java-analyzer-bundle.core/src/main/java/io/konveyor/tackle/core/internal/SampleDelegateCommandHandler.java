@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
@@ -20,6 +21,7 @@ import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
+import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.JobHelpers;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
@@ -212,32 +214,66 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         }
 
 		IJavaSearchScope scope;
+        var workspaceDirectoryLocation = JavaLanguageServerPlugin.getPreferencesManager().getPreferences().getRootPaths();
+        if (workspaceDirectoryLocation == null || workspaceDirectoryLocation.size() == 0) {
+            logInfo("unable to find workspace directory location");
+            return new ArrayList<>();
+        }
+        
         if (includedPaths != null && includedPaths.size() > 0) {
             ArrayList<IJavaElement> includedFragments = new ArrayList<IJavaElement>();
             for (IJavaProject proj : targetProjects) {
-                for (IPackageFragment fragment : proj.getPackageFragments()) {
-                    IPath fragmentPath = fragment.getPath();
-                    // if there's no file extension, it's a path to java package from source
-                    // else it is a path pointing to jar, ear, etc. we ignore deps for now
-                    if (fragmentPath.getFileExtension() == null) {
+                for (String includedPath : includedPaths) {
+                    IPath includedIPath = Path.fromOSString(includedPath);
+                    if (includedIPath.isAbsolute()) {
+                        includedIPath = includedIPath.makeRelativeTo(workspaceDirectoryLocation.iterator().next());
+                        // we need to remove the /src/java from the path
+                        if (includedIPath.segment(0).equals("src")) {
+                            includedIPath = includedIPath.removeFirstSegments(1);
+                        }
+                        if (includedIPath.segment(0).equals("main")) {
+                            includedIPath = includedIPath.removeFirstSegments(1);
+                        }
+                        if (includedIPath.segment(0).equals("java")) {
+                            includedIPath = includedIPath.removeFirstSegments(1);
+                        }
+                        var element = proj.findElement(includedIPath);
+                        if (element == null) {
+                            element = proj.findElement(includedIPath.removeLastSegments(1));
+                            continue;
+                        }
+                        if (element instanceof ICompilationUnit) {
+                            var x = element.getAncestor(IJavaElement.PACKAGE_FRAGMENT);
+                            if (x != null) {
+                                includedFragments.add(x);
+                            }
+                        } else {
+                            includedFragments.add(element);
+                        }
+                        continue;
+                    }
+                    for (IPackageFragment fragment : proj.getPackageFragments()) {
+                        IPath fragmentPath = fragment.getPath();
+                        // if there's no file extension, it's a path to java package from source
+                        // else it is a path pointing to jar, ear, etc. we ignore deps for now
+                        if (fragmentPath.getFileExtension() != null) {
+                            continue;
+                        }
                         // fragment paths are not actual filesystem paths
                         // they are of form /<artifact>/src/main/java
                         // we can only compare the relative path
                         fragmentPath = fragmentPath.removeFirstSegments(1);
-                        for (String includedPath : includedPaths) {
-                            IPath includedIPath = Path.fromOSString(includedPath);
-                            // when there are more than one sub-projects, the paths are of form
-                            // <project-name>/src/main/java/
-                            if (includedPath.startsWith(proj.getElementName())) {
-                                includedIPath = includedIPath.removeFirstSegments(1);
-                            }
-                            // instead of comparing path strings, comparing segments is better for 2 reasons:
-                            // - we don't have to worry about redundant . / etc in input
-                            // - matching sub-trees is easier with segments than strings
-                            if (includedIPath.segmentCount() <= fragmentPath.segmentCount() && 
-                                includedIPath.matchingFirstSegments(fragmentPath) == includedIPath.segmentCount()) {
-                                includedFragments.add(fragment);
-                            }
+                        // when there are more than one sub-projects, the paths are of form
+                        // <project-name>/src/main/java/
+                        if (includedPath.startsWith(proj.getElementName())) {
+                            includedIPath = includedIPath.removeFirstSegments(1);
+                        }
+                        // instead of comparing path strings, comparing segments is better for 2 reasons:
+                        // - we don't have to worry about redundant . / etc in input
+                        // - matching sub-trees is easier with segments than strings
+                        if (includedIPath.segmentCount() <= fragmentPath.segmentCount() && 
+                            includedIPath.matchingFirstSegments(fragmentPath) == includedIPath.segmentCount()) {
+                            includedFragments.add(fragment);
                         }
                     }
                 }
