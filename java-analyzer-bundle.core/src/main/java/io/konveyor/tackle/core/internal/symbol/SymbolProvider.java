@@ -111,7 +111,13 @@ public interface SymbolProvider {
                 } else {
                     query = query + "&source-range=false";
                 }
-                uriString = new URI("konveyor-jdt", "contents", cf.getPath().toString(), query, null).toASCIIString();
+                String cfPath = cf.getPath().toString();
+                String os = System.getProperty("os.name").toLowerCase();
+                // windows home path will start with C: so need to add beginning '/'' for uri
+                if (os.indexOf("win") >= 0){
+                    cfPath = '/' + cfPath;
+                }
+                uriString = new URI("konveyor-jdt", "contents", cfPath, query, null).toASCIIString();
 
 		    } catch (URISyntaxException e) {
 			    JavaLanguageServerPlugin.logException("Error generating URI for class ", e);
