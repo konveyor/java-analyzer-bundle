@@ -24,8 +24,7 @@ COPY ./ /app/
 RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 RUN JAVA_HOME=/usr/lib/jvm/java-17-openjdk mvn clean install -DskipTests=true
 
-FROM registry.access.redhat.com/ubi9/ubi-minimal as gopls-build
-RUN microdnf install -y go-toolset && microdnf clean all && rm -rf /var/cache/dnf
+FROM golang:1.23 as gopls-build
 RUN go install golang.org/x/tools/gopls@latest
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
@@ -44,7 +43,7 @@ ENV M2_HOME /usr/local/apache-maven-3.9.5
 RUN mkdir /root/.gradle
 COPY ./gradle/build.gradle /root/.gradle/task.gradle
 
-COPY --from=gopls-build /root/go/bin/gopls /root/go/bin/gopls
+COPY --from=gopls-build /go/bin/gopls /root/go/bin/gopls
 COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
