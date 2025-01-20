@@ -22,6 +22,7 @@ public class SymbolProviderResolver {
         map.put(11, new ReferenceSymbolProvider());
         map.put(12, new FieldSymbolProvider());
         map.put(13, new MethodDeclarationSymbolProvider());
+        map.put(14, new ClassDeclarationSymbolProvider());
     }
 
     public SymbolProvider resolve(Integer i) {
