@@ -140,6 +140,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
      * 	"package":              11,
      * 	"field":                12,
      *  "method_declaration":   13,
+     *  "class_declaration":    14,
      *
      * @param location
      * @param query
@@ -179,6 +180,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.FIELD_DECLARATION_TYPE_REFERENCE, pattern);
         case 13:
             return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.DECLARATIONS, SearchPattern.R_EXACT_MATCH | SearchPattern.R_PATTERN_MATCH);
+        case 14:
+            return SearchPattern.createPattern(query, IJavaSearchConstants.CLASS, IJavaSearchConstants.DECLARATIONS, SearchPattern.R_EXACT_MATCH | SearchPattern.R_PATTERN_MATCH);
         }
         throw new Exception("unable to create search pattern"); 
     }
