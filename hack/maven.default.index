@@ -87,6 +87,8 @@ ae.teletronics.solr.*
 ae.teletronics.toolbox.*
 ae.trdqad.*
 aelfred.aelfred.*
+aero.albers.mbse.*
+aero.albers.osmbse.*
 aero.champ.*
 aero.loretta.*
 aero.m-click.*
@@ -300,6 +302,7 @@ ai.vyro.*
 ai.vyro.imagine.sdk.*
 ai.waii.*
 ai.wandering.scoop.*
+ai.wandz.android.*
 ai.whylabs.*
 ai.wordbox.*
 ai.x.*
@@ -561,6 +564,7 @@ app.ubie.*
 app.valuationcontrol.*
 app.wordpace.*
 app.xivgear.*
+app.zenmoney.jsbridge.*
 app.ztash.*
 aptconvert.aptconvert.*
 ar.com.asanteit.*
@@ -702,6 +706,7 @@ at.quelltextlich.jacoco.*
 at.quickme.kotlinmailer.*
 at.rechnerherz.*
 at.reilaender.asciidoctorj.bootconfig2adoc.*
+at.released.debuglayout.*
 at.released.igdbclient.*
 at.released.weh.*
 at.researchstudio.sat.*
@@ -2428,6 +2433,7 @@ cloud.nebulacore.*
 cloud.neospectra.android.*
 cloud.nimburst.*
 cloud.nxt-mobility.*
+cloud.oneentry.*
 cloud.opencode.base.*
 cloud.orbit.*
 cloud.pace.*
@@ -2763,6 +2769,7 @@ cn.com.joycode.*
 cn.com.kingbase.*
 cn.com.louie.*
 cn.com.mooho.*
+cn.com.moonspeak.*
 cn.com.ogtwelve.*
 cn.com.onlinetool.*
 cn.com.openboot.*
@@ -3460,6 +3467,7 @@ cn.shazhengbo.*
 cn.shazhengbo.storage.*
 cn.shellming.metrics.*
 cn.shellming.thrift.*
+cn.shengwang.*
 cn.shengwang.rtc.*
 cn.shenyanchao.ik-analyzer.*
 cn.shenyanchao.ut.*
@@ -4020,6 +4028,7 @@ co.pishfa.accelerate.*
 co.pjrt.*
 co.powersync.*
 co.poynt.postman.runner.*
+co.prado.sdk.*
 co.pragmati.*
 co.present.rpc.*
 co.privacyone.*
@@ -4701,6 +4710,7 @@ com.aevi.ui.library.*
 com.aevi.util.*
 com.affinda.api.*
 com.affinidi.stg.*
+com.affinidi.tdk.*
 com.affirm.*
 com.affise.*
 com.affixapi.*
@@ -5042,6 +5052,7 @@ com.alibaba.ons.*
 com.alibaba.otter.*
 com.alibaba.p3c.*
 com.alibaba.p3c.idea.*
+com.alibaba.pdns.*
 com.alibaba.pelican.*
 com.alibaba.polardbx.*
 com.alibaba.race.*
@@ -6449,6 +6460,7 @@ com.bellotapps.the-messenger.*
 com.bellotapps.utils.*
 com.bellotapps.webapps.*
 com.belteshazzar.*
+com.bemobi.*
 com.benasher44.*
 com.benayn.*
 com.benbarkay.htmltopdf.*
@@ -8153,6 +8165,7 @@ com.componentcorp.xml.validation.*
 com.composables.*
 com.composables.core.*
 com.composables.ui.*
+com.composevisualeditor.apoloapps.*
 com.composevisualeditor.apolostudio.*
 com.composum.aem.*
 com.composum.ai.*
@@ -8712,6 +8725,7 @@ com.databricks.labs.*
 com.datadoghq.*
 com.datadoghq.okhttp3.*
 com.datadoghq.okio.*
+com.dataforgedev.*
 com.dataheaps.*
 com.dataliquid.*
 com.dataliquid.maven.*
@@ -9841,6 +9855,7 @@ com.enfore.*
 com.engagelab.*
 com.engagelab.plugin.*
 com.engagetech.dropwizard.modules.*
+com.engine.*
 com.enginious-dev.*
 com.englishtown.*
 com.englishtown.vertigo.*
@@ -9893,6 +9908,7 @@ com.enzoic.*
 com.eoniantech.*
 com.eoniantech.build.*
 com.eonliu.packer.*
+com.eorion.bo.enhancement.*
 com.eorionsolution.camunda.*
 com.eowise.*
 com.eoysky.*
@@ -10687,6 +10703,7 @@ com.flandep.android.*
 com.flarestarsoftware.*
 com.flash3388.*
 com.flash3388.flashlib.*
+com.flash3388.thirdparty.rev.distancesensor.*
 com.flash3388.tracer.*
 com.flash3388.util.*
 com.flashflexpro.*
@@ -22150,6 +22167,10 @@ com.hexadevlabs.*
 com.hexagonkt.*
 com.hexagonkt.extra.*
 com.hexagontk.*
+com.hexagontk.http.*
+com.hexagontk.serialization.*
+com.hexagontk.serverless.*
+com.hexagontk.templates.*
 com.hexaid.struts2.junit.*
 com.hexascribe.*
 com.hextremelabs.*
@@ -24295,6 +24316,7 @@ com.julienlavergne.*
 com.julienvey.trello.*
 com.julienviet.*
 com.juliozynger.floorplan.*
+com.juliusyolo.*
 com.july-cloud.*
 com.july-cloud.nacos.*
 com.jumper-health.*
@@ -24387,6 +24409,7 @@ com.jyuzawa.*
 com.jyvee.*
 com.jyvee.spring.*
 com.jyvee.spring.storageservice.*
+com.jyzttech.sdk.*
 com.jzallas.*
 com.jzbrooks.*
 com.jzbrooks.vgo.*
@@ -24819,6 +24842,7 @@ com.koushikdutta.urlimageviewhelper.*
 com.kovacivan.*
 com.koverse.*
 com.kovizone.*
+com.kpadplayer.sdk.*
 com.kpelykh.*
 com.kpi4j.*
 com.kpouer.*
@@ -27115,6 +27139,7 @@ com.mmnaseri.utils.*
 com.mmoczkowski.*
 com.mmorrell.*
 com.mncdigital.analytics.*
+com.mndiad.*
 com.mntviews.*
 com.mnubo.*
 com.moandjiezana.jamon.*
@@ -27802,6 +27827,7 @@ com.netease.cloudmusic.opensdk.*
 com.netease.marvel.*
 com.netease.meeting.*
 com.netease.mobsec.grow.*
+com.netease.nesrsdk.external-recognition.*
 com.netease.nim.*
 com.netease.nimlib.*
 com.netease.nimlib.flutter.*
@@ -28883,6 +28909,7 @@ com.osinka.subset.*
 com.osmerion.gradle.jdk.tools.*
 com.osmerion.gradle.lwjgl3.*
 com.osmerion.jdk-tools.*
+com.osmerion.kotlin.*
 com.osmerion.lwjgl3.*
 com.osmerion.onetrickpony.*
 com.osmerion.quitte.*
@@ -32187,6 +32214,7 @@ com.sourcetohtml.*
 com.sovilo.scratch.*
 com.sovren.*
 com.soychat.*
+com.soytul.*
 com.soywiz.*
 com.soywiz.kirpter.*
 com.soywiz.korge.*
@@ -33524,6 +33552,7 @@ com.thebhumilsoni.utest.analytics.*
 com.thebluealliance.*
 com.thebluekernel.common.*
 com.theboreddev.*
+com.thebrownfoxx.*
 com.thecoderscorner.tcmenu.*
 com.thecodingdevs.apps.*
 com.thedeanda.*
@@ -35860,6 +35889,8 @@ com.xellitix.commons.*
 com.xellitix.jenkins.*
 com.xemantic.ai.*
 com.xemantic.anthropic.*
+com.xemantic.gradle.*
+com.xemantic.gradle.xemantic-conventions.*
 com.xemantic.kotlin.*
 com.xemantic.osc.*
 com.xendit.*
@@ -36397,6 +36428,7 @@ com.ysyao.*
 com.yuangancheng.*
 com.yuanheng100.*
 com.yuanhoujun.*
+com.yuanmatansuo.*
 com.yuansfer.*
 com.yuanzhixiang.bt.*
 com.yuanzhy.sqldog.*
@@ -39576,7 +39608,9 @@ dev.le-app.*
 dev.learning.xapi.*
 dev.learning.xapi.samples.*
 dev.lightdream.*
+dev.likemagic.*
 dev.limebeck.*
+dev.limebeck.libs.*
 dev.linfn.lucene.*
 dev.linwood.*
 dev.logchange.*
@@ -42080,6 +42114,7 @@ fun.fengwk.gateway.*
 fun.fengwk.jwt4j.*
 fun.fengwk.upms.*
 fun.freechat.*
+fun.golinks.*
 fun.hereis.code.*
 fun.imcoder.cloud.*
 fun.krinsiman.llm.*
@@ -45066,6 +45101,7 @@ io.gitee.wangfugui-ma.*
 io.gitee.watching-lsl.*
 io.gitee.waxbegonia.*
 io.gitee.weir_admin.*
+io.gitee.welltan.*
 io.gitee.whulyd.*
 io.gitee.wjquan1234.*
 io.gitee.wl4837.alatool.*
@@ -45204,6 +45240,7 @@ io.github.2c2pdavidbilly.*
 io.github.2gis.*
 io.github.2lbj.*
 io.github.2ysp.*
+io.github.317787106.*
 io.github.3431193795cl.*
 io.github.3akat.*
 io.github.3dextended.*
@@ -45319,6 +45356,7 @@ io.github.FlyJingFish.EasyRegister.*
 io.github.FlyJingFish.LightAop.*
 io.github.FlyJingFish.ModuleCommunication.*
 io.github.FlyJingFish.OpenImage.*
+io.github.FlyJingFish.ViewBindingPro.*
 io.github.FlyJingFish.javassist.*
 io.github.ForteScarlet.*
 io.github.ForteScarlet.plusutils.*
@@ -45659,8 +45697,10 @@ io.github.agcom.*
 io.github.agdturner.*
 io.github.agebe.*
 io.github.agebhar1.*
+io.github.agent-polyblank.*
 io.github.agenthun.*
 io.github.agentsoz.*
+io.github.aggarwal-ankur.*
 io.github.aghajari.*
 io.github.agileek.*
 io.github.agmenc.*
@@ -46015,6 +46055,7 @@ io.github.andromind.*
 io.github.andronikusgametech.*
 io.github.andrzej-krawiec.*
 io.github.andviane.*
+io.github.andy-wys.*
 io.github.andyalvarezdev.*
 io.github.aneelkkhatri.*
 io.github.anesuphiri521.*
@@ -46100,6 +46141,7 @@ io.github.appasuamithsai.*
 io.github.appiumactions.*
 io.github.appmotion-gmbh.*
 io.github.appoptics.*
+io.github.appspiriment.*
 io.github.appspirimentlabs.*
 io.github.appversation.*
 io.github.aprietop.*
@@ -46371,6 +46413,7 @@ io.github.bastionkid.*
 io.github.battery-staple.*
 io.github.baumrobson.*
 io.github.baunz.*
+io.github.bax-exchange.*
 io.github.bay73.*
 io.github.bayescom.*
 io.github.baylorpaul.*
@@ -46525,6 +46568,7 @@ io.github.bitbrain.*
 io.github.bitcoin-education.*
 io.github.bitmartexchange.*
 io.github.bitonator.*
+io.github.bitquant-initiative.*
 io.github.bitscorpio.*
 io.github.bitsim.*
 io.github.bitstorm.*
@@ -47101,6 +47145,7 @@ io.github.cloudiator.visor.*
 io.github.cloudify.*
 io.github.cloudscheduler.*
 io.github.clownfishcode.*
+io.github.clownfishtech.*
 io.github.clrossel.*
 io.github.clx25.*
 io.github.clywm520.*
@@ -47198,6 +47243,7 @@ io.github.completabletuples.*
 io.github.composegears.*
 io.github.composegears.di.*
 io.github.composexy-decomposer.*
+io.github.composix.*
 io.github.compress4j.*
 io.github.comrada.*
 io.github.comradewalker.*
@@ -47925,6 +47971,7 @@ io.github.dripWaterArun.*
 io.github.drkunibar.*
 io.github.drkunibar.netbeans.*
 io.github.drofmij.*
+io.github.droibit.*
 io.github.dropwizard-jobs.*
 io.github.dror-ctera.*
 io.github.drrename.*
@@ -47991,8 +48038,10 @@ io.github.dvogt10.*
 io.github.dweb-channel.*
 io.github.dwibambang72.*
 io.github.dwivna.*
+io.github.dxprivacy.*
 io.github.dxslin.*
 io.github.dxx.*
+io.github.dyadyajora.*
 io.github.dyegosutil.*
 io.github.dylan-kwon.*
 io.github.dynamicce.*
@@ -48291,6 +48340,7 @@ io.github.evis.*
 io.github.evitwilly.nicestarratingview.*
 io.github.evkost.*
 io.github.evkost.state-dsl.*
+io.github.evonit.*
 io.github.exa-mohamedi.*
 io.github.exaberries.*
 io.github.exav.*
@@ -48553,10 +48603,12 @@ io.github.frango9000.*
 io.github.frank-soon-team.*
 io.github.frankieshao.refreshlayout.*
 io.github.franklinruiz.*
+io.github.franklisting65.*
 io.github.frankois944.*
 io.github.frankois944.spmForKmp.*
 io.github.frankois944.spmForKmp.plugin.*
 io.github.frankold.*
+io.github.frantoso.*
 io.github.franvis.pimpmyandroidxml.*
 io.github.franzgranlund.*
 io.github.frapples.javapinyin.*
@@ -48805,6 +48857,7 @@ io.github.ginvavilon.traghentto.*
 io.github.gionni2d.*
 io.github.giosil.*
 io.github.giova333.*
+io.github.giovanniandreuzza.*
 io.github.giovannilamarmora.utils.*
 io.github.gipo355.*
 io.github.gipo999.*
@@ -49145,6 +49198,7 @@ io.github.hdixon06.*
 io.github.hdszylcd19.*
 io.github.hdwang123.*
 io.github.hdwhill.*
+io.github.heart-beats.crash.*
 io.github.heart-beats.material-dialogs.*
 io.github.heartalborada-del.*
 io.github.heathcetide.*
@@ -49588,6 +49642,7 @@ io.github.inyourhead.*
 io.github.ioanngolovko.*
 io.github.iodevblue.*
 io.github.iosephknecht.*
+io.github.iostreamchik.toast.*
 io.github.iotclouddeveloper.*
 io.github.iotxc.*
 io.github.iowisetrack.*
@@ -49659,6 +49714,7 @@ io.github.itomych-android.*
 io.github.itroadlabs.*
 io.github.itsaky.*
 io.github.itsamanop.*
+io.github.itstorytelling.*
 io.github.itsxtt.*
 io.github.itulau.*
 io.github.itzephir.*
@@ -49666,6 +49722,7 @@ io.github.itzikshiva.*
 io.github.ivanespitiac.*
 io.github.ivangavlik.PonderaAssembly.*
 io.github.ivanmachno67.*
+io.github.ivansanchez16.*
 io.github.ivanshafran.*
 io.github.ivaprag.*
 io.github.ivetech.auxiliaries.*
@@ -49808,6 +49865,7 @@ io.github.javer-hff.*
 io.github.javernaut.*
 io.github.javiercanillas.*
 io.github.javiercanillas.temporal.newrelic.*
+io.github.javierpe.*
 io.github.javiertuya.*
 io.github.javpower.*
 io.github.javthon.*
@@ -50579,6 +50637,8 @@ io.github.kouchengjian.*
 io.github.kouleen.*
 io.github.kouleen.breadlib.*
 io.github.kouleen.interceptor.*
+io.github.kouleen.minecraft.*
+io.github.kouleen.minecraft.core.*
 io.github.koushenhai.*
 io.github.koustavtub.*
 io.github.kozemirov.*
@@ -50916,6 +50976,7 @@ io.github.linyxus.*
 io.github.linzengrui017.*
 io.github.linzesu.*
 io.github.linzy8888.*
+io.github.lionh.*
 io.github.lipanre.*
 io.github.lipiridi.*
 io.github.liqim.*
@@ -51139,6 +51200,7 @@ io.github.lukalike.*
 io.github.lukasaslt.*
 io.github.lukasdylan.*
 io.github.lukasmansour.*
+io.github.lukeaschenbrenner.*
 io.github.lukebemish.brainfrick.*
 io.github.lukehutch.*
 io.github.luketang3.*
@@ -51357,6 +51419,7 @@ io.github.manojpawar94.*
 io.github.manriif.supabase-functions.*
 io.github.manson-chen.*
 io.github.manu-tech-code.*
+io.github.manuelarte.*
 io.github.manuelarte.spring.*
 io.github.manusant.*
 io.github.manzurola.*
@@ -51695,6 +51758,7 @@ io.github.mingyifei.*
 io.github.minh160302.*
 io.github.minhhoangvn.*
 io.github.mini-mo.*
+io.github.mini-roostico.*
 io.github.miniclem.*
 io.github.miniclip.*
 io.github.miniplaceholders.*
@@ -52283,6 +52347,7 @@ io.github.nirro01.*
 io.github.nishadchayanakhawa.*
 io.github.nishain-de-silva.*
 io.github.nishkarsh.*
+io.github.nist4j.*
 io.github.nitesh7.*
 io.github.nithyanandauniversity.content_server.*
 io.github.nitinb-v2solutions.*
@@ -52383,6 +52448,7 @@ io.github.nuzigor.*
 io.github.nvest-solutions.*
 io.github.nvivanov.*
 io.github.nwokafor-choongsaeng.*
+io.github.nx-xn2002.*
 io.github.nyayurn.*
 io.github.nyk93.*
 io.github.nylon009.*
@@ -53033,6 +53099,7 @@ io.github.programmercito.*
 io.github.project-openubl.*
 io.github.project-snail.*
 io.github.projectclean.*
+io.github.projecthsf.*
 io.github.projectunified.*
 io.github.projecturutau.*
 io.github.prolobjectlink.*
@@ -53451,6 +53518,7 @@ io.github.raistlintao.*
 io.github.rajesh2015.*
 io.github.rajeshguptan.*
 io.github.rajjobwork.*
+io.github.rajkumarrajamani.*
 io.github.rajkumarrepos.*
 io.github.rajnat.*
 io.github.rajparsaniya.*
@@ -54096,6 +54164,7 @@ io.github.selcukes.*
 io.github.selectdb.*
 io.github.selectorrr.*
 io.github.selemba1000.*
+io.github.seleniumbrain.*
 io.github.seleniumquery.*
 io.github.selevinia.*
 io.github.selvasuriyanadar.*
@@ -54257,6 +54326,7 @@ io.github.shreeshasa.*
 io.github.shreyashsaitwal.*
 io.github.shreyashsaitwal.rush.*
 io.github.shroman.*
+io.github.shshdxk.*
 io.github.shsmysore.fcmjava.*
 io.github.shubham10divakar.*
 io.github.shubhamjha99.*
@@ -54520,6 +54590,7 @@ io.github.springsocialmicrosoft.*
 io.github.springstudent.*
 io.github.springwolf.*
 io.github.sproket.*
+io.github.sprouts-clark.*
 io.github.spyrosmoux.*
 io.github.sqlunet.*
 io.github.sqsite.*
@@ -54591,6 +54662,7 @@ io.github.steinshei.*
 io.github.steliospaps.*
 io.github.stellalupus.*
 io.github.stellarsunset.*
+io.github.stellarsunset.auto-semver.*
 io.github.stepanovd.*
 io.github.stephanebastian.*
 io.github.stephankoelle.*
@@ -54790,6 +54862,7 @@ io.github.t894924815.*
 io.github.t895.*
 io.github.tabarakmohammed.*
 io.github.tabilzad.*
+io.github.tabilzad.inspektor.*
 io.github.tabilzad.ktor-docs-plugin-gradle.*
 io.github.tablestakes.*
 io.github.tacascer.*
@@ -55123,6 +55196,7 @@ io.github.tokgoronin.*
 io.github.tokuhirom.kdary.*
 io.github.tokuhirom.momiji.*
 io.github.tolisso.*
+io.github.toma910248.*
 io.github.tomalloc.*
 io.github.tomaslad.*
 io.github.tomaszstaniewicz.*
@@ -55141,6 +55215,7 @@ io.github.tommy-geenexus.*
 io.github.tomokinakamaru.silverchain.*
 io.github.tomoya0x00.*
 io.github.tompee26.*
+io.github.toms223.*
 io.github.tomwyr.*
 io.github.tomykaira.*
 io.github.tong12580.*
@@ -55427,6 +55502,7 @@ io.github.vantoozz.kli.*
 io.github.vanzoosdk.*
 io.github.vaqxai.*
 io.github.varconf.*
+io.github.vardemin.*
 io.github.varoso.*
 io.github.varunkumarsp2.*
 io.github.vashilk.*
@@ -55462,6 +55538,7 @@ io.github.veronatus.multiplatformswiper.*
 io.github.veronika2312.*
 io.github.verygoodwlk.*
 io.github.verypossible.*
+io.github.veselyjan92.*
 io.github.vexcited.crowous.*
 io.github.vfedoriv.*
 io.github.vfem.livenesscheck.spring.*
@@ -55552,6 +55629,7 @@ io.github.vivtoum.*
 io.github.vizcainoa14.BESA.*
 io.github.vkatz.*
 io.github.vkn.*
+io.github.vlad-buhaescu-qoob.*
 io.github.vlad-mk.*
 io.github.vladcar.*
 io.github.vladimirpianykh.*
@@ -55676,6 +55754,7 @@ io.github.wanniDev.*
 io.github.wannidev.*
 io.github.wanwenshuai.*
 io.github.warnotte.*
+io.github.warraft.*
 io.github.warren1001.*
 io.github.warriorzz.*
 io.github.wasabithumb.*
@@ -55790,6 +55869,7 @@ io.github.willfey4.*
 io.github.willhains.*
 io.github.william353.logger.*
 io.github.william353.systrace.*
+io.github.william853868671.*
 io.github.williamgufeng.*
 io.github.williamkwokx.*
 io.github.williankl.spinnable.*
@@ -55810,6 +55890,7 @@ io.github.windysha.*
 io.github.wing4123.*
 io.github.winkeylucky.*
 io.github.winskyan.*
+io.github.winterrifier.*
 io.github.wirednerd.*
 io.github.wisa-lab.*
 io.github.wisharetec.*
@@ -56055,6 +56136,7 @@ io.github.xiaozeiqwe8.*
 io.github.xiapxx.*
 io.github.xiaxia112233.*
 io.github.xibalbam.*
+io.github.xiearthur.*
 io.github.xiechanglei.*
 io.github.xiehai.*
 io.github.xiejinwei93.*
@@ -56121,6 +56203,7 @@ io.github.xueqiya.*
 io.github.xuexixuexijpg.*
 io.github.xuhai19901018.*
 io.github.xujianfen.pram.*
+io.github.xujie784442670.*
 io.github.xulailing.*
 io.github.xulinglin.*
 io.github.xumig.*
@@ -56333,6 +56416,7 @@ io.github.youngwm.*
 io.github.youngxinler.*
 io.github.your-clock.*
 io.github.yourzhangjian.*
+io.github.yousojeong.*
 io.github.youth5201314.*
 io.github.youtiaoguagua.*
 io.github.yoyama.*
@@ -56403,6 +56487,7 @@ io.github.yurtitov.*
 io.github.yuru0589.*
 io.github.yushan-yaojin.*
 io.github.yushman.*
+io.github.yusuf0405.*
 io.github.yusufsdiscordbot.*
 io.github.yusufsdiscordbot.realyusufismailcore.*
 io.github.yusufyilmazfr.*
@@ -56576,6 +56661,7 @@ io.github.zhongyinghao.*
 io.github.zhongzichang.*
 io.github.zhou-dong.*
 io.github.zhou-jun-jie.*
+io.github.zhou256bug.*
 io.github.zhouguangyao.*
 io.github.zhouhuandev.*
 io.github.zhoujunlin94.*
@@ -57157,6 +57243,7 @@ io.heretical.*
 io.herrera.kevin.*
 io.hetu.*
 io.hetu.core.*
+io.hevo.*
 io.hexhacking.*
 io.hgc.*
 io.hgraphdb.*
@@ -57885,6 +57972,7 @@ io.mateu.archetypes.*
 io.mateu.article2.*
 io.mateu.jpa-utils.*
 io.mateu.ui.mdd.archetypes.*
+io.mathan.breakout.*
 io.mathan.maven.*
 io.mathan.raml.*
 io.mathan.sonar.*
@@ -58096,6 +58184,7 @@ io.mockative.*
 io.mockk.*
 io.modelcontextprotocol.*
 io.moderne.*
+io.moderne.recipe.*
 io.mogdb.*
 io.moia.*
 io.mokamint.*
@@ -58113,6 +58202,7 @@ io.monkeypatch.kaval.*
 io.monstarlab.mosaic.*
 io.moonsense.*
 io.moorse.*
+io.moov.*
 io.moquette.*
 io.morethan.daggerdoc.*
 io.morfly.airin.*
@@ -58134,6 +58224,7 @@ io.mosip.compliance.*
 io.mosip.datashare.*
 io.mosip.demosdk.*
 io.mosip.digitalcard.*
+io.mosip.esignet-signup.*
 io.mosip.esignet.*
 io.mosip.esignet.mock.*
 io.mosip.esignet.sunbirdrc.*
@@ -58154,6 +58245,7 @@ io.mosip.print.*
 io.mosip.registration.*
 io.mosip.registrationprocessor.*
 io.mosip.resident.*
+io.mosip.signup.*
 io.mosip.testrig.apirig.apitest.commons.*
 io.mosip.testrig.apirig.automationtests.*
 io.mosip.testrig.apitest.commons.*
@@ -58607,6 +58699,7 @@ io.primeval.tooling.bnd.*
 io.prismic.*
 io.pristine.*
 io.pristine.sheath.*
+io.privy.*
 io.probedock.*
 io.probedock.client.*
 io.probedock.demo.*
@@ -59905,6 +59998,7 @@ io.v.*
 io.v47.*
 io.v47.jaffree.*
 io.v47.tmdb-api-client.*
+io.v47.tmdb-api-client.quarkus.*
 io.vacco.*
 io.vacco.beleth.*
 io.vacco.bert.*
@@ -60520,6 +60614,7 @@ it.tidalwave.bluemarine.*
 it.tidalwave.bluemarine.boot.*
 it.tidalwave.bluemarine2.*
 it.tidalwave.bluemarine2.testsets.*
+it.tidalwave.bluemarine3.*
 it.tidalwave.blueshades.*
 it.tidalwave.dummy.*
 it.tidalwave.fork.com.jayway.maven.plugins.android.generation2.*
@@ -61023,6 +61118,7 @@ jp.co.cyberagent.valor.*
 jp.co.epea.*
 jp.co.freee.*
 jp.co.future.*
+jp.co.gahojin.bytes-kotlin.*
 jp.co.genestream.*
 jp.co.metabolics.*
 jp.co.nohana.*
@@ -61756,6 +61852,7 @@ me.bechberger.*
 me.bemind.customfont.*
 me.benoitguigal.*
 me.bhop.*
+me.binwang.archmage.*
 me.binwang.scala2grpc.*
 me.binwang.streamz.*
 me.biubiubiu.autoview.*
@@ -62049,6 +62146,7 @@ me.lucko.configurate.*
 me.lucko.luckperms.*
 me.luckslovez.*
 me.lucyy.*
+me.lucyydotp.tinsel.*
 me.luzhuo.android.*
 me.lyh.*
 me.machinemaker.*
@@ -62723,6 +62821,7 @@ mx.com.sw.*
 mx.com.sw.services.*
 mx.dapp.sdk.*
 mx.emite.*
+mx.empos.*
 mx.grupocorasa.cfdi.*
 mx.m-k.*
 mx.nic.labs.reddog.*
@@ -62969,6 +63068,8 @@ net.andreinc.*
 net.andrewcpu.*
 net.andrewhatch.*
 net.andrzejczak.*
+net.ankao.*
+net.ankao.framework.*
 net.ankao.org.*
 net.anotheria.*
 net.anotheria.portalkit.*
@@ -63142,6 +63243,7 @@ net.bzdyl.*
 net.bzzt.*
 net.c0f3.labs.*
 net.cacheux.crudroid.*
+net.cacheux.nvplib.*
 net.cactusthorn.config.*
 net.cactusthorn.routing.*
 net.cadrian.jsonref.*
@@ -63226,6 +63328,7 @@ net.codinux.i18n.*
 net.codinux.invoicing.*
 net.codinux.jackson.*
 net.codinux.kotlin.*
+net.codinux.kotlin.serialization.*
 net.codinux.log.*
 net.codinux.log.kubernetes.*
 net.codinux.util.*
@@ -63325,6 +63428,7 @@ net.davidbuccola.force-spa.*
 net.davidtanzer.*
 net.davidwiles.*
 net.ddellspe.*
+net.deanly.*
 net.debasishg.*
 net.deechael.*
 net.deelam.*
@@ -63481,6 +63585,7 @@ net.evendanan.anysoftkeyboard.*
 net.evenh.*
 net.evilengineers.templates4j.*
 net.evilmouth.*
+net.evonit.*
 net.exoego.*
 net.exogeni.orca.*
 net.exogeni.orca.controllers.*
@@ -64750,6 +64855,7 @@ net.rpcnet.securitytoolkit.*
 net.rr-world.*
 net.rsprot.*
 net.rubygrapefruit.*
+net.rubygrapefruit.libs.*
 net.ruippeixotog.*
 net.ruixinglong.*
 net.ruixinglong.java-slice-upload.*
@@ -66239,6 +66345,7 @@ nl.mirila.settings.*
 nl.mplatvoet.komponents.*
 nl.myndocs.*
 nl.ncaj.*
+nl.ncaj.theme.win9x.*
 nl.neotech.plugin.*
 nl.neotech.plugin.rootcoverage.*
 nl.ngti.*
@@ -70364,6 +70471,7 @@ org.devefx.*
 org.devefx.spring.boot.*
 org.develrulez.thinjar.*
 org.devlib.schmidt.*
+org.devlive.lightcall.*
 org.devlive.sdk.*
 org.devnull.*
 org.devocative.*
@@ -70522,6 +70630,7 @@ org.dromara.mybatis-jpa-extra.*
 org.dromara.sms4j.*
 org.dromara.solon-plugins.*
 org.dromara.stream-query.*
+org.dromara.warm-mybatis-flex.*
 org.dromara.warm.*
 org.dromara.x-easypdf.*
 org.dromara.x-file-storage.*
@@ -70663,6 +70772,7 @@ org.eclipse.apoapsis.ortserver.logaccess.*
 org.eclipse.apoapsis.ortserver.secrets.*
 org.eclipse.apoapsis.ortserver.services.*
 org.eclipse.apoapsis.ortserver.storage.*
+org.eclipse.apoapsis.ortserver.tasks.*
 org.eclipse.apoapsis.ortserver.transport.*
 org.eclipse.apoapsis.ortserver.utils.*
 org.eclipse.apoapsis.ortserver.workers.*
@@ -71130,6 +71240,7 @@ org.eclipse.tesla.*
 org.eclipse.tesla.plugin.*
 org.eclipse.tesla.plugins.*
 org.eclipse.text.*
+org.eclipse.tracecompass.*
 org.eclipse.tractusx.*
 org.eclipse.tractusx.digital_twin_registry.*
 org.eclipse.tractusx.edc.*
@@ -72981,6 +73092,7 @@ org.infinitest.*
 org.influxdb.*
 org.influxlakehouse.*
 org.influxlakehouse.commons.*
+org.influxlakehouse.glacier.*
 org.info2soft.*
 org.infobip.lib.*
 org.infobip.oneapi.*
@@ -77669,6 +77781,7 @@ org.pcap4j.*
 org.pcollections.*
 org.pcre4j.*
 org.pdfsam.*
+org.pdfsam.maven.*
 org.pdfsam.rxjava3.*
 org.pdgen.*
 org.pdown.*
@@ -77841,6 +77954,7 @@ org.primefaces.*
 org.primefaces.extensions.*
 org.primefaces.themes.*
 org.privelt.*
+org.probato.*
 org.processing.*
 org.processing.core.*
 org.programmiersportgruppe.*
@@ -79449,6 +79563,7 @@ org.sterl.loadrunner.*
 org.sterl.pmw.*
 org.sterl.spring.*
 org.sterl.svg2png.*
+org.sterl.test.*
 org.sterl.test.log4j.*
 org.sterlingcode.*
 org.stokesdrift.*
@@ -82154,6 +82269,9 @@ org.wso2.orbit.com.github.fge.*
 org.wso2.orbit.com.github.java-json-tools.*
 org.wso2.orbit.com.github.jknack.*
 org.wso2.orbit.com.google.api-client.*
+org.wso2.orbit.com.google.api.*
+org.wso2.orbit.com.google.firebase.*
+org.wso2.orbit.com.google.guava.*
 org.wso2.orbit.com.google.http-client.*
 org.wso2.orbit.com.google.oauth-client.*
 org.wso2.orbit.com.googlecode.json-simple.*
@@ -82174,6 +82292,7 @@ org.wso2.orbit.commons-net.*
 org.wso2.orbit.commons-text.*
 org.wso2.orbit.debezium.*
 org.wso2.orbit.gogoproto-java.*
+org.wso2.orbit.graalvm.sdk.*
 org.wso2.orbit.graphQL.*
 org.wso2.orbit.httpcomponents.*
 org.wso2.orbit.io.confluent.*
@@ -83136,6 +83255,7 @@ pw.prok.*
 pw.prok.bootstrap.*
 pw.spn.*
 pw.stamina.*
+pw.vodes.*
 qa.hedgehog.*
 qa.justtestlah.*
 qdox.qdox.*
@@ -83509,6 +83629,7 @@ ru.modulkassa.pos.*
 ru.moprules.*
 ru.moysklad.api.*
 ru.mrboomdev.awery.*
+ru.mrboomdev.safeargsnext.*
 ru.mrgrd56.*
 ru.mynewtons.*
 ru.napalabs.spark.*
@@ -83862,6 +83983,7 @@ se.emilsjolander.sprinkles.*
 se.emilsjolander.stickylistheaders.*
 se.emirbuc.randomsentence.*
 se.erebusit.*
+se.ergot.*
 se.eris.*
 se.eris.util.*
 se.europeanspallationsource.*
@@ -84304,6 +84426,8 @@ sh.measure.android.gradle.*
 sh.nerd.*
 sh.ondr.*
 sh.ondr.kmcp.*
+sh.ondr.koja.*
+sh.ondr.mcp4k.*
 sh.ory.*
 sh.ory.hydra.*
 sh.ory.keto.*
@@ -86215,6 +86339,7 @@ uk.megaslice.*
 uk.modl.*
 uk.nhs.ciao.*
 uk.nhs.interoperability.*
+uk.nhs.tis.trainee.*
 uk.nominet.*
 uk.num.*
 uk.oczadly.karl.*
