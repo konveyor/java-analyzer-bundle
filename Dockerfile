@@ -29,7 +29,7 @@ RUN go install golang.org/x/tools/gopls@latest
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 # Java 1.8 is required for backwards compatibility with older versions of Gradle
-RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-17-openjdk-devel golang-bin tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
+RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-17-openjdk-devel tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
 # Specify Java 1.8 home for usage with gradle wrappers
 ENV JAVA8_HOME /usr/lib/jvm/java-1.8.0-openjdk

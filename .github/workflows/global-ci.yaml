@@ -57,7 +57,7 @@ jobs:
         podman save -o /tmp/java-provider.tar quay.io/konveyor/java-external-provider:latest
     
     - name: Upload image as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: java-provider
         path: /tmp/java-provider.tar
