@@ -36,8 +36,8 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
             symbol.setName(e.getElementName());
             symbol.setKind(convertSymbolKind(e));
             symbol.setContainerName(e.getParent().getElementName());
-            symbol.setLocation(location);
-            if (this.query.contains(".")) {
+            symbol.setLocation(location); 
+            if (this.query.contains(".")) { 
                 ICompilationUnit unit = e.getCompilationUnit();
                 if (unit == null) {
                     IClassFile cls = (IClassFile) ((IJavaElement) e).getAncestor(IJavaElement.CLASS_FILE);

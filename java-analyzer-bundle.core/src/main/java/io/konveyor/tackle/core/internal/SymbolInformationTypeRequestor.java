@@ -73,7 +73,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
 
         }
 
-        SymbolProvider symbolProvider = resolver.resolve(this.symbolKind);
+        SymbolProvider symbolProvider = resolver.resolve(this.symbolKind).get();
         if (symbolProvider instanceof WithQuery) {
             ((WithQuery) symbolProvider).setQuery(this.query);
         }

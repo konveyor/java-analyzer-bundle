@@ -187,6 +187,12 @@ public interface SymbolProvider {
      * we do this so that we can rule out a lot of matches before going the AST route
      */
     default boolean queryQualificationMatches(String query, ICompilationUnit unit, Location location) {
+        // Make sure that the ICompilationUnit is conistant
+        try {
+            unit.makeConsistent(null);
+        } catch(Exception e) {
+            logInfo("unable to make unit consistant, will still try as could be class file in a jar" + e);
+        }
         query = query.replaceAll("(?<!\\.)\\*", ".*");
         String queryQualification = "";
         int dotIndex = query.lastIndexOf('.');
@@ -200,9 +206,8 @@ public interface SymbolProvider {
             // for a query, java.io.paths.File*, queryQualification is java.io.paths
             packageQueryQualification = queryQualification.substring(0, packageDotIndex);
         }
-
         // check if the match was found in the same package as the query was looking for
-        if (queryQualification != "" && location.getUri().contains(queryQualification.replaceAll(".", "/"))) {
+        if (queryQualification != "" && location.getUri().contains(queryQualification.replaceAll("\\.", "/"))) {
             return true;
         }
         if (unit != null) {
