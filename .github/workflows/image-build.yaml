@@ -42,6 +42,8 @@ jobs:
       - name: create new snapshot version on release
         if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
         run: |
+          echo "TAG=${{ env.tag }}" >> $GITHUB_ENV
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
           mvn org.eclipse.tycho:tycho-versions-plugin:set-version -DnewVersion=${VERSION}-SNAPSHOT
       - name: create pull request with changes
         uses: peter-evans/create-pull-request@v7
