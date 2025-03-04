@@ -63,6 +63,7 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery 
                         symbols.add(symbol);
                     }
                 }
+                unit.close();
             } else {
                 symbols.add(symbol);
             }
