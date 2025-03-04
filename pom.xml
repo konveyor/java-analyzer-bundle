@@ -15,18 +15,20 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <tycho.version>3.0.1</tycho.version>
-    <tycho.extras.version>3.0.1</tycho.extras.version>
+    <tycho.version>4.0.9</tycho.version>
+    <tycho.extras.version>${tycho.version}</tycho.extras.version>
     <tycho.scmUrl>scm:git:https://github.com/konveyor/java-analyzer-bundle.git</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
     <tycho.test.platformArgs />
-    <tycho.test.jvmArgs>-Xmx512m ${tycho.test.platformArgs}</tycho.test.jvmArgs>
+    <tycho.test.jvmArgs>-Xmx1G -DDetectVMInstallationsJob.disabled=true ${tycho.test.platformArgs}</tycho.test.jvmArgs>
+
     <!-- Code coverage -->
-    <jacoco.version>0.7.9</jacoco.version>
-    <coverage.filter>org.eclipse.jdt.ls.*</coverage.filter>
+    <jacoco.version>0.8.8</jacoco.version>
+    <coverage.filter>org.eclipse.lsp4mp.jdt.*</coverage.filter>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <jacoco.destFile>${project.build.directory}/jacoco.exec</jacoco.destFile>
     <sonar.jacoco.reportPath>${jacoco.destFile}</sonar.jacoco.reportPath>
+    <surefire.timeout>600</surefire.timeout>
   </properties>
   <build>
     <plugins>
@@ -168,4 +170,11 @@
     <module>java-analyzer-bundle.test</module>
     <module>java-analyzer-bundle.tp</module>
   </modules>
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/konveyor/java-analyzer-bundle</url>
+    </repository>
+  </distributionManagement>
 </project>

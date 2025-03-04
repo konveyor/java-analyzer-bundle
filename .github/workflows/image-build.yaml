@@ -13,7 +13,44 @@ concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
+env: 
+  tag: ${{ github.ref == 'refs/heads/main' && 'latest' || github.ref_name }}
 jobs:
+  jar-artifact:
+    name: Publish package to GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+      - name: set-version
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+        run: |
+          echo "TAG=${{ env.tag }}" >> $GITHUB_ENV
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+          mvn org.eclipse.tycho:tycho-versions-plugin:set-version -DnewVersion=${VERSION}
+      - name: Publish package
+        run: mvn --batch-mode deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: create new snapshot version on release
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+        run: |
+          mvn org.eclipse.tycho:tycho-versions-plugin:set-version -DnewVersion=${VERSION}-SNAPSHOT
+      - name: create pull request with changes
+        uses: peter-evans/create-pull-request@v7
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+        with:
+          commit-message: Bumping to new snapshot for release ${{env.tag}}
+          title: Bumping to new snapshot for release ${{env.tag}}
+          branch: "${{env.tag}}-snapshot"
+
   image-build:
     uses: konveyor/release-tools/.github/workflows/build-push-images.yaml@main
     with:
