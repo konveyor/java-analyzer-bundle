@@ -174,7 +174,7 @@
     <repository>
       <id>github</id>
       <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/konveyor/java-analyzer-bundle</url>
+      <url>https://maven.pkg.github.com/shawn-hurley/java-analyzer-bundle</url>
     </repository>
   </distributionManagement>
 </project>
