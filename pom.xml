@@ -166,7 +166,7 @@
   </profiles>
   <modules>
     <module>java-analyzer-bundle.core</module>
-    <module>java-analyzer-bundle.site</module>
+    <!--<module>java-analyzer-bundle.site</module>-->
     <module>java-analyzer-bundle.test</module>
     <module>java-analyzer-bundle.tp</module>
   </modules>
