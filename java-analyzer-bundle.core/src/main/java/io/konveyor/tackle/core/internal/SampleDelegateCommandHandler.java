@@ -28,6 +28,7 @@ import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.lsp4j.SymbolInformation;
 
 import io.konveyor.tackle.core.internal.query.AnnotationQuery;
+import io.konveyor.tackle.core.internal.util.OpenSourceFilteredSearchScope;
 
 public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
@@ -288,7 +289,10 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             scope = SearchEngine.createJavaSearchScope(true, targetProjects, s);
         }
 
-        logInfo("scope: " + scope);
+        // IJavaSearchScope filteredScope = new OpenSourceFilteredSearchScope(scope);
+        IJavaSearchScope filteredScope = scope;
+
+        logInfo("scope: " + filteredScope);
 
         SearchPattern pattern;
         try {
