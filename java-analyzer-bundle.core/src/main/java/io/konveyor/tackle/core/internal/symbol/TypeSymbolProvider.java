@@ -67,7 +67,8 @@ public class TypeSymbolProvider implements SymbolProvider, WithQuery, WithAnnota
                     IClassFile cls = (IClassFile) element.getAncestor(IJavaElement.CLASS_FILE);
                     if (cls != null) {
                         // TODO: make sure following doesn't affect performance
-                        compilationUnit = cls.becomeWorkingCopy(null, null, null);
+                        // compilationUnit = cls.becomeWorkingCopy(null, null, null);
+                        compilationUnit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
                     }
                 }
                 boolean isAccurate = false;
@@ -100,6 +101,8 @@ public class TypeSymbolProvider implements SymbolProvider, WithQuery, WithAnnota
                         }
                     }
                 }
+                compilationUnit.discardWorkingCopy();
+                compilationUnit.close();
                 if (!isAccurate) {
                     return null;
                 }

@@ -9,6 +9,7 @@ import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -42,7 +43,7 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
                 if (unit == null) {
                     IClassFile cls = (IClassFile) ((IJavaElement) e).getAncestor(IJavaElement.CLASS_FILE);
                     if (cls != null) {
-                        unit = cls.becomeWorkingCopy(null, null, null);
+                        unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
                     }
                 }
                 if (this.queryQualificationMatches(this.query, unit, location)) {
@@ -56,6 +57,7 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
                         symbols.add(symbol);
                     }
                 }
+                unit.discardWorkingCopy();
                 unit.close();
             } else {
                 symbols.add(symbol);

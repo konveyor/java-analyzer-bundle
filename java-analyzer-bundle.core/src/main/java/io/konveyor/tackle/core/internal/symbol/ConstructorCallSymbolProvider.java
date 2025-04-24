@@ -49,7 +49,7 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery 
                 if (unit == null) {
                     IClassFile cls = (IClassFile) ((IJavaElement) mod).getAncestor(IJavaElement.CLASS_FILE);
                     if (cls != null) {
-                        unit = cls.becomeWorkingCopy(null, null, null);
+                        unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
                     }
                 }
                 if (this.queryQualificationMatches(this.query, unit, location)) {
@@ -63,6 +63,7 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery 
                         symbols.add(symbol);
                     }
                 }
+                unit.discardWorkingCopy();
                 unit.close();
             } else {
                 symbols.add(symbol);
