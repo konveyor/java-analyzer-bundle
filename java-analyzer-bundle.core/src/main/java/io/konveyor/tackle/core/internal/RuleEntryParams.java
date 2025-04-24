@@ -16,6 +16,7 @@ public class RuleEntryParams {
     private final int location;
     private final String analysisMode;
     private final ArrayList<String> includedPaths;
+    private final boolean includeOpenSourceLibraries;
 
     public RuleEntryParams(final String commandId, final List<Object> arguments) {
         @SuppressWarnings("unchecked")
@@ -29,6 +30,8 @@ public class RuleEntryParams {
         this.annotationQuery = AnnotationQuery.fromMap(this.query, (Map<String, Object>) obj.get("annotationQuery"), location);
         this.analysisMode = (String) obj.get("analysisMode");
         this.includedPaths = (ArrayList<String>) obj.get("includedPaths");
+        Boolean includeOpenSourceLibs = (Boolean) obj.get("includeOpenSourceLibraries");
+        this.includeOpenSourceLibraries = (includeOpenSourceLibs != null) ? includeOpenSourceLibs : false;
     }
 
     public String getProjectName() {
