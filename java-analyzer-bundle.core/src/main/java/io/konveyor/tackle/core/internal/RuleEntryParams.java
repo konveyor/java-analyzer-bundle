@@ -57,4 +57,8 @@ public class RuleEntryParams {
     public ArrayList<String> getIncludedPaths() {
         return includedPaths;
     }
+
+    public Boolean getIncludeOpenSourceLibraries() {
+        return includeOpenSourceLibraries;
+    }
 }
