@@ -4,6 +4,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
+
 import java.util.Arrays;
 
 /*
@@ -42,6 +43,11 @@ public class OpenSourceFilteredSearchScope implements IJavaSearchScope {
         return Arrays.stream(original)
                 .filter(path -> !exclusionManager.shouldExcludeLibrary(path.toString()))
                 .toArray(IPath[]::new);
+    }
+
+    @Override
+    public String toString() {
+        return scope.toString();
     }
 
     @Override
