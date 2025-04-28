@@ -44,7 +44,7 @@ public class OpenSourceLibraryExclusionManager {
 
             for (String patternStr : patterns) {
                 try {
-                    String prefix = ".*repository.*";
+                    String prefix = ".*";
                     exclusionPatterns.add(Pattern.compile(prefix + patternStr));
                 } catch (Exception e) {
                     logInfo("Invalid exclusion pattern: " + patternStr);
