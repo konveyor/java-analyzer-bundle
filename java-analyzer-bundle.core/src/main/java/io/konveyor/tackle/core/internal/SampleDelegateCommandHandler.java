@@ -28,6 +28,7 @@ import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.lsp4j.SymbolInformation;
 
 import io.konveyor.tackle.core.internal.query.AnnotationQuery;
+import io.konveyor.tackle.core.internal.util.OpenSourceFilteredSearchScope;
 
 public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
@@ -46,7 +47,9 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             case RULE_ENTRY_COMMAND_ID:
                 logInfo("Here we get the arguments for rule entry: "+arguments);
                 RuleEntryParams params = new RuleEntryParams(commandId, arguments);
-                return search(params.getProjectName(), params.getIncludedPaths(), params.getQuery(), params.getAnnotationQuery(), params.getLocation(), params.getAnalysisMode(), progress);
+                return search(params.getProjectName(), params.getIncludedPaths(), params.getQuery(),
+                    params.getAnnotationQuery(), params.getLocation(), params.getAnalysisMode(),
+                    params.getIncludeOpenSourceLibraries(), progress);
             default:
                 throw new UnsupportedOperationException(format("Unsupported command '%s'!", commandId));
         }
@@ -186,7 +189,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         throw new Exception("unable to create search pattern"); 
     }
 
-    private static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, AnnotationQuery annotationQuery, int location, String analsysisMode, IProgressMonitor monitor) throws Exception {
+    private static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, AnnotationQuery annotationQuery, int location, String analsysisMode, boolean includeOpenSourceLibraries, IProgressMonitor monitor) throws Exception {
         IJavaProject[] targetProjects;
         IJavaProject project = ProjectUtils.getJavaProject(projectName);
         if (project != null) {
@@ -288,6 +291,10 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             scope = SearchEngine.createJavaSearchScope(true, targetProjects, s);
         }
 
+        // Use a filtered scope when open source libraries are not included
+        if (!includeOpenSourceLibraries) {
+            scope = new OpenSourceFilteredSearchScope(scope);
+        }
         logInfo("scope: " + scope);
 
         SearchPattern pattern;
@@ -326,4 +333,3 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
     }
 }
-
