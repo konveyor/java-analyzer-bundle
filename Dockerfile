@@ -18,7 +18,11 @@ RUN ./gradlew build -x test && rm -rf /root/.gradle
 RUN mkdir /output && cp ./build/libs/fernflower.jar /output
 
 FROM registry.access.redhat.com/ubi9/ubi AS addon-build
-RUN dnf install -y maven-openjdk17 && dnf clean all && rm -rf /var/cache/dnf
+RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.5/binaries/apache-maven-3.9.5-bin.tar.gz && \
+    tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
+    ln -s /usr/local/apache-maven-3.9.5/bin/mvn /usr/bin/mvn && \
+    rm /tmp/apache-maven.tar.gz
+RUN dnf install -y java-17-openjdk-devel && dnf clean all && rm -rf /var/cache/dnf
 WORKDIR /app
 COPY ./ /app/
 RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
