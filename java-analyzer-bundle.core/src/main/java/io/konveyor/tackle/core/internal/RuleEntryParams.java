@@ -17,6 +17,8 @@ public class RuleEntryParams {
     private final String analysisMode;
     private final ArrayList<String> includedPaths;
     private final boolean includeOpenSourceLibraries;
+    private final String mavenLocalRepoPath;
+    private final String mavenIndexPath;
 
     public RuleEntryParams(final String commandId, final List<Object> arguments) {
         @SuppressWarnings("unchecked")
@@ -27,11 +29,14 @@ public class RuleEntryParams {
         this.projectName = (String) obj.get("project");
         this.query = (String) obj.get("query");
         this.location = Integer.parseInt((String) obj.get("location"));
-        this.annotationQuery = AnnotationQuery.fromMap(this.query, (Map<String, Object>) obj.get("annotationQuery"), location);
+        this.annotationQuery = AnnotationQuery.fromMap(this.query, (Map<String, Object>) obj.get("annotationQuery"),
+                location);
         this.analysisMode = (String) obj.get("analysisMode");
         this.includedPaths = (ArrayList<String>) obj.get("includedPaths");
         Boolean includeOpenSourceLibs = (Boolean) obj.get("includeOpenSourceLibraries");
         this.includeOpenSourceLibraries = (includeOpenSourceLibs != null) ? includeOpenSourceLibs : false;
+        this.mavenLocalRepoPath = (String) obj.get("mavenLocalRepo");
+        this.mavenIndexPath = (String) obj.get("mavenIndexPath");
     }
 
     public String getProjectName() {
@@ -60,5 +65,13 @@ public class RuleEntryParams {
 
     public Boolean getIncludeOpenSourceLibraries() {
         return includeOpenSourceLibraries;
+    }
+
+    public String getMavenLocalRepoPath() {
+        return mavenLocalRepoPath;
+    }
+
+    public String getMavenIndexPath() {
+        return mavenIndexPath;
     }
 }
