@@ -29,6 +29,7 @@ import org.eclipse.lsp4j.SymbolInformation;
 
 import io.konveyor.tackle.core.internal.query.AnnotationQuery;
 import io.konveyor.tackle.core.internal.util.OpenSourceFilteredSearchScope;
+import io.konveyor.tackle.core.internal.util.OpenSourceLibraryExclusionManager;
 
 public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
@@ -37,7 +38,6 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
     private static final String FullAnalysisMode = "full";
     private static final String sourceOnlyAnalysisMode = "source-only";
-    
 
     @Override
     public Object executeCommand(String commandId, List<Object> arguments, IProgressMonitor progress) throws Exception {
@@ -45,11 +45,12 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             case COMMAND_ID:
                 return "Hello World";
             case RULE_ENTRY_COMMAND_ID:
-                logInfo("Here we get the arguments for rule entry: "+arguments);
+                logInfo("Here we get the arguments for rule entry: " + arguments);
                 RuleEntryParams params = new RuleEntryParams(commandId, arguments);
                 return search(params.getProjectName(), params.getIncludedPaths(), params.getQuery(),
-                    params.getAnnotationQuery(), params.getLocation(), params.getAnalysisMode(),
-                    params.getIncludeOpenSourceLibraries(), progress);
+                        params.getAnnotationQuery(), params.getLocation(), params.getAnalysisMode(),
+                        params.getIncludeOpenSourceLibraries(), params.getMavenLocalRepoPath(),
+                        params.getMavenIndexPath(), progress);
             default:
                 throw new UnsupportedOperationException(format("Unsupported command '%s'!", commandId));
         }
@@ -59,7 +60,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         JobHelpers.waitForInitializeJobs();
         JobHelpers.waitForBuildJobs(JobHelpers.MAX_TIME_MILLIS);
         JobHelpers.waitForDownloadSourcesJobs(JobHelpers.MAX_TIME_MILLIS);
-        
+
     }
 
     // mapLocationToSearchPatternLocation will create the correct search pattern or throw an error if one can not be built.
@@ -189,7 +190,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         throw new Exception("unable to create search pattern"); 
     }
 
-    private static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, AnnotationQuery annotationQuery, int location, String analsysisMode, boolean includeOpenSourceLibraries, IProgressMonitor monitor) throws Exception {
+    private static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, AnnotationQuery annotationQuery, int location, String analysisMode,
+        boolean includeOpenSourceLibraries, String mavenLocalRepoPath, String mavenIndexPath, IProgressMonitor monitor) throws Exception {
         IJavaProject[] targetProjects;
         IJavaProject project = ProjectUtils.getJavaProject(projectName);
         if (project != null) {
@@ -202,7 +204,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
         //  For Partial results, we are going to filter out based on a list in the engine
 		int s = IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.APPLICATION_LIBRARIES;
-        if (analsysisMode.equals(sourceOnlyAnalysisMode)) {
+        if (analysisMode.equals(sourceOnlyAnalysisMode)) {
             logInfo("KONVEYOR_LOG: source-only analysis mode only scoping to Sources");
             s = IJavaSearchScope.SOURCES;
         } else {
@@ -293,7 +295,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
         // Use a filtered scope when open source libraries are not included
         if (!includeOpenSourceLibraries) {
-            scope = new OpenSourceFilteredSearchScope(scope);
+            scope = new OpenSourceFilteredSearchScope(scope,
+                    OpenSourceLibraryExclusionManager.getInstance(mavenLocalRepoPath, mavenIndexPath));
         }
         logInfo("scope: " + scope);
 
@@ -320,7 +323,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         try {
             searchEngine.search(pattern, participents, scope, requestor, monitor);
         } catch (Exception e) {
-            //TODO: handle exception
+            // TODO: handle exception
             logInfo("KONVEYOR_LOG: unable to get search " + e.toString().replace("\n", " "));
         }
 
