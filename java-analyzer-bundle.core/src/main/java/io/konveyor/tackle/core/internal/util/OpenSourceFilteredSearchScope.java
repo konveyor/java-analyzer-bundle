@@ -4,6 +4,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.Arrays;
 
@@ -14,9 +15,9 @@ public class OpenSourceFilteredSearchScope implements IJavaSearchScope {
     private final IJavaSearchScope scope;
     private final OpenSourceLibraryExclusionManager exclusionManager;
 
-    public OpenSourceFilteredSearchScope(IJavaSearchScope scope) {
+    public OpenSourceFilteredSearchScope(IJavaSearchScope scope, OpenSourceLibraryExclusionManager instance) {
         this.scope = scope;
-        this.exclusionManager = OpenSourceLibraryExclusionManager.getInstance();
+        this.exclusionManager = instance;
     }
 
     @Override

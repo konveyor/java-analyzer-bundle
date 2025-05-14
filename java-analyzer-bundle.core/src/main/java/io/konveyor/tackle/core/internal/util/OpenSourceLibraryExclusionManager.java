@@ -20,31 +20,53 @@ public class OpenSourceLibraryExclusionManager {
 
     private final List<Pattern> exclusionPatterns = new ArrayList<>();
     private final ConcurrentHashMap<String, Boolean> exclusionCache = new ConcurrentHashMap<>();
+    private final String mavenLocalRepoPath;
+    private final String mavenIndexPath;
 
-    private OpenSourceLibraryExclusionManager() {
+    private OpenSourceLibraryExclusionManager(String mavenLocalRepoPath, String mavenIndexPath) {
+        this.mavenLocalRepoPath = mavenLocalRepoPath;
+        this.mavenIndexPath = mavenIndexPath;
         loadExclusionPatterns();
     }
 
-    public static OpenSourceLibraryExclusionManager getInstance() {
+    public static OpenSourceLibraryExclusionManager getInstance(String mavenLocalRepoPath, String mavenIndexPath) {
         if (instance == null) {
             synchronized (OpenSourceLibraryExclusionManager.class) {
                 if (instance == null) {
-                    instance = new OpenSourceLibraryExclusionManager();
+                    instance = new OpenSourceLibraryExclusionManager(mavenLocalRepoPath, mavenIndexPath);
                 }
             }
         }
         return instance;
     }
 
+    private String normalizePath(String path) {
+        if (path == null) {
+            return "";
+        }
+        String normalized = path.replace('\\', '/');
+        normalized = normalized.replaceAll("^[A-Za-z]:/", "");
+        normalized = normalized.replace('/', '.').replace(':', '.');
+        normalized = normalized.replaceAll("^\\.*", ".");
+        return normalized;
+    }
+
     private void loadExclusionPatterns() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(MAVEN_INDEX_FILE, StandardCharsets.UTF_8))) {
+        String normalizedRepoPath = this.normalizePath(this.mavenLocalRepoPath);
+        String mavenIndexPath = MAVEN_INDEX_FILE;
+        if (this.mavenIndexPath != null) {
+            mavenIndexPath = this.mavenIndexPath;
+        }
+        logInfo("OpenSourceLibraryExclusionManager: using maven index path " + mavenIndexPath);
+        logInfo("OpenSourceLibraryExclusionManager: using base query pattern " + normalizedRepoPath + ".*");
+        try (BufferedReader reader = new BufferedReader(new FileReader(mavenIndexPath, StandardCharsets.UTF_8))) {
             List<String> patterns = reader.lines()
                     .filter(line -> !line.trim().isEmpty())
                     .collect(Collectors.toList());
 
             for (String patternStr : patterns) {
                 try {
-                    String prefix = ".*";
+                    String prefix = normalizedRepoPath + ".*";
                     exclusionPatterns.add(Pattern.compile(prefix + patternStr));
                 } catch (Exception e) {
                     logInfo("Invalid exclusion pattern: " + patternStr);
