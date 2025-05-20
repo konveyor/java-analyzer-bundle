@@ -10,6 +10,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ITypeRoot;
+import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -52,6 +53,11 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
                     astParser.setResolveBindings(true);
                     CompilationUnit cu = (CompilationUnit) astParser.createAST(null);
                     CustomASTVisitor visitor = new CustomASTVisitor(query, match, QueryLocation.METHOD_CALL);
+                    // Under test, resolveConstructorBinding will return null if there are problems
+                    IProblem[] problems = cu.getProblems();
+                    if (problems != null && problems.length > 0) {
+                        logInfo("KONVEYOR_LOG: " + "Found " + problems.length + " problems while compiling");
+                    }
                     cu.accept(visitor);
                     if (visitor.symbolMatches()) {
                         symbols.add(symbol);
