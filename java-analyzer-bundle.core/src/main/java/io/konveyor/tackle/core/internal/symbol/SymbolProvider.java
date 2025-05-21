@@ -30,6 +30,8 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 public interface SymbolProvider {
+    public static final int MAX_PROBLEMS_TO_LOG = 10;
+
     List<SymbolInformation> get(SearchMatch match) throws CoreException;
 
     default SymbolKind convertSymbolKind(IJavaElement element) {
@@ -195,7 +197,8 @@ public interface SymbolProvider {
         }
         // should consider parameter here
         // e.g. java.nio.file.Paths.get(String)/java.nio.file.Paths.get(*)  -> java.nio.file.Paths.get
-        query = query.replaceAll("\\([^\\)]*\\)", "");
+        // Remove any parentheses and their contents
+        query = query.replaceAll("\\(.*\\)", "");
         query = query.replaceAll("(?<!\\.)\\*", ".*");
         String queryQualification = "";
         int dotIndex = query.lastIndexOf('.');
