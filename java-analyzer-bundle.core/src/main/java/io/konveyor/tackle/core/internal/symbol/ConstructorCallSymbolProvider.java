@@ -63,6 +63,15 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery 
                     IProblem[] problems = cu.getProblems();
                     if (problems != null && problems.length > 0) {
                         logInfo("KONVEYOR_LOG: " + "Found " + problems.length + " problems while compiling");
+                        int count = 0;
+                        for (IProblem problem : problems) {
+                            logInfo("KONVEYOR_LOG: Problem - ID: " + problem.getID() + " Message: " + problem.getMessage());
+                            count++;
+                            if (count >= SymbolProvider.MAX_PROBLEMS_TO_LOG) {
+                                logInfo("KONVEYOR_LOG: Only showing first " + SymbolProvider.MAX_PROBLEMS_TO_LOG + " problems, " + (problems.length - SymbolProvider.MAX_PROBLEMS_TO_LOG) + " more not displayed");
+                                break;
+                            }
+                        }
                     }
                     cu.accept(visitor);
                     if (visitor.symbolMatches()) {
