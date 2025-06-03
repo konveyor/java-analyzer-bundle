@@ -53,7 +53,7 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
                     astParser.setResolveBindings(true);
                     CompilationUnit cu = (CompilationUnit) astParser.createAST(null);
                     CustomASTVisitor visitor = new CustomASTVisitor(query, match, QueryLocation.METHOD_CALL);
-                    // Under test, resolveConstructorBinding will return null if there are problems
+                    // Under tests, resolveConstructorBinding will return null if there are problems
                     IProblem[] problems = cu.getProblems();
                     if (problems != null && problems.length > 0) {
                         logInfo("KONVEYOR_LOG: " + "Found " + problems.length + " problems while compiling");
