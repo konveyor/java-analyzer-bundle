@@ -10,6 +10,7 @@ import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -58,6 +59,20 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery 
                     astParser.setResolveBindings(true);
                     CompilationUnit cu = (CompilationUnit) astParser.createAST(null);
                     CustomASTVisitor visitor = new CustomASTVisitor(query, match, QueryLocation.CONSTRUCTOR_CALL);
+                    // Under tests, resolveConstructorBinding will return null if there are problems
+                    IProblem[] problems = cu.getProblems();
+                    if (problems != null && problems.length > 0) {
+                        logInfo("KONVEYOR_LOG: " + "Found " + problems.length + " problems while compiling");
+                        int count = 0;
+                        for (IProblem problem : problems) {
+                            logInfo("KONVEYOR_LOG: Problem - ID: " + problem.getID() + " Message: " + problem.getMessage());
+                            count++;
+                            if (count >= SymbolProvider.MAX_PROBLEMS_TO_LOG) {
+                                logInfo("KONVEYOR_LOG: Only showing first " + SymbolProvider.MAX_PROBLEMS_TO_LOG + " problems, " + (problems.length - SymbolProvider.MAX_PROBLEMS_TO_LOG) + " more not displayed");
+                                break;
+                            }
+                        }
+                    }
                     cu.accept(visitor);
                     if (visitor.symbolMatches()) {
                         symbols.add(symbol);
