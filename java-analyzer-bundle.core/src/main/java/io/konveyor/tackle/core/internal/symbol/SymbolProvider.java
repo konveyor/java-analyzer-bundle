@@ -30,6 +30,8 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 public interface SymbolProvider {
+    public static final int MAX_PROBLEMS_TO_LOG = 10;
+
     List<SymbolInformation> get(SearchMatch match) throws CoreException;
 
     default SymbolKind convertSymbolKind(IJavaElement element) {
@@ -193,6 +195,10 @@ public interface SymbolProvider {
         } catch(Exception e) {
             logInfo("unable to make unit consistant, will still try as could be class file in a jar" + e);
         }
+        // should consider parameter here
+        // e.g. java.nio.file.Paths.get(String)/java.nio.file.Paths.get(*)  -> java.nio.file.Paths.get
+        // Remove any parentheses and their contents
+        query = query.replaceAll("\\(.*\\)", "");
         query = query.replaceAll("(?<!\\.)\\*", ".*");
         String queryQualification = "";
         int dotIndex = query.lastIndexOf('.');
@@ -221,9 +227,9 @@ public interface SymbolProvider {
                 for (IImportDeclaration importDecl : unit.getImports()) {
                     String importElement = importDecl.getElementName();
                     String importQualification = "";
-                    int importDotIndex = query.lastIndexOf('.');
+                    int importDotIndex = importElement.lastIndexOf('.');
                     if (importDotIndex > 0) {
-                        importQualification = query.substring(0, dotIndex);
+                        importQualification = importElement.substring(0, importDotIndex);
                     }
                     // import can be absolute like java.io.paths.FileReader
                     if (query.matches(importElement)) {
@@ -236,16 +242,18 @@ public interface SymbolProvider {
                     if (importElement.contains("*")) {                     
                         if (queryQualification != "") {
                             // query is java.io.paths.File*, import is java.io.paths.*
-                            if (queryQualification.startsWith(importQualification)) {
+                            if (queryQualification.equals(importQualification) ||
+                                queryQualification.startsWith(importQualification + ".")) {
                                 return true;
                             }
-                            if (importElement.replaceAll(".*", "").matches(queryQualification)) {
+                            String importWithoutWildcard = importElement.replace(".*", "");
+                            if (importWithoutWildcard.equals(queryQualification)) {
                                 return true;
                             }
                         }
                     }
-                    // query can be java.io.paths.Path.checkPath()
-                    if (query.startsWith(importElement)) {
+                    //import can be java.nio.file.Path, query can be java.nio.file.Paths.get*
+                    if (query.equals(importElement) || query.startsWith(importElement + ".")) {
                         return true;
                     }
                 }
