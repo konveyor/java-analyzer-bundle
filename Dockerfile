@@ -24,9 +24,6 @@ COPY ./ /app/
 RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 RUN JAVA_HOME=/usr/lib/jvm/java-17-openjdk mvn clean install -DskipTests=true
 
-FROM golang:1.23 as gopls-build
-RUN go install golang.org/x/tools/gopls@latest
-
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 # Java 1.8 is required for backwards compatibility with older versions of Gradle
 RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-17-openjdk-devel tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
@@ -43,7 +40,6 @@ ENV M2_HOME /usr/local/apache-maven-3.9.10
 RUN mkdir /root/.gradle
 COPY ./gradle/build.gradle /root/.gradle/task.gradle
 
-COPY --from=gopls-build /go/bin/gopls /root/go/bin/gopls
 COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
