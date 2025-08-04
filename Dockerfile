@@ -32,9 +32,9 @@ ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
 ENV JAVA8_HOME /usr/lib/jvm/java-1.8.0-openjdk
 RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
-    ln -s /usr/local/apache-maven-3.9.10/bin/mvn /usr/bin/mvn && \
+    ln -s /usr/local/apache-maven-3.9.11/bin/mvn /usr/bin/mvn && \
     rm /tmp/apache-maven.tar.gz
-ENV M2_HOME /usr/local/apache-maven-3.9.10
+ENV M2_HOME /usr/local/apache-maven-3.9.11
 
 # Copy "download sources" gradle task. This is needed to download project sources.
 RUN mkdir /root/.gradle
