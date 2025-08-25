@@ -39,6 +39,7 @@ ENV M2_HOME /usr/local/apache-maven-3.9.11
 # Copy "download sources" gradle task. This is needed to download project sources.
 RUN mkdir /root/.gradle
 COPY ./gradle/build.gradle /usr/local/etc/task.gradle
+COPY ./gradle/build-v9.gradle /usr/local/etc/task-v9.gradle
 
 COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
