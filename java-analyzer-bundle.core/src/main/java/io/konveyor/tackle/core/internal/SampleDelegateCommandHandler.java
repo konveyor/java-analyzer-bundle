@@ -383,13 +383,14 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
                 // Now run ImportScanner only on units in scope
                 ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
+                Pattern regex = Pattern.compile(query);
                 for (ICompilationUnit unit : units) {
                     parser.setSource(unit);
                     CompilationUnit cu = (CompilationUnit) parser.createAST(null);
                     for (Object o : cu.imports()) {
                         ImportDeclaration imp = (ImportDeclaration) o;
                         if (imp.isOnDemand()) {
-                            if (Pattern.compile(query).matcher(imp.getName().getFullyQualifiedName()).matches()) {
+                            if (regex.matcher(imp.getName().getFullyQualifiedName()).matches()) {
                                 SymbolInformation symbol = new SymbolInformation();
                                 symbol.setName(imp.getName().getFullyQualifiedName());
                                 symbol.setKind(SymbolKind.Namespace);
