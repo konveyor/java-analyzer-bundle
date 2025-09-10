@@ -162,7 +162,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
      * @param query
      * @return
      * @throws Exception
-     *
+     * 
      * TODO: move these to enums
      */
     private static SearchPattern getPatternSingleQuery(int location, String query) throws Exception {
@@ -325,17 +325,6 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             scope = SearchEngine.createJavaSearchScope(true, includedElements, s);
         } else {
             scope = SearchEngine.createJavaSearchScope(true, targetProjects, s);
-            for (IJavaProject p : targetProjects) {
-                for (IPackageFragment pkg : p.getPackageFragments()) {
-                    if (pkg.getKind() == IPackageFragmentRoot.K_SOURCE) {
-                        for (ICompilationUnit unit : pkg.getCompilationUnits()) {
-                            if (scope.encloses(unit)) {
-                                units.add(unit);
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         // Use a filtered scope when open source libraries are not included
@@ -374,12 +363,23 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
         symbols.addAll(requestor.getSymbols());
 
-        // Imports like "import javax.persistence.*" are onDemand by nature, and therefore not
-        // available for searching within the LS. We need to go into the compilation units to find them.
         if (location == 8) {
             Matcher matcher = Pattern.compile("[^A-Z*]+\\*").matcher(query);
             if (matcher.matches()) {
                 // IMPORT location and package wildcard
+
+                // Get all compilation units in scope
+                for (IJavaProject p : targetProjects) {
+                    for (IPackageFragment pkg : p.getPackageFragments()) {
+                        if (pkg.getKind() == IPackageFragmentRoot.K_SOURCE) {
+                            for (ICompilationUnit unit : pkg.getCompilationUnits()) {
+                                if (scope.encloses(unit)) {
+                                    units.add(unit);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 // Now run ImportScanner only on units in scope
                 ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
@@ -392,7 +392,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
                             if (Pattern.compile(query).matcher(imp.getName().getFullyQualifiedName()).matches()) {
                                 SymbolInformation symbol = new SymbolInformation();
                                 symbol.setName(imp.getName().getFullyQualifiedName());
-                                symbol.setKind(SymbolKind.Module);
+                                symbol.setKind(SymbolKind.Namespace);
                                 symbol.setContainerName(unit.getElementName());
                                 symbol.setLocation(getLocationForImport(unit, imp, cu));
                                 System.out.println("Found in " + unit.getElementName());
@@ -413,14 +413,6 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
     }
 
-    /**
-     * Provides the location for an import declaration
-     *
-     * @param icu the ICompilationUnit
-     * @param imp the ImportDeclaration
-     * @param cuAst the CompilationUnit
-     * @return the Location of the import
-     */
     public static Location getLocationForImport(ICompilationUnit icu, ImportDeclaration imp, CompilationUnit cuAst) {
         int start = imp.getStartPosition();
         int length = imp.getLength();
