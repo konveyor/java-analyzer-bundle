@@ -5,6 +5,7 @@ import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IPath;
@@ -14,6 +15,10 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -21,13 +26,20 @@ import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.JobHelpers;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.SymbolKind;
 
 import io.konveyor.tackle.core.internal.query.AnnotationQuery;
+import io.konveyor.tackle.core.internal.symbol.DefaultSymbolProvider;
+import io.konveyor.tackle.core.internal.symbol.ImportSymbolProvider;
 import io.konveyor.tackle.core.internal.util.OpenSourceFilteredSearchScope;
 import io.konveyor.tackle.core.internal.util.OpenSourceLibraryExclusionManager;
 
@@ -150,6 +162,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
      * @param query
      * @return
      * @throws Exception
+     *
+     * TODO: move these to enums
      */
     private static SearchPattern getPatternSingleQuery(int location, String query) throws Exception {
         var pattern = SearchPattern.R_PATTERN_MATCH;
@@ -228,6 +242,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             return new ArrayList<>();
         }
 
+        List<ICompilationUnit> units = new ArrayList<>();
+
         if (includedPaths != null && includedPaths.size() > 0) {
             ArrayList<IJavaElement> includedFragments = new ArrayList<IJavaElement>();
             for (IJavaProject proj : targetProjects) {
@@ -295,6 +311,11 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
                         if (includedIPath.segmentCount() <= fragmentPath.segmentCount() && 
                             includedIPath.matchingFirstSegments(fragmentPath) == includedIPath.segmentCount()) {
                             includedFragments.add(fragment);
+
+                            // Get all compilation units for included fragments
+                            if (fragment.getKind() == IPackageFragmentRoot.K_SOURCE) {
+                                units.addAll(List.of(fragment.getCompilationUnits()));
+                            }
                         }
                     }
                 }
@@ -304,6 +325,17 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             scope = SearchEngine.createJavaSearchScope(true, includedElements, s);
         } else {
             scope = SearchEngine.createJavaSearchScope(true, targetProjects, s);
+            for (IJavaProject p : targetProjects) {
+                for (IPackageFragment pkg : p.getPackageFragments()) {
+                    if (pkg.getKind() == IPackageFragmentRoot.K_SOURCE) {
+                        for (ICompilationUnit unit : pkg.getCompilationUnits()) {
+                            if (scope.encloses(unit)) {
+                                units.add(unit);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         // Use a filtered scope when open source libraries are not included
@@ -312,6 +344,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
                     OpenSourceLibraryExclusionManager.getInstance(mavenLocalRepoPath, mavenIndexPath));
         }
         logInfo("scope: " + scope);
+
+        List<SymbolInformation> symbols = new ArrayList<SymbolInformation>();
 
         SearchPattern pattern;
         try {
@@ -324,8 +358,6 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         logInfo("KONVEYOR_LOG: pattern: " + pattern.toString().replace("\n", " "));
 
         SearchEngine searchEngine = new SearchEngine();
-
-        List<SymbolInformation> symbols = new ArrayList<SymbolInformation>();
 
         SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor, location, query, annotationQuery);
 
@@ -340,12 +372,64 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             logInfo("KONVEYOR_LOG: unable to get search " + e.toString().replace("\n", " "));
         }
 
+        symbols.addAll(requestor.getSymbols());
+
+        // Imports like "import javax.persistence.*" are onDemand by nature, and therefore not
+        // available for searching within the LS. We need to go into the compilation units to find them.
+        if (location == 8) {
+            Matcher matcher = Pattern.compile("[^A-Z*]+\\*").matcher(query);
+            if (matcher.matches()) {
+                // IMPORT location and package wildcard
+
+                // Now run ImportScanner only on units in scope
+                ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
+                for (ICompilationUnit unit : units) {
+                    parser.setSource(unit);
+                    CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+                    for (Object o : cu.imports()) {
+                        ImportDeclaration imp = (ImportDeclaration) o;
+                        if (imp.isOnDemand()) {
+                            if (Pattern.compile(query).matcher(imp.getName().getFullyQualifiedName()).matches()) {
+                                SymbolInformation symbol = new SymbolInformation();
+                                symbol.setName(imp.getName().getFullyQualifiedName());
+                                symbol.setKind(SymbolKind.Module);
+                                symbol.setContainerName(unit.getElementName());
+                                symbol.setLocation(getLocationForImport(unit, imp, cu));
+                                System.out.println("Found in " + unit.getElementName());
+                                symbols.add(symbol);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         logInfo("KONVEYOR_LOG: got: " + requestor.getAllSearchMatches() +
             " search matches for " + query +
             " location " + location
             + " matches" + requestor.getSymbols().size());
 
-        return requestor.getSymbols();
+        return symbols;
+
+    }
+
+    /**
+     * Provides the location for an import declaration
+     *
+     * @param icu the ICompilationUnit
+     * @param imp the ImportDeclaration
+     * @param cuAst the CompilationUnit
+     * @return the Location of the import
+     */
+    public static Location getLocationForImport(ICompilationUnit icu, ImportDeclaration imp, CompilationUnit cuAst) {
+        int start = imp.getStartPosition();
+        int length = imp.getLength();
+        int end = start + length;
+
+        int startLine = cuAst.getLineNumber(start) - 1; // LSP is 0-based
+        int startCol  = cuAst.getColumnNumber(start) - 1;
+        int endLine   = cuAst.getLineNumber(end) - 1;
+        int endCol    = cuAst.getColumnNumber(end) - 1;
 
     }
 }
