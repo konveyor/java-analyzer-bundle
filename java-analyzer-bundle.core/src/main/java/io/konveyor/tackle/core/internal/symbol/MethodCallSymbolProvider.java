@@ -32,7 +32,6 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
         // For Method Calls we will need to do the local variable trick
         try {
             MethodReferenceMatch m = (MethodReferenceMatch) match;
-            // IMethod e = (IMethod) m.getElement();
             IJavaElement e = (IJavaElement) m.getElement();
             SymbolInformation symbol = new SymbolInformation();
             Location location = getLocation((IJavaElement) match.getElement(), match);
