@@ -235,7 +235,20 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
                     IPath includedIPath = Path.fromOSString(includedPath);
                     if (includedIPath.isAbsolute()) {
                         includedIPath = includedIPath.makeRelativeTo(workspaceDirectoryLocation.iterator().next());
-                        // we need to remove the /src/java from the path
+                        // when the java project is in a sub-directory, we need to cut everything
+                        // until the first occurrence of "src".
+                        if (!includedIPath.segment(0).equals("src")) {
+                            int srcSegmentIdx = -1;
+                            for (int i = 0; i < includedIPath.segmentCount(); i += 1) {
+                                if (includedIPath.segment(i).equals("src")) {
+                                    srcSegmentIdx = i;
+                                }
+                            }
+                            if (srcSegmentIdx != -1) {
+                                includedIPath = includedIPath.removeFirstSegments(srcSegmentIdx);
+                            }
+                        }
+                        // we need to remove the /src/main/java from the path
                         if (includedIPath.segment(0).equals("src")) {
                             includedIPath = includedIPath.removeFirstSegments(1);
                         }
