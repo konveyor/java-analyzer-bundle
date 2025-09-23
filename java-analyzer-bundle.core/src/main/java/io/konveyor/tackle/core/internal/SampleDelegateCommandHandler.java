@@ -203,7 +203,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         logInfo("Searching in target project: " + targetProjects);
 
         //  For Partial results, we are going to filter out based on a list in the engine
-		int s = IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.APPLICATION_LIBRARIES | IJavaSearchScope.SYSTEM_LIBRARIES;
+		int s = IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.APPLICATION_LIBRARIES;
         if (analysisMode.equals(sourceOnlyAnalysisMode)) {
             logInfo("KONVEYOR_LOG: source-only analysis mode only scoping to Sources");
             s = IJavaSearchScope.SOURCES;
@@ -227,7 +227,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             logInfo("unable to find workspace directory location");
             return new ArrayList<>();
         }
-
+        
         if (includedPaths != null && includedPaths.size() > 0) {
             ArrayList<IJavaElement> includedFragments = new ArrayList<IJavaElement>();
             for (IJavaProject proj : targetProjects) {
