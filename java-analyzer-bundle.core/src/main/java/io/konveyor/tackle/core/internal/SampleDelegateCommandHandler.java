@@ -415,14 +415,10 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
     }
 
     public static Location getLocationForImport(ICompilationUnit icu, ImportDeclaration imp, CompilationUnit cuAst) {
-        int start = imp.getStartPosition();
-        int length = imp.getLength();
-        int end = start + length;
-
-        int startLine = cuAst.getLineNumber(start) - 1; // LSP is 0-based
-        int startCol  = cuAst.getColumnNumber(start) - 1;
-        int endLine   = cuAst.getLineNumber(end) - 1;
-        int endCol    = cuAst.getColumnNumber(end) - 1;
-
+        try {
+            return JDTUtils.toLocation(icu, imp.getStartPosition(), imp.getLength());
+        } catch (Exception e) {
+            logInfo("Unable to get location for import: " + e);
+            return null;
+        }
     }
-}
