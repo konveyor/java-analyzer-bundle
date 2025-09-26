@@ -7,9 +7,9 @@ import java.util.List;
 
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -32,7 +32,7 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
         // For Method Calls we will need to do the local variable trick
         try {
             MethodReferenceMatch m = (MethodReferenceMatch) match;
-            IJavaElement e = (IJavaElement) m.getElement();
+            IMethod e = (IMethod) m.getElement();
             SymbolInformation symbol = new SymbolInformation();
             Location location = getLocation((IJavaElement) match.getElement(), match);
             symbol.setName(e.getElementName());
@@ -40,13 +40,7 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
             symbol.setContainerName(e.getParent().getElementName());
             symbol.setLocation(location); 
             if (this.query.contains(".")) { 
-                ICompilationUnit unit = null;
-                if (m.getElement() instanceof IMethod) {
-                    unit = ((IMethod) m.getElement()).getCompilationUnit();
-                } else if (m.getElement() instanceof IField) {
-                    unit = ((IField) m.getElement()).getCompilationUnit();
-                }
-
+                ICompilationUnit unit = e.getCompilationUnit();
                 if (unit == null) {
                     IClassFile cls = (IClassFile) ((IJavaElement) e).getAncestor(IJavaElement.CLASS_FILE);
                     if (cls != null) {
