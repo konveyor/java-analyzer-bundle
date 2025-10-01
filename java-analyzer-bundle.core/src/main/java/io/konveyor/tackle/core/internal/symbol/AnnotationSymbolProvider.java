@@ -76,39 +76,41 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                         }
                         cu.accept(visitor);
                         if (visitor.symbolMatches()) {
-                            symbols.add(symbol);
+                            if (annotationQuery != null) {
+                                List<Class<? extends SourceRefElement>> classes = new ArrayList<>();
+                                classes.add(ResolvedSourceMethod.class);
+                                classes.add(ResolvedSourceField.class);
+                                classes.add(ResolvedSourceType.class);
+                                if (matchesAnnotationQuery(match, classes)) {
+                                    symbols.add(symbol);
+                                }
+                            } else {
+                                symbols.add(symbol);
+                            }
                         }
                     }
                     unit.discardWorkingCopy();
                     unit.close();
                 } else {
-                    symbols.add(symbol);
-                }
-
-                // TODO: put this above if works
-                if (annotationQuery != null) {
-                    List<Class<? extends SourceRefElement>> classes = new ArrayList<>();
-                    classes.add(ResolvedSourceMethod.class);
-                    classes.add(ResolvedSourceField.class);
-                    classes.add(ResolvedSourceType.class);
-                    if (matchesAnnotationQuery(match, classes)) {
+                    if (annotationQuery != null) {
+                        List<Class<? extends SourceRefElement>> classes = new ArrayList<>();
+                        classes.add(ResolvedSourceMethod.class);
+                        classes.add(ResolvedSourceField.class);
+                        classes.add(ResolvedSourceType.class);
+                        if (matchesAnnotationQuery(match, classes)) {
+                            symbols.add(symbol);
+                        }
+                    } else {
                         symbols.add(symbol);
                     }
-                } else {
-                    symbols.add(symbol);
                 }
+
             }
             return symbols;
         } catch (Exception e) {
             logInfo("unable to match for annotations: " + e);
             return null;
         }
-    }
-
-    private IClassFile getClassFileForAnnotation(IJavaElement element) {
-        // Find the containing class file for elements in compiled classes (JARs)
-        // This will return null for elements in source files
-        return 
     }
 
     public AnnotationQuery getAnnotationQuery() {
