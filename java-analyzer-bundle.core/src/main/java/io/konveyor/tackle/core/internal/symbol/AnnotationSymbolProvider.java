@@ -13,9 +13,7 @@ import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -47,10 +45,14 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                 Location location = getLocation(element, match);
                 symbol.setLocation(location);
                 if (this.query.contains(".")) {
-                    ICompilationUnit unit = null;
-                    IClassFile cls = getClassFileForAnnotation(element);
-                    if (cls != null) {
-                        unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
+                    // First try to get compilation unit for source files
+                    ICompilationUnit unit = (ICompilationUnit) element.getAncestor(IJavaElement.COMPILATION_UNIT);
+                    if (unit == null) {
+                        // If not in source, try to get class file for compiled classes
+                        IClassFile cls = (IClassFile) element.getAncestor(IJavaElement.CLASS_FILE);
+                        if (cls != null) {
+                            unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
+                        }
                     }
                     if (this.queryQualificationMatches(this.query, unit, location)) {
                         ASTParser astParser = ASTParser.newParser(AST.getJLSLatest());
@@ -104,15 +106,9 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
     }
 
     private IClassFile getClassFileForAnnotation(IJavaElement element) {
-        IClassFile clazz = null;
-        if (element instanceof IClassFile) {
-            clazz = (IClassFile) element;
-        } else if (element instanceof IMethod || element instanceof IField) {
-            IMethod method = (IMethod) element;
-            clazz = (IClassFile) method.getAncestor(IJavaElement.CLASS_FILE);
-        }
-        clazz = (IClassFile) element.getAncestor(IJavaElement.CLASS_FILE);
-        return clazz;
+        // Find the containing class file for elements in compiled classes (JARs)
+        // This will return null for elements in source files
+        return 
     }
 
     public AnnotationQuery getAnnotationQuery() {
