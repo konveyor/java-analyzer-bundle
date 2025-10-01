@@ -6,34 +6,84 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.konveyor.tackle.core.internal.query.AnnotationQuery;
+import io.konveyor.tackle.core.internal.symbol.CustomASTVisitor.QueryLocation;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IAnnotatable;
 import org.eclipse.jdt.core.IAnnotation;
+import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.internal.core.ResolvedSourceField;
 import org.eclipse.jdt.internal.core.ResolvedSourceMethod;
 import org.eclipse.jdt.internal.core.ResolvedSourceType;
 import org.eclipse.jdt.internal.core.SourceRefElement;
+import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
 
-public class AnnotationSymbolProvider implements SymbolProvider, WithAnnotationQuery {
+public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, WithAnnotationQuery {
 
     private AnnotationQuery annotationQuery;
+    private String query;
 
     @Override
     public List<SymbolInformation> get(SearchMatch match) throws CoreException {
         List<SymbolInformation> symbols = new ArrayList<>();
         try {
-            IAnnotatable mod = (IAnnotatable) match.getElement();
+            IAnnotatable annotatable = (IAnnotatable) match.getElement();
             IJavaElement element = (IJavaElement) match.getElement();
-            for (IAnnotation annotation : mod.getAnnotations()) {
+            for (IAnnotation annotation : annotatable.getAnnotations()) {
                 SymbolInformation symbol = new SymbolInformation();
                 symbol.setName(annotation.getElementName());
                 symbol.setKind(convertSymbolKind(element));
                 symbol.setContainerName(annotation.getParent().getElementName());
-                symbol.setLocation(getLocation(element, match));
+                Location location = getLocation(element, match);
+                symbol.setLocation(location);
+                if (this.query.contains(".")) {
+                    ICompilationUnit unit = null;
+                    IClassFile cls = getClassFileForAnnotation(element);
+                    if (cls != null) {
+                        unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
+                    }
+                    if (this.queryQualificationMatches(this.query, unit, location)) {
+                        ASTParser astParser = ASTParser.newParser(AST.getJLSLatest());
+                        astParser.setSource(unit);
+                        astParser.setResolveBindings(true);
+                        CompilationUnit cu = (CompilationUnit) astParser.createAST(null);
+                        CustomASTVisitor visitor = new CustomASTVisitor(query, match, QueryLocation.CONSTRUCTOR_CALL);
+                        // Under tests, resolveConstructorBinding will return null if there are problems
+                        IProblem[] problems = cu.getProblems();
+                        if (problems != null && problems.length > 0) {
+                            logInfo("KONVEYOR_LOG: " + "Found " + problems.length + " problems while compiling");
+                            int count = 0;
+                            for (IProblem problem : problems) {
+                                logInfo("KONVEYOR_LOG: Problem - ID: " + problem.getID() + " Message: " + problem.getMessage());
+                                count++;
+                                if (count >= SymbolProvider.MAX_PROBLEMS_TO_LOG) {
+                                    logInfo("KONVEYOR_LOG: Only showing first " + SymbolProvider.MAX_PROBLEMS_TO_LOG + " problems, " + (problems.length - SymbolProvider.MAX_PROBLEMS_TO_LOG) + " more not displayed");
+                                    break;
+                                }
+                            }
+                        }
+                        cu.accept(visitor);
+                        if (visitor.symbolMatches()) {
+                            symbols.add(symbol);
+                        }
+                    }
+                    unit.discardWorkingCopy();
+                    unit.close();
+                } else {
+                    symbols.add(symbol);
+                }
 
+                // TODO: put this above if works
                 if (annotationQuery != null) {
                     List<Class<? extends SourceRefElement>> classes = new ArrayList<>();
                     classes.add(ResolvedSourceMethod.class);
@@ -53,11 +103,28 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithAnnotationQ
         }
     }
 
+    private IClassFile getClassFileForAnnotation(IJavaElement element) {
+        IClassFile clazz = null;
+        if (element instanceof IClassFile) {
+            clazz = (IClassFile) element;
+        } else if (element instanceof IMethod || element instanceof IField) {
+            IMethod method = (IMethod) element;
+            clazz = (IClassFile) method.getAncestor(IJavaElement.CLASS_FILE);
+        }
+        clazz = (IClassFile) element.getAncestor(IJavaElement.CLASS_FILE);
+        return clazz;
+    }
+
     public AnnotationQuery getAnnotationQuery() {
         return annotationQuery;
     }
 
     public void setAnnotationQuery(AnnotationQuery annotationQuery) {
         this.annotationQuery = annotationQuery;
+    }
+
+    @Override
+    public void setQuery(String query) {
+        this.query = query;
     }
 }
