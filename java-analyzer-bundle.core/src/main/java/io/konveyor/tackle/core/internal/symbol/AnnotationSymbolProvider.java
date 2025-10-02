@@ -36,20 +36,20 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
         List<SymbolInformation> symbols = new ArrayList<>();
         try {
             IAnnotatable annotatable = (IAnnotatable) match.getElement();
-            IJavaElement element = (IJavaElement) match.getElement();
             for (IAnnotation annotation : annotatable.getAnnotations()) {
+                IJavaElement annotationElement = annotation.getPrimaryElement();
                 SymbolInformation symbol = new SymbolInformation();
                 symbol.setName(annotation.getElementName());
-                symbol.setKind(convertSymbolKind(element));
+                symbol.setKind(convertSymbolKind(annotationElement));
                 symbol.setContainerName(annotation.getParent().getElementName());
-                Location location = getLocation(element, match);
+                Location location = getLocation(annotationElement, match);
                 symbol.setLocation(location);
                 if (this.query.contains(".")) {
                     // First try to get compilation unit for source files
-                    ICompilationUnit unit = (ICompilationUnit) element.getAncestor(IJavaElement.COMPILATION_UNIT);
+                    ICompilationUnit unit = (ICompilationUnit) annotationElement.getAncestor(IJavaElement.COMPILATION_UNIT);
                     if (unit == null) {
                         // If not in source, try to get class file for compiled classes
-                        IClassFile cls = (IClassFile) element.getAncestor(IJavaElement.CLASS_FILE);
+                        IClassFile cls = (IClassFile) annotationElement.getAncestor(IJavaElement.CLASS_FILE);
                         if (cls != null) {
                             unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
                         }
@@ -59,7 +59,7 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                         astParser.setSource(unit);
                         astParser.setResolveBindings(true);
                         CompilationUnit cu = (CompilationUnit) astParser.createAST(null);
-                        CustomASTVisitor visitor = new CustomASTVisitor(query, match, QueryLocation.CONSTRUCTOR_CALL);
+                        CustomASTVisitor visitor = new CustomASTVisitor(query, match, QueryLocation.ANNOTATION);
                         // Under tests, resolveConstructorBinding will return null if there are problems
                         IProblem[] problems = cu.getProblems();
                         if (problems != null && problems.length > 0) {
