@@ -162,7 +162,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
      */
     private static SearchPattern getPatternSingleQuery(int location, String query) throws Exception {
         var pattern = SearchPattern.R_PATTERN_MATCH;
-        if ((!query.contains("?") || !query.contains("*")) && (location != 11)) {
+        if ((!query.contains("?") && !query.contains("*")) && (location != 11)) {
             logInfo("Using full match");
             pattern = SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE;
         }
