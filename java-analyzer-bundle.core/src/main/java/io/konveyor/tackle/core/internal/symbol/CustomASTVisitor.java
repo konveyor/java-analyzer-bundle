@@ -9,6 +9,7 @@ import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
@@ -68,45 +69,15 @@ public class CustomASTVisitor extends ASTVisitor {
 
     @Override
     public boolean visit(MarkerAnnotation node) {
-        if (this.location != QueryLocation.ANNOTATION || !this.shouldVisit(node)) {
-            return true;
-        }
-        try {
-            IAnnotationBinding binding = node.resolveAnnotationBinding();
-            if (binding != null) {
-                // get fqn
-                ITypeBinding declaringClass = binding.getAnnotationType();
-                if (declaringClass != null) {
-                    // Handle Erasure results
-                    if (declaringClass.getErasure() != null) {
-                        declaringClass = declaringClass.getErasure();
-                    }
-                    String fullyQualifiedName = declaringClass.getQualifiedName() + "." + binding.getName();
-                    // match fqn with query pattern
-                    if (fullyQualifiedName.matches(this.query)) {
-                        this.symbolMatches = true;
-                        return false;
-                    } else {
-                        logInfo("method fqn " + fullyQualifiedName + " did not match with " + query);
-                        return true;
-                    }
-                }
-            }
-            logInfo("failed to get accurate info for MethodInvocation, falling back");
-            // sometimes binding or declaring class cannot be found, usually due to errors
-            // in source code. in that case, we will fallback and accept the match
-            this.symbolMatches = true;
-            return false;
-        } catch (Exception e) {
-            logInfo("KONVEYOR_LOG: error visiting MethodInvocation node: " + e);
-            // this is so that we fallback and don't lose a match when we fail
-            this.symbolMatches = true;
-            return false;
-        }
+        return visit((Annotation) node);
     }
 
     @Override
     public boolean visit(NormalAnnotation node) {
+        return visit((Annotation) node);
+    }
+
+    private boolean visit(Annotation node) {
         if (this.location != QueryLocation.ANNOTATION || !this.shouldVisit(node)) {
             return true;
         }
@@ -120,7 +91,7 @@ public class CustomASTVisitor extends ASTVisitor {
                     if (declaringClass.getErasure() != null) {
                         declaringClass = declaringClass.getErasure();
                     }
-                    String fullyQualifiedName = declaringClass.getQualifiedName() + "." + binding.getName();
+                    String fullyQualifiedName = declaringClass.getQualifiedName();
                     // match fqn with query pattern
                     if (fullyQualifiedName.matches(this.query)) {
                         this.symbolMatches = true;
