@@ -83,13 +83,17 @@ public class CustomASTVisitor extends ASTVisitor {
         return visit((Annotation) node);
     }
 
+    private boolean shouldVisitAnnotation(Annotation node) {
+        return node.getStartPosition() + 1 == this.match.getOffset();
+    } 
+
     private boolean visit(Annotation node) {
         // There is a problem with trying to run shouldVisit() here because
         // matches on annotations aren't directly on the annotation node,
         // but on the annotated one (class, method, field, etc). So we can't
         // use shouldVisit() to filter out nodes we don't want to visit.
         // TODO: think of a better way to handle this
-        if (this.location != QueryLocation.ANNOTATION) {
+        if (!shouldVisitAnnotation(node) || this.location != QueryLocation.ANNOTATION) {
             return true;
         }
         try {
