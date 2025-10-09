@@ -356,13 +356,11 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             logInfo("KONVEYOR_LOG: unable to get search " + e.toString().replace("\n", " "));
         }
 
-        symbols.addAll(requestor.getSymbols());
-
+        // For on-demand imports (things like <code>import javax.ejb.*;</code>) we need to
+        // do a special search, since on-demand imports are only resolved at compilation time
         if (location == 8) {
             Matcher matcher = Pattern.compile("[^A-Z*]+\\*").matcher(query);
             if (matcher.matches()) {
-                // IMPORT location and package wildcard
-
                 // Get all compilation units in scope
                 for (IJavaProject p : targetProjects) {
                     for (IPackageFragment pkg : p.getPackageFragments()) {
