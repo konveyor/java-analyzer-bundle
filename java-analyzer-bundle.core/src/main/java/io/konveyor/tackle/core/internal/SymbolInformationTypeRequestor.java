@@ -85,7 +85,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
             ((WithMaxResults) symbolProvider).setMaxResultes(this.maxResults);
         }
 
-        logInfo("getting match: " + match + "with provider: " + symbolProvider);
+        logInfo("getting match: " + match + "with provider: " + symbolProvider + " for query: " + this.query);
         List<SymbolInformation> symbols = Optional.ofNullable(symbolProvider.get(match)).orElse(new ArrayList<>());
         this.symbols.addAll(symbols);
     }

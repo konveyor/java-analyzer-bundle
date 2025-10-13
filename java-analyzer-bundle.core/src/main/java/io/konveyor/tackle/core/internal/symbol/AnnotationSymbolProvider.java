@@ -128,8 +128,10 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                         }
                     }
                     if (unit != null && unit.isWorkingCopy())  {
-                        unit.discardWorkingCopy();
-                        unit.close();
+                        synchronized (SymbolProvider.LOCATION_LOCK) {
+                            unit.discardWorkingCopy();
+                            unit.close();
+                        }
                     }
                 } else {
                     if (annotationQuery != null) {
