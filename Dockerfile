@@ -1,6 +1,6 @@
 FROM registry.access.redhat.com/ubi9/ubi AS jdtls-download
 WORKDIR /jdtls
-RUN curl -s -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.38.0/jdt-language-server-1.38.0-202408011337.tar.gz &&\
+RUN curl -s -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.51.0/jdt-language-server-1.51.0-202510022025.tar.gz &&\
 	tar -xvf jdtls.tar.gz --no-same-owner &&\
 	chmod 755 /jdtls/bin/jdtls &&\
         rm -rf jdtls.tar.gz
@@ -14,7 +14,6 @@ FROM registry.access.redhat.com/ubi9/ubi AS fernflower
 RUN dnf install -y maven-openjdk17 wget --setopt=install_weak_deps=False && dnf clean all && rm -rf /var/cache/dnf
 RUN wget --quiet https://github.com/JetBrains/intellij-community/archive/refs/tags/idea/231.9011.34.tar.gz -O intellij-community.tar && tar xf intellij-community.tar intellij-community-idea-231.9011.34/plugins/java-decompiler/engine && rm -rf intellij-community.tar
 WORKDIR /intellij-community-idea-231.9011.34/plugins/java-decompiler/engine
-RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 RUN ./gradlew build -x test && rm -rf /root/.gradle
 RUN mkdir /output && cp ./build/libs/fernflower.jar /output
 
@@ -35,8 +34,8 @@ RUN DOWNLOAD_URL=$(wget --quiet -O - https://api.github.com/repos/konveyor/maven
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 # Java 1.8 is required for backwards compatibility with older versions of Gradle
-RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-17-openjdk-devel tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
-ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
+RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-21-openjdk-devel tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
+ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
 # Specify Java 1.8 home for usage with gradle wrappers
 ENV JAVA8_HOME /usr/lib/jvm/java-1.8.0-openjdk
 RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz && \
