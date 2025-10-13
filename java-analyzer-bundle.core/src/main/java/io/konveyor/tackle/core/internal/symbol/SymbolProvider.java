@@ -31,6 +31,7 @@ import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 public interface SymbolProvider {
     public static final int MAX_PROBLEMS_TO_LOG = 10;
+    Object LOCATION_LOCK = new Object();
 
     List<SymbolInformation> get(SearchMatch match) throws CoreException;
 
@@ -98,7 +99,11 @@ public interface SymbolProvider {
         ICompilationUnit compilationUnit = (ICompilationUnit) element.getAncestor(IJavaElement.COMPILATION_UNIT);
 		if (compilationUnit != null) {
             logInfo("found compliation unit for match: " + match);
-		    return JDTUtils.toLocation(compilationUnit, match.getOffset(), match.getLength());
+            synchronized (LOCATION_LOCK) {
+                Location location = JDTUtils.toLocation(compilationUnit, match.getOffset(), match.getLength());
+                logInfo("Returning location: " + location + " for match: " + match);
+                return location;
+            }
 		} 
 		IClassFile cf = (IClassFile) element.getAncestor(IJavaElement.CLASS_FILE);
 		if (cf != null) {
@@ -131,7 +136,9 @@ public interface SymbolProvider {
             }
             Range range = null;
 		    try {
-                range = toRange(cf, match.getOffset(), match.getLength());
+                synchronized (LOCATION_LOCK) {
+                    range = toRange(cf, match.getOffset(), match.getLength());
+                }
              } catch (Exception e) {
 			    JavaLanguageServerPlugin.logException("Error generating range for class ", e);
                 return null;
@@ -143,7 +150,9 @@ public interface SymbolProvider {
         try {
             // This casting is safe or is assumed to be safer because the ToString on SearchMatch does it
             logInfo("defaulting to regular toLocation for match: " + match);
-            return JDTUtils.toLocation(element);
+            synchronized (LOCATION_LOCK) {
+                return JDTUtils.toLocation(element);
+            }
         } catch (Exception e) {
             JavaLanguageServerPlugin.logException("Unable to determine location for the element " + element, e);
             return null;

@@ -89,8 +89,10 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                             }
                         }
                     }
-                    unit.discardWorkingCopy();
-                    unit.close();
+                    synchronized (SymbolProvider.LOCATION_LOCK) {
+                        unit.discardWorkingCopy();
+                        unit.close();
+                    }
                 } else {
                     if (annotationQuery != null) {
                         List<Class<? extends SourceRefElement>> classes = new ArrayList<>();

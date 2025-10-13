@@ -78,8 +78,10 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery 
                         symbols.add(symbol);
                     }
                 }
-                unit.discardWorkingCopy();
-                unit.close();
+                synchronized (SymbolProvider.LOCATION_LOCK) {
+                    unit.discardWorkingCopy();
+                    unit.close();
+                }
             } else {
                 symbols.add(symbol);
             }
