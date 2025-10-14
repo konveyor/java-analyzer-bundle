@@ -207,7 +207,7 @@ public interface SymbolProvider {
         // should consider parameter here
         // e.g. java.nio.file.Paths.get(String)/java.nio.file.Paths.get(*)  -> java.nio.file.Paths.get
         // Remove any parentheses and their contents
-        query = query.replaceAll("\\(.*\\)", "");
+        query = query.replaceAll("\\([^|]*\\)", "");
         query = query.replaceAll("(?<!\\.)\\*", ".*");
         String queryQualification = "";
         int dotIndex = query.lastIndexOf('.');
