@@ -376,7 +376,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
                 // Now run ImportScanner only on units in scope
                 ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
-                Pattern regex = Pattern.compile(query);
+                // when creating the regex, replace * with .*
+                Pattern regex = Pattern.compile(query.replaceAll("(?<!\\.)\\*", ".*"));
                 for (ICompilationUnit unit : units) {
                     parser.setSource(unit);
                     CompilationUnit cu = (CompilationUnit) parser.createAST(null);
