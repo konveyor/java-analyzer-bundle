@@ -79,9 +79,11 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
                         symbols.add(symbol);
                     }
                 }
-                synchronized (SymbolProvider.LOCATION_LOCK) {
-                    unit.discardWorkingCopy();
-                    unit.close();
+                if (unit != null) {
+                    synchronized (SymbolProvider.LOCATION_LOCK) {
+                        unit.discardWorkingCopy();
+                        unit.close();
+                    }
                 }
             } else {
                 symbols.add(symbol);
