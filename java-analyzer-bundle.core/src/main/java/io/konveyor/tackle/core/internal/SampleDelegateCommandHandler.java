@@ -386,7 +386,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
                             if (regex.matcher(imp.getName().getFullyQualifiedName()).matches()) {
                                 SymbolInformation symbol = new SymbolInformation();
                                 symbol.setName(imp.getName().getFullyQualifiedName());
-                                symbol.setKind(SymbolKind.Namespace);
+                                symbol.setKind(SymbolKind.Module);
                                 symbol.setContainerName(unit.getElementName());
                                 symbol.setLocation(getLocationForImport(unit, imp, cu));
                                 System.out.println("Found in " + unit.getElementName());
