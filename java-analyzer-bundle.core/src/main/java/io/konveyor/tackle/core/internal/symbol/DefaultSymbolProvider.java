@@ -40,14 +40,14 @@ public class DefaultSymbolProvider implements SymbolProvider, WithQuery, WithMax
             if (specificSymbols == null || specificSymbols.isEmpty()) {
                 continue;
             }
-            
             symbols.addAll(specificSymbols);
-            logInfo("got Symbols: " + symbols.size());
+            logInfo("got Symbols: " + specificSymbols.size());
             // Have to handle here, the search matches can not ballon
             // for now this will be fine
             if (this.maxResults != 0 && symbols.size() >= this.maxResults) {
                 return symbols;
             }
+            break; // break here to avoid Type and IMPORT providers returning duplicate matches
         }
         return symbols;
     }

@@ -162,7 +162,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
      */
     private static SearchPattern getPatternSingleQuery(int location, String query) throws Exception {
         var pattern = SearchPattern.R_PATTERN_MATCH;
-        if ((!query.contains("?") || !query.contains("*")) && (location != 11)) {
+        if ((!query.contains("?") && !query.contains("*")) && (location != 11)) {
             logInfo("Using full match");
             pattern = SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE;
         }
@@ -376,7 +376,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
                 // Now run ImportScanner only on units in scope
                 ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
-                Pattern regex = Pattern.compile(query);
+                // when creating the regex, replace * with .*
+                Pattern regex = Pattern.compile(query.replaceAll("(?<!\\.)\\*", ".*"));
                 for (ICompilationUnit unit : units) {
                     parser.setSource(unit);
                     CompilationUnit cu = (CompilationUnit) parser.createAST(null);

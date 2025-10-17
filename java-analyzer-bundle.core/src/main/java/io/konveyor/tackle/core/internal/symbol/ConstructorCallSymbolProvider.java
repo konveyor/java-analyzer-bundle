@@ -53,7 +53,7 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery 
                         unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
                     }
                 }
-                if (this.queryQualificationMatches(this.query, unit, location)) {
+                if (this.queryQualificationMatches(this.query, mod, unit, location)) {
                     ASTParser astParser = ASTParser.newParser(AST.getJLSLatest());
                     astParser.setSource(unit);
                     astParser.setResolveBindings(true);
@@ -78,8 +78,10 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery 
                         symbols.add(symbol);
                     }
                 }
-                unit.discardWorkingCopy();
-                unit.close();
+                synchronized (SymbolProvider.LOCATION_LOCK) {
+                    unit.discardWorkingCopy();
+                    unit.close();
+                }
             } else {
                 symbols.add(symbol);
             }

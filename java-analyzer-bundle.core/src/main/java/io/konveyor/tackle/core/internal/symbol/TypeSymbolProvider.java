@@ -101,8 +101,12 @@ public class TypeSymbolProvider implements SymbolProvider, WithQuery, WithAnnota
                         }
                     }
                 }
-                compilationUnit.discardWorkingCopy();
-                compilationUnit.close();
+                if (compilationUnit != null) {
+                    synchronized (SymbolProvider.LOCATION_LOCK) {
+                        compilationUnit.discardWorkingCopy();
+                        compilationUnit.close();
+                    }
+                }
                 if (!isAccurate) {
                     return null;
                 }

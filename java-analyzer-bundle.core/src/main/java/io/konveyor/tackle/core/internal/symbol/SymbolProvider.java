@@ -31,6 +31,7 @@ import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 public interface SymbolProvider {
     public static final int MAX_PROBLEMS_TO_LOG = 10;
+    Object LOCATION_LOCK = new Object();
 
     List<SymbolInformation> get(SearchMatch match) throws CoreException;
 
@@ -98,7 +99,11 @@ public interface SymbolProvider {
         ICompilationUnit compilationUnit = (ICompilationUnit) element.getAncestor(IJavaElement.COMPILATION_UNIT);
 		if (compilationUnit != null) {
             logInfo("found compliation unit for match: " + match);
-		    return JDTUtils.toLocation(compilationUnit, match.getOffset(), match.getLength());
+            synchronized (LOCATION_LOCK) {
+                Location location = JDTUtils.toLocation(compilationUnit, match.getOffset(), match.getLength());
+                logInfo("Returning location: " + location + " for match: " + match);
+                return location;
+            }
 		} 
 		IClassFile cf = (IClassFile) element.getAncestor(IJavaElement.CLASS_FILE);
 		if (cf != null) {
@@ -131,7 +136,9 @@ public interface SymbolProvider {
             }
             Range range = null;
 		    try {
-                range = toRange(cf, match.getOffset(), match.getLength());
+                synchronized (LOCATION_LOCK) {
+                    range = toRange(cf, match.getOffset(), match.getLength());
+                }
              } catch (Exception e) {
 			    JavaLanguageServerPlugin.logException("Error generating range for class ", e);
                 return null;
@@ -143,7 +150,9 @@ public interface SymbolProvider {
         try {
             // This casting is safe or is assumed to be safer because the ToString on SearchMatch does it
             logInfo("defaulting to regular toLocation for match: " + match);
-            return JDTUtils.toLocation(element);
+            synchronized (LOCATION_LOCK) {
+                return JDTUtils.toLocation(element);
+            }
         } catch (Exception e) {
             JavaLanguageServerPlugin.logException("Unable to determine location for the element " + element, e);
             return null;
@@ -188,7 +197,7 @@ public interface SymbolProvider {
      *  3. the compilation unit has a package declaration as `konveyor.io.Util`
      * we do this so that we can rule out a lot of matches before going the AST route
      */
-    default boolean queryQualificationMatches(String query, ICompilationUnit unit, Location location) {
+    default boolean queryQualificationMatches(String query, IJavaElement matchedElement,ICompilationUnit unit, Location location) {
         // Make sure that the ICompilationUnit is conistant
         try {
             unit.makeConsistent(null);
@@ -198,13 +207,21 @@ public interface SymbolProvider {
         // should consider parameter here
         // e.g. java.nio.file.Paths.get(String)/java.nio.file.Paths.get(*)  -> java.nio.file.Paths.get
         // Remove any parentheses and their contents
-        query = query.replaceAll("\\(.*\\)", "");
+        query = query.replaceAll("\\([^|]*\\)", "");
         query = query.replaceAll("(?<!\\.)\\*", ".*");
         String queryQualification = "";
         int dotIndex = query.lastIndexOf('.');
         if (dotIndex > 0) {
             // for a query, java.io.paths.File*, queryQualification is java.io.paths
             queryQualification = query.substring(0, dotIndex);
+        }
+        // an element need not be imported if its referenced by fqn
+        if (!queryQualification.isEmpty() && (
+                matchedElement.getElementName().equals(queryQualification)
+             || matchedElement.getElementName().startsWith(queryQualification + ".")
+             || queryQualification.matches(matchedElement.getElementName())
+        )) {
+            return true;
         }
         String packageQueryQualification = "";
         int packageDotIndex = queryQualification.lastIndexOf('.');
