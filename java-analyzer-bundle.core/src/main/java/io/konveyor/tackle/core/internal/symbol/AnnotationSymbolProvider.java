@@ -54,7 +54,7 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                             unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
                         }
                     }
-                    if (this.queryQualificationMatches(this.query, annotationElement, unit, location)) {
+                    if (this.queryQualificationMatches(this.query.replaceAll("\\(([A-Za-z_][A-Za-z0-9_]*(\\|[A-Za-z_][A-Za-z0-9_]*)*)\\)", ".*"), annotationElement, unit, location)) {
                         ASTParser astParser = ASTParser.newParser(AST.getJLSLatest());
                         astParser.setSource(unit);
                         astParser.setResolveBindings(true);
