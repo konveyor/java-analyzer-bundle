@@ -188,7 +188,7 @@ public interface SymbolProvider {
      *  3. the compilation unit has a package declaration as `konveyor.io.Util`
      * we do this so that we can rule out a lot of matches before going the AST route
      */
-    default boolean queryQualificationMatches(String query, ICompilationUnit unit, Location location) {
+    default boolean queryQualificationMatches(String query, IJavaElement matchedElement,ICompilationUnit unit, Location location) {
         // Make sure that the ICompilationUnit is conistant
         try {
             unit.makeConsistent(null);
@@ -205,6 +205,14 @@ public interface SymbolProvider {
         if (dotIndex > 0) {
             // for a query, java.io.paths.File*, queryQualification is java.io.paths
             queryQualification = query.substring(0, dotIndex);
+        }
+        // an element need not be imported if its referenced by fqn
+        if (!queryQualification.isEmpty() && (
+                matchedElement.getElementName().equals(queryQualification)
+             || matchedElement.getElementName().startsWith(queryQualification + ".")
+             || queryQualification.matches(matchedElement.getElementName())
+        )) {
+            return true;
         }
         String packageQueryQualification = "";
         int packageDotIndex = queryQualification.lastIndexOf('.');

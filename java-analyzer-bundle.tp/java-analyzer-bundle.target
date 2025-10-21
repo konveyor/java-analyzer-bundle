@@ -2,12 +2,12 @@
 <?pde version="3.8"?>
 <target name="Java Analyzer Target Platform">
 	<locations>
-		<!-- 1st: pick up latest JDT.LS bits
+		<!-- 1st: pick up JDT.LS bits (1.35.0)
 		-->
 		<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner"
 			includeSource="true" type="InstallableUnit">
 			<unit id="org.eclipse.jdt.ls.core" version="0.0.0" />
-			<repository location="https://download.eclipse.org/jdtls/milestones/1.40.0/repository"/>
+			<repository location="https://download.eclipse.org/jdtls/milestones/1.35.0/repository"/>
 		</location>
 		
 		
@@ -64,7 +64,7 @@
             <repository location="https://download.eclipse.org/releases/2021-09/202109151000/"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-           <repository location="https://download.eclipse.org/lsp4j/updates/releases/0.23.1/"/>
+           <repository location="https://download.eclipse.org/lsp4j/updates/releases/0.22.0/"/>
            <unit id="org.eclipse.lsp4j.sdk.feature.group" version="0.0.0"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
