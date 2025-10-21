@@ -6,9 +6,14 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
+import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.Annotation;
+import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.NormalAnnotation;
+import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.search.SearchMatch;
 
 /*
@@ -32,6 +37,7 @@ public class CustomASTVisitor extends ASTVisitor {
     public enum QueryLocation {
         METHOD_CALL,
         CONSTRUCTOR_CALL,
+        ANNOTATION,
     }
 
     public CustomASTVisitor(String query, SearchMatch match, QueryLocation location) {
@@ -60,6 +66,64 @@ public class CustomASTVisitor extends ASTVisitor {
     private boolean shouldVisit(ASTNode node) {
         return (this.match.getOffset() + this.match.getLength()) == 
             (node.getStartPosition() + node.getLength());
+    }
+
+    @Override
+    public boolean visit(MarkerAnnotation node) {
+        return visit((Annotation) node);
+    }
+
+    @Override
+    public boolean visit(NormalAnnotation node) {
+        return visit((Annotation) node);
+    }
+
+    @Override
+    public boolean visit(SingleMemberAnnotation node) {
+        return visit((Annotation) node);
+    }
+
+    private boolean visit(Annotation node) {
+        // There is a problem with trying to run shouldVisit() here because
+        // matches on annotations aren't directly on the annotation node,
+        // but on the annotated one (class, method, field, etc). So we can't
+        // use shouldVisit() to filter out nodes we don't want to visit.
+        // TODO: think of a better way to handle this
+        if (this.location != QueryLocation.ANNOTATION) {
+            return true;
+        }
+        try {
+            IAnnotationBinding binding = node.resolveAnnotationBinding();
+            if (binding != null) {
+                // get fqn
+                ITypeBinding declaringClass = binding.getAnnotationType();
+                if (declaringClass != null) {
+                    // Handle Erasure results
+                    if (declaringClass.getErasure() != null) {
+                        declaringClass = declaringClass.getErasure();
+                    }
+                    String fullyQualifiedName = declaringClass.getQualifiedName();
+                    // match fqn with query pattern
+                    if (fullyQualifiedName.matches(this.query)) {
+                        this.symbolMatches = true;
+                        return false;
+                    } else {
+                        logInfo("method fqn " + fullyQualifiedName + " did not match with " + query);
+                        return true;
+                    }
+                }
+            }
+            logInfo("failed to get accurate info for MethodInvocation, falling back");
+            // sometimes binding or declaring class cannot be found, usually due to errors
+            // in source code. in that case, we will fallback and accept the match
+            this.symbolMatches = true;
+            return false;
+        } catch (Exception e) {
+            logInfo("KONVEYOR_LOG: error visiting MethodInvocation node: " + e);
+            // this is so that we fallback and don't lose a match when we fail
+            this.symbolMatches = true;
+            return false;
+        }
     }
 
     /* 
