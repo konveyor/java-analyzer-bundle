@@ -3,10 +3,8 @@ package io.konveyor.tackle.core.internal.symbol;
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
-import io.konveyor.tackle.core.internal.query.AnnotationQuery;
-import io.konveyor.tackle.core.internal.symbol.CustomASTVisitor.QueryLocation;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IAnnotatable;
@@ -14,6 +12,7 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -26,10 +25,20 @@ import org.eclipse.jdt.internal.core.SourceRefElement;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
 
+import io.konveyor.tackle.core.internal.query.AnnotationQuery;
+import io.konveyor.tackle.core.internal.symbol.CustomASTVisitor.QueryLocation;
+
 public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, WithAnnotationQuery {
 
     private AnnotationQuery annotationQuery;
     private String query;
+
+    private static final List<Class<? extends SourceRefElement>> ACCEPTED_CLASSES = new ArrayList<>();
+    static {
+        ACCEPTED_CLASSES.add(ResolvedSourceMethod.class);
+        ACCEPTED_CLASSES.add(ResolvedSourceField.class);
+        ACCEPTED_CLASSES.add(ResolvedSourceType.class);
+    }
 
     @Override
     public List<SymbolInformation> get(SearchMatch match) throws CoreException {
@@ -54,6 +63,39 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                             unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
                         }
                     }
+                    if (unit != null) {
+                        IType t = unit.getType(annotationElement.getElementName());
+                        String fqdn = "";
+                        if (!t.isResolved()) {
+                            var elements = unit.codeSelect(match.getOffset(), match.getLength());
+                            for (IJavaElement e: Arrays.asList(elements)) {
+                                if (e instanceof IType) {
+                                    var newT = (IType) e;
+                                    if (newT.isResolved()) {
+                                        fqdn = newT.getFullyQualifiedName('.');
+                                        logInfo("FQDN from code select: " + fqdn);
+                                    }
+                                }
+                            }
+                        } else {
+                            fqdn = t.getFullyQualifiedName('.');
+                            logInfo("resolved type: " + fqdn);
+                        }
+                        if (query.matches(fqdn) || fqdn.matches(query)) {
+                            if (unit.isWorkingCopy())  {
+                                unit.discardWorkingCopy();
+                                unit.close();
+                            }
+
+                            if (matchesAnnotationQuery(match, ACCEPTED_CLASSES)) {
+                                symbols.add(symbol);
+                            }
+                            return symbols;
+                        }
+                    }
+
+                    logInfo("falling back to resolving via AST");
+
                     if (this.queryQualificationMatches(this.query.replaceAll("\\(([A-Za-z_][A-Za-z0-9_]*(\\|[A-Za-z_][A-Za-z0-9_]*)*)\\)", ".*"), annotationElement, unit, location)) {
                         ASTParser astParser = ASTParser.newParser(AST.getJLSLatest());
                         astParser.setSource(unit);
@@ -77,11 +119,7 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                         cu.accept(visitor);
                         if (visitor.symbolMatches()) {
                             if (annotationQuery != null) {
-                                List<Class<? extends SourceRefElement>> classes = new ArrayList<>();
-                                classes.add(ResolvedSourceMethod.class);
-                                classes.add(ResolvedSourceField.class);
-                                classes.add(ResolvedSourceType.class);
-                                if (matchesAnnotationQuery(match, classes)) {
+                                if (matchesAnnotationQuery(match, ACCEPTED_CLASSES)) {
                                     symbols.add(symbol);
                                 }
                             } else {
@@ -95,18 +133,13 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                     }
                 } else {
                     if (annotationQuery != null) {
-                        List<Class<? extends SourceRefElement>> classes = new ArrayList<>();
-                        classes.add(ResolvedSourceMethod.class);
-                        classes.add(ResolvedSourceField.class);
-                        classes.add(ResolvedSourceType.class);
-                        if (matchesAnnotationQuery(match, classes)) {
+                        if (matchesAnnotationQuery(match, ACCEPTED_CLASSES)) {
                             symbols.add(symbol);
                         }
                     } else {
                         symbols.add(symbol);
                     }
                 }
-
             }
             return symbols;
         } catch (Exception e) {
