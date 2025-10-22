@@ -3,10 +3,8 @@ package io.konveyor.tackle.core.internal.symbol;
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
-import io.konveyor.tackle.core.internal.query.AnnotationQuery;
-import io.konveyor.tackle.core.internal.symbol.CustomASTVisitor.QueryLocation;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IAnnotatable;
@@ -14,6 +12,7 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -25,6 +24,9 @@ import org.eclipse.jdt.internal.core.ResolvedSourceType;
 import org.eclipse.jdt.internal.core.SourceRefElement;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
+
+import io.konveyor.tackle.core.internal.query.AnnotationQuery;
+import io.konveyor.tackle.core.internal.symbol.CustomASTVisitor.QueryLocation;
 
 public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, WithAnnotationQuery {
 
@@ -54,6 +56,34 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                             unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
                         }
                     }
+                    IType t = unit.getType(annotationElement.getElementName());
+                    String fqdn = "";
+                    if (!t.isResolved()) {
+                        var elements = unit.codeSelect(match.getOffset(), match.getLength());
+                        for (IJavaElement e: Arrays.asList(elements)) {
+                            if (e instanceof IType) {
+                                var newT = (IType) e;
+                                if (newT.isResolved()) {
+                                    fqdn = newT.getFullyQualifiedName('.');
+                                    logInfo("FQDN from code select: " + fqdn);
+                                }
+                            }
+                        }
+                    } else {
+                        fqdn = t.getFullyQualifiedName('.');
+                        logInfo("resolved type: " + fqdn);
+                    }
+                    if (query.matches(fqdn)) {
+                        symbols.add(symbol);
+                        return symbols;
+                    }
+                    if (fqdn.matches(query)) {
+                        symbols.add(symbol);
+                        return symbols;
+                    }
+
+                    logInfo("falling back to resolving via AST");
+
                     if (this.queryQualificationMatches(this.query.replaceAll("\\(([A-Za-z_][A-Za-z0-9_]*(\\|[A-Za-z_][A-Za-z0-9_]*)*)\\)", ".*"), annotationElement, unit, location)) {
                         ASTParser astParser = ASTParser.newParser(AST.getJLSLatest());
                         astParser.setSource(unit);
@@ -106,7 +136,6 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                         symbols.add(symbol);
                     }
                 }
-
             }
             return symbols;
         } catch (Exception e) {
