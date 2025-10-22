@@ -56,30 +56,32 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                             unit = cls.getWorkingCopy(new WorkingCopyOwnerImpl(), null);
                         }
                     }
-                    IType t = unit.getType(annotationElement.getElementName());
-                    String fqdn = "";
-                    if (!t.isResolved()) {
-                        var elements = unit.codeSelect(match.getOffset(), match.getLength());
-                        for (IJavaElement e: Arrays.asList(elements)) {
-                            if (e instanceof IType) {
-                                var newT = (IType) e;
-                                if (newT.isResolved()) {
-                                    fqdn = newT.getFullyQualifiedName('.');
-                                    logInfo("FQDN from code select: " + fqdn);
+                    if (unit != null) {
+                        IType t = unit.getType(annotationElement.getElementName());
+                        String fqdn = "";
+                        if (!t.isResolved()) {
+                            var elements = unit.codeSelect(match.getOffset(), match.getLength());
+                            for (IJavaElement e: Arrays.asList(elements)) {
+                                if (e instanceof IType) {
+                                    var newT = (IType) e;
+                                    if (newT.isResolved()) {
+                                        fqdn = newT.getFullyQualifiedName('.');
+                                        logInfo("FQDN from code select: " + fqdn);
+                                    }
                                 }
                             }
+                        } else {
+                            fqdn = t.getFullyQualifiedName('.');
+                            logInfo("resolved type: " + fqdn);
                         }
-                    } else {
-                        fqdn = t.getFullyQualifiedName('.');
-                        logInfo("resolved type: " + fqdn);
-                    }
-                    if (query.matches(fqdn)) {
-                        symbols.add(symbol);
-                        return symbols;
-                    }
-                    if (fqdn.matches(query)) {
-                        symbols.add(symbol);
-                        return symbols;
+                        if (query.matches(fqdn) || fqdn.matches(query)) {
+                            if (unit.isWorkingCopy())  {
+                                unit.discardWorkingCopy();
+                                unit.close();
+                            }
+                            symbols.add(symbol);
+                            return symbols;
+                        }
                     }
 
                     logInfo("falling back to resolving via AST");
