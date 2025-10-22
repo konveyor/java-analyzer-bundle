@@ -33,6 +33,13 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
     private AnnotationQuery annotationQuery;
     private String query;
 
+    private static final List<Class<? extends SourceRefElement>> ACCEPTED_CLASSES = new ArrayList<>();
+    static {
+        ACCEPTED_CLASSES.add(ResolvedSourceMethod.class);
+        ACCEPTED_CLASSES.add(ResolvedSourceField.class);
+        ACCEPTED_CLASSES.add(ResolvedSourceType.class);
+    }
+
     @Override
     public List<SymbolInformation> get(SearchMatch match) throws CoreException {
         List<SymbolInformation> symbols = new ArrayList<>();
@@ -79,7 +86,10 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                                 unit.discardWorkingCopy();
                                 unit.close();
                             }
-                            symbols.add(symbol);
+
+                            if (matchesAnnotationQuery(match, ACCEPTED_CLASSES)) {
+                                symbols.add(symbol);
+                            }
                             return symbols;
                         }
                     }
@@ -109,11 +119,7 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                         cu.accept(visitor);
                         if (visitor.symbolMatches()) {
                             if (annotationQuery != null) {
-                                List<Class<? extends SourceRefElement>> classes = new ArrayList<>();
-                                classes.add(ResolvedSourceMethod.class);
-                                classes.add(ResolvedSourceField.class);
-                                classes.add(ResolvedSourceType.class);
-                                if (matchesAnnotationQuery(match, classes)) {
+                                if (matchesAnnotationQuery(match, ACCEPTED_CLASSES)) {
                                     symbols.add(symbol);
                                 }
                             } else {
@@ -127,11 +133,7 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                     }
                 } else {
                     if (annotationQuery != null) {
-                        List<Class<? extends SourceRefElement>> classes = new ArrayList<>();
-                        classes.add(ResolvedSourceMethod.class);
-                        classes.add(ResolvedSourceField.class);
-                        classes.add(ResolvedSourceType.class);
-                        if (matchesAnnotationQuery(match, classes)) {
+                        if (matchesAnnotationQuery(match, ACCEPTED_CLASSES)) {
                             symbols.add(symbol);
                         }
                     } else {
