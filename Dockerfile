@@ -21,8 +21,8 @@ FROM registry.access.redhat.com/ubi9/ubi AS addon-build
 RUN dnf install -y maven-openjdk17 && dnf clean all && rm -rf /var/cache/dnf
 WORKDIR /app
 COPY ./ /app/
-RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
-RUN JAVA_HOME=/usr/lib/jvm/java-17-openjdk mvn clean install -DskipTests=true
+ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
+RUN mvn clean install -DskipTests=true
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 # Java 1.8 is required for backwards compatibility with older versions of Gradle
@@ -42,7 +42,7 @@ COPY ./gradle/build.gradle /usr/local/etc/task.gradle
 COPY ./gradle/build-v9.gradle /usr/local/etc/task-v9.gradle
 
 COPY --from=jdtls-download /jdtls /jdtls/
-COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
+COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/plugins/
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
 COPY --from=maven-index /maven.default.index /usr/local/etc/maven.default.index
 RUN ln -sf /root/.m2 /.m2 && chgrp -R 0 /root && chmod -R g=u /root
