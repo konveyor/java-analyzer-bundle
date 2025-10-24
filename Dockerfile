@@ -9,6 +9,7 @@ COPY jdtls-bin-override/jdtls.py /jdtls/bin/jdtls.py
 
 FROM registry.access.redhat.com/ubi9/ubi AS maven-index
 COPY hack/maven.default.index /maven.default.index
+
 FROM registry.access.redhat.com/ubi9/ubi AS fernflower
 RUN dnf install -y maven-openjdk17 wget --setopt=install_weak_deps=False && dnf clean all && rm -rf /var/cache/dnf
 RUN wget --quiet https://github.com/JetBrains/intellij-community/archive/refs/tags/idea/231.9011.34.tar.gz -O intellij-community.tar && tar xf intellij-community.tar intellij-community-idea-231.9011.34/plugins/java-decompiler/engine && rm -rf intellij-community.tar
@@ -23,6 +24,12 @@ WORKDIR /app
 COPY ./ /app/
 RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 RUN JAVA_HOME=/usr/lib/jvm/java-17-openjdk mvn clean install -DskipTests=true
+
+FROM registry.access.redhat.com/ubi9/ubi-minimal AS index-download
+RUN microdnf install -y wget zip && microdnf clean all && rm -rf /var/cache/dnf
+WORKDIR /maven-index-data
+#TODO: get latest release when we get to update them periodically
+RUN wget --quiet https://github.com/konveyor/maven-search-index/releases/download/v0.0.1/maven-index-data-v0.0.1.zip -O maven-index-data.zip && unzip maven-index-data.zip && rm maven-index-data.zip
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 # Java 1.8 is required for backwards compatibility with older versions of Gradle
@@ -45,5 +52,8 @@ COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
 COPY --from=maven-index /maven.default.index /usr/local/etc/maven.default.index
+COPY --from=index-download /maven-index-data/central.archive-metadata.txt /usr/local/etc/maven-index.txt
+COPY --from=index-download /maven-index-data/central.archive-metadata.idx /usr/local/etc/maven-index.idx
+
 RUN ln -sf /root/.m2 /.m2 && chgrp -R 0 /root && chmod -R g=u /root
 CMD [ "/jdtls/bin/jdtls" ]
