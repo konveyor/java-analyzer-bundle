@@ -68,3 +68,4 @@ jobs:
     with:
       component_name: java-provider
       api_tests_ref: "${{ needs.build-addon.outputs.api_tests_ref }}"
+      tag: release-0.8
