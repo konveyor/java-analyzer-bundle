@@ -18,6 +18,7 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.search.SearchMatch;
+import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.core.ResolvedSourceField;
 import org.eclipse.jdt.internal.core.ResolvedSourceMethod;
 import org.eclipse.jdt.internal.core.ResolvedSourceType;
@@ -28,10 +29,11 @@ import org.eclipse.lsp4j.SymbolInformation;
 import io.konveyor.tackle.core.internal.query.AnnotationQuery;
 import io.konveyor.tackle.core.internal.symbol.CustomASTVisitor.QueryLocation;
 
-public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, WithAnnotationQuery {
+public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, WithAnnotationQuery, WithSearchPattern {
 
     private AnnotationQuery annotationQuery;
     private String query;
+    private SearchPattern searchPattern;
 
     private static final List<Class<? extends SourceRefElement>> ACCEPTED_CLASSES = new ArrayList<>();
     static {
@@ -101,7 +103,7 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
                         astParser.setSource(unit);
                         astParser.setResolveBindings(true);
                         CompilationUnit cu = (CompilationUnit) astParser.createAST(null);
-                        CustomASTVisitor visitor = new CustomASTVisitor(query, match, QueryLocation.ANNOTATION);
+                        CustomASTVisitor visitor = new CustomASTVisitor(query, searchPattern, match, QueryLocation.ANNOTATION);
                         // Under tests, resolveConstructorBinding will return null if there are problems
                         IProblem[] problems = cu.getProblems();
                         if (problems != null && problems.length > 0) {
@@ -159,5 +161,10 @@ public class AnnotationSymbolProvider implements SymbolProvider, WithQuery, With
     @Override
     public void setQuery(String query) {
         this.query = query;
+    }
+
+    @Override
+    public void setSearchPattern(SearchPattern pattern) {
+        this.searchPattern = pattern;
     }
 }

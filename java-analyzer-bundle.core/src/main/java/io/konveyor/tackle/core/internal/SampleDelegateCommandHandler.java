@@ -15,6 +15,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -26,9 +27,8 @@ import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
+import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.JobHelpers;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
@@ -343,7 +343,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
         SearchEngine searchEngine = new SearchEngine();
 
-        SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor, location, query, annotationQuery);
+        SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor, location, query, annotationQuery, pattern);
 
         //Use the default search participents
         SearchParticipant participent = new JavaSearchParticipant();

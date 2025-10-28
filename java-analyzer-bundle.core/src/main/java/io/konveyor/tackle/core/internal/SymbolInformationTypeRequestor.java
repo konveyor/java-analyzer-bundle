@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.search.SearchMatch;
+import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
 import org.eclipse.lsp4j.SymbolInformation;
@@ -21,6 +22,7 @@ import io.konveyor.tackle.core.internal.symbol.SymbolProviderResolver;
 import io.konveyor.tackle.core.internal.symbol.WithAnnotationQuery;
 import io.konveyor.tackle.core.internal.symbol.WithMaxResults;
 import io.konveyor.tackle.core.internal.symbol.WithQuery;
+import io.konveyor.tackle.core.internal.symbol.WithSearchPattern;
 
 public class SymbolInformationTypeRequestor extends SearchRequestor {
     private List<SymbolInformation> symbols;
@@ -32,10 +34,11 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
     private int symbolKind;
     private String query;
     private AnnotationQuery annotationQuery;
+    private SearchPattern searchPattern;
     private SymbolProviderResolver resolver;
 
 
-    public SymbolInformationTypeRequestor(List<SymbolInformation> symbols, int maxResults, IProgressMonitor monitor, int symbolKind, String query, AnnotationQuery annotationQuery) {
+    public SymbolInformationTypeRequestor(List<SymbolInformation> symbols, int maxResults, IProgressMonitor monitor, int symbolKind, String query, AnnotationQuery annotationQuery, SearchPattern searchPattern) {
         this.symbols = symbols;
         this.maxResults = maxResults;
         this.monitor = monitor;
@@ -43,6 +46,7 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
         this.query = query;
         this.numberSearchMatches = 0;
         this.annotationQuery = annotationQuery;
+        this.searchPattern = searchPattern;
         if (maxResults == 0) {
             this.maxResults = 10000;
         }
@@ -82,6 +86,9 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
         }
         if (symbolProvider instanceof WithMaxResults) {
             ((WithMaxResults) symbolProvider).setMaxResultes(this.maxResults);
+        }
+        if (symbolProvider instanceof WithSearchPattern) {
+            ((WithSearchPattern) symbolProvider).setSearchPattern(this.searchPattern);
         }
 
         logInfo("getting match: " + match + "with provider: " + symbolProvider);
