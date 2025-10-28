@@ -7,20 +7,22 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.lang.reflect.Parameter;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.search.SearchMatch;
+import org.eclipse.jdt.core.search.SearchPattern;
 
 /*
  * SearchEngine we use often gives us more matches than needed when
@@ -32,6 +34,7 @@ import org.eclipse.jdt.core.search.SearchMatch;
  */
 public class CustomASTVisitor extends ASTVisitor {
     private String query;
+    private SearchPattern pattern;
     private SearchMatch match;
     private boolean symbolMatches;
     private QueryLocation location;
@@ -47,7 +50,7 @@ public class CustomASTVisitor extends ASTVisitor {
         ANNOTATION,
     }
 
-    public CustomASTVisitor(String query, SearchMatch match, QueryLocation location) {
+    public CustomASTVisitor(String query, SearchPattern pattern, SearchMatch match, QueryLocation location) {
         /*
          * Extract parameter types from the query pattern if present
          * e.g., "java.util.Properties.setProperty(java.lang.String, java.lang.String)"
@@ -62,6 +65,7 @@ public class CustomASTVisitor extends ASTVisitor {
          * by .* so that java regex works as expected on them
         */
         this.query = processedQuery.replaceAll("(?<!\\.)\\*", ".*");
+        this.pattern = pattern;
         this.symbolMatches = false;
         this.match = match;
         // depending on which location the query was for we only want to
@@ -119,7 +123,10 @@ public class CustomASTVisitor extends ASTVisitor {
                     }
                     String fullyQualifiedName = declaringClass.getQualifiedName();
                     // match fqn with query pattern
-                    if (fullyQualifiedName.matches(this.query)) {
+                    // Note: We keep using regex matching for now as SearchPattern doesn't expose
+                    // a simple string matching API. The pattern is passed for potential future use.
+                    boolean matches = fullyQualifiedName.matches(this.query);
+                    if (matches) {
                         this.symbolMatches = true;
                         return false;
                     } else {
@@ -179,11 +186,6 @@ public class CustomASTVisitor extends ASTVisitor {
                     }
                 }
             }
-            logInfo("failed to get accurate info for MethodInvocation, falling back");
-            // sometimes binding or declaring class cannot be found, usually due to errors
-            // in source code. in that case, we will fallback and accept the match
-            this.symbolMatches = true;
-            return false;
         } catch (Exception e) {
             logInfo("KONVEYOR_LOG: error visiting MethodInvocation node: " + e);
             // this is so that we fallback and don't lose a match when we fail
@@ -204,6 +206,7 @@ public class CustomASTVisitor extends ASTVisitor {
         }
         try {
             IMethodBinding binding = node.resolveConstructorBinding();
+            logInfo("get type parameters: " + binding.getTypeParameters());
             if (binding != null) {
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
@@ -251,6 +254,7 @@ public class CustomASTVisitor extends ASTVisitor {
         }
         try {
             IMethodBinding binding = node.resolveConstructorBinding();
+            logInfo("get type parameters: " + binding.getTypeParameters());
             if (binding != null) {
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
@@ -555,4 +559,15 @@ public class CustomASTVisitor extends ASTVisitor {
     public boolean symbolMatches() {
         return this.symbolMatches;
     }
+
+    private class TypeParamMatcher {
+        private String TypeParameterPart;
+        private String FQDN;
+        private String ParameterPart;
+    }
+
+    private TypeParamMatcher(String queryString) {
+
+    }
+
 }

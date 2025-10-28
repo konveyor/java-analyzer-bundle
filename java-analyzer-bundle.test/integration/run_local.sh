@@ -29,7 +29,7 @@ echo "Repository root: $REPO_ROOT"
 echo ""
 echo "Building JDT.LS container image..."
 cd "$REPO_ROOT"
-$CONTAINER_RUNTIME build -t jdtls-analyzer:test .
+$CONTAINER_RUNTIME build -t jdtls-analyzer:test -f Dockerfile.test .
 
 # Run the integration tests
 echo ""
@@ -41,7 +41,7 @@ $CONTAINER_RUNTIME run --rm \
   --workdir /tests/integration \
   --entrypoint /bin/sh \
   jdtls-analyzer:test \
-  -c "microdnf install -y golang && go mod download && go test -v"
+  -c "go test -v"
 
 TEST_EXIT_CODE=$?
 
