@@ -89,7 +89,7 @@ build-container:
 	@echo ""
 	@echo "Using container runtime: $(CONTAINER_RUNTIME)"
 	@echo ""
-	$(CONTAINER_RUNTIME) build -t $(IMAGE_NAME) .
+	$(CONTAINER_RUNTIME) build -t $(IMAGE_NAME) -f Dockerfile.test .
 	@echo ""
 	@echo "✓ Container image built: $(IMAGE_NAME)"
 

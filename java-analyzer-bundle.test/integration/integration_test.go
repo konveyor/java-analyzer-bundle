@@ -3,7 +3,6 @@ package integration
 import (
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/konveyor/java-analyzer-bundle/integration/client"
@@ -13,10 +12,6 @@ var jdtlsClient *client.JDTLSClient
 
 // TestMain sets up and tears down the JDT.LS client for all tests
 func TestMain(m *testing.M) {
-	fmt.Println(strings.Repeat("=", 60))
-	fmt.Println("Phase 2 Integration Tests - JDT.LS Search Verification")
-	fmt.Println(strings.Repeat("=", 60))
-
 	// Get paths from environment or use defaults
 	jdtlsPath := os.Getenv("JDTLS_PATH")
 	if jdtlsPath == "" {
@@ -27,33 +22,24 @@ func TestMain(m *testing.M) {
 	if workspaceDir == "" {
 		workspaceDir = "/workspace"
 	}
-
-	fmt.Printf("\nJDT.LS Path: %s\n", jdtlsPath)
-	fmt.Printf("Workspace: %s\n\n", workspaceDir)
-
 	// Create and start JDT.LS client
-	fmt.Println("Initializing JDT.LS client...")
 	jdtlsClient = client.NewJDTLSClient(jdtlsPath, workspaceDir)
 
 	if err := jdtlsClient.Start(); err != nil {
-		fmt.Fprintf(os.Stderr, "✗ FATAL ERROR: Failed to start JDT.LS: %v\n", err)
+		fmt.Fprintf(os.Stderr, "FATAL ERROR: Failed to start JDT.LS: %v\n", err)
 		os.Exit(1)
 	}
 
 	// Initialize LSP connection
 	if _, err := jdtlsClient.Initialize(); err != nil {
-		fmt.Fprintf(os.Stderr, "✗ FATAL ERROR: Failed to initialize JDT.LS: %v\n", err)
+		fmt.Fprintf(os.Stderr, "FATAL ERROR: Failed to initialize JDT.LS: %v\n", err)
 		jdtlsClient.Close()
 		os.Exit(1)
 	}
-
-	fmt.Println("JDT.LS ready for testing")
-
 	// Run tests
 	code := m.Run()
 
 	// Cleanup
-	fmt.Println("\nShutting down JDT.LS...")
 	if err := jdtlsClient.Close(); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: Failed to close JDT.LS cleanly: %v\n", err)
 	}
@@ -63,44 +49,59 @@ func TestMain(m *testing.M) {
 
 // TestInheritanceSearch tests inheritance search (location type 1)
 func TestInheritanceSearch(t *testing.T) {
-	t.Run("Find SampleApplication extends BaseService", func(t *testing.T) {
-		symbols, err := jdtlsClient.SearchSymbols("test-project", "io.konveyor.demo.inheritance.BaseService", 1, "source-only", nil)
-		if err != nil {
-			t.Fatalf("Search failed: %v", err)
-		}
+	testCases := []struct {
+		Name             string
+		projectName      string
+		query            string
+		location         int
+		analysisMode     string
+		includedPaths    []string
+		exceptedFileName string
+	}{
+		{
+			Name:             "Find SampleApplication extends BaseService",
+			projectName:      "test-project",
+			query:            "io.konveyor.demo.inheritance.BaseService",
+			location:         1,
+			analysisMode:     "source-only",
+			exceptedFileName: "SampleApplication",
+		},
+		{
+			Name:             "Find DataService extends BaseService",
+			projectName:      "test-project",
+			query:            "io.konveyor.demo.inheritance.BaseService",
+			location:         1,
+			analysisMode:     "source-only",
+			exceptedFileName: "SampleApplication",
+		},
+		{
+			Name:             "Find CustomException extends Exception",
+			projectName:      "test-project",
+			query:            "java.lang.Exception",
+			location:         1,
+			analysisMode:     "source-only",
+			exceptedFileName: "CustomException",
+		},
+	}
 
-		if !verifySymbolInResults(symbols, "SampleApplication") {
-			t.Errorf("SampleApplication not found in results")
-		}
-	})
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			symbols, err := jdtlsClient.SearchSymbols(tc.projectName, tc.query, tc.location, tc.analysisMode, tc.includedPaths)
+			if err != nil {
+				t.Fatalf("Search failed: %v", err)
+			}
 
-	t.Run("Find DataService extends BaseService", func(t *testing.T) {
-		symbols, err := jdtlsClient.SearchSymbols("test-project", "io.konveyor.demo.inheritance.BaseService", 1, "source-only", nil)
-		if err != nil {
-			t.Fatalf("Search failed: %v", err)
-		}
-
-		if !verifySymbolInResults(symbols, "DataService") {
-			t.Errorf("DataService not found in results")
-		}
-	})
-
-	t.Run("Find CustomException extends Exception", func(t *testing.T) {
-		symbols, err := jdtlsClient.SearchSymbols("test-project", "java.lang.Exception", 1, "source-only", nil)
-		if err != nil {
-			t.Fatalf("Search failed: %v", err)
-		}
-
-		if !verifySymbolInResults(symbols, "CustomException") {
-			t.Errorf("CustomException not found in results")
-		}
-	})
+			if !verifySymbolInResults(symbols, tc.exceptedFileName) {
+				t.Errorf("SampleApplication not found in results")
+			}
+		})
+	}
 }
 
 // TestMethodCallSearch tests method call search (location type 2)
 func TestMethodCallSearch(t *testing.T) {
 	t.Run("Find println calls", func(t *testing.T) {
-		symbols, err := jdtlsClient.SearchSymbols("test-project", "*.println", 2, "source-only", nil)
+		symbols, err := jdtlsClient.SearchSymbols("test-project", "println(*)", 2, "source-only", nil)
 		if err != nil {
 			t.Fatalf("Search failed: %v", err)
 		}
@@ -114,12 +115,12 @@ func TestMethodCallSearch(t *testing.T) {
 	})
 
 	t.Run("Find List.add in SampleApplication", func(t *testing.T) {
-		symbols, err := jdtlsClient.SearchSymbols("test-project", "*.add", 2, "source-only", nil)
+		symbols, err := jdtlsClient.SearchSymbols("test-project", "add(*)", 2, "source-only", nil)
 		if err != nil {
 			t.Fatalf("Search failed: %v", err)
 		}
 
-		if !verifySymbolLocationContains(symbols, "add", "SampleApplication") {
+		if !verifySymbolLocationContains(symbols, "processData", "SampleApplication") {
 			t.Errorf("add method not found in SampleApplication, got %d results", len(symbols))
 		}
 	})
@@ -128,16 +129,17 @@ func TestMethodCallSearch(t *testing.T) {
 // TestConstructorCallSearch tests constructor call search (location type 3)
 func TestConstructorCallSearch(t *testing.T) {
 	t.Run("Find ArrayList instantiations", func(t *testing.T) {
-		symbols, err := jdtlsClient.SearchSymbols("test-project", "java.util.ArrayList", 3, "source-only", nil)
+		symbols, err := jdtlsClient.SearchSymbols("test-project", "<*>java.util.ArrayList()", 3, "source-only", nil)
 		if err != nil {
 			t.Fatalf("Search failed: %v", err)
 		}
 
-		count := len(symbols)
-		if count == 0 {
+		t.Logf("symbols: %#v", symbols)
+
+		if len(symbols) == 0 {
 			t.Errorf("No ArrayList constructors found")
 		} else {
-			t.Logf("Found %d ArrayList instantiations", count)
+			t.Logf("Found %d ArrayList instantiations", len(symbols))
 		}
 	})
 

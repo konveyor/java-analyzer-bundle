@@ -69,7 +69,7 @@ type HandlerFunc struct {
 	logger *logrus.Logger
 }
 
-func (h *HandlerFunc) Handle(ctx context.Context, req *jsonrpc2.Request) (interface{}, error) {
+func (h *HandlerFunc) Handle(ctx context.Context, req *jsonrpc2.Request) (any, error) {
 	// Log incoming requests/notifications from server
 	if h.logger != nil && req.Method != "" {
 		h.logger.Debugf("Received from server: %s", req.Method)
@@ -166,10 +166,10 @@ func (c *JDTLSClient) Initialize() (*protocol.InitializeResult, error) {
 	workspaceURI := protocol.DocumentURI("file://" + c.workspaceDir)
 
 	params := struct {
-		ProcessID             *int                                `json:"processId"`
-		RootURI               *protocol.DocumentURI               `json:"rootUri"`
-		Capabilities          protocol.ClientCapabilities         `json:"capabilities"`
-		InitializationOptions map[string]interface{}              `json:"initializationOptions"`
+		ProcessID             *int                        `json:"processId"`
+		RootURI               *protocol.DocumentURI       `json:"rootUri"`
+		Capabilities          protocol.ClientCapabilities `json:"capabilities"`
+		InitializationOptions map[string]any              `json:"initializationOptions"`
 	}{
 		ProcessID: nil,
 		RootURI:   &workspaceURI,
@@ -184,7 +184,7 @@ func (c *JDTLSClient) Initialize() (*protocol.InitializeResult, error) {
 				},
 			},
 		},
-		InitializationOptions: map[string]interface{}{
+		InitializationOptions: map[string]any{
 			"bundles": []string{
 				"/jdtls/plugins/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar",
 			},
@@ -212,7 +212,7 @@ func (c *JDTLSClient) Initialize() (*protocol.InitializeResult, error) {
 }
 
 // ExecuteCommand executes a workspace command
-func (c *JDTLSClient) ExecuteCommand(command string, arguments []interface{}) (interface{}, error) {
+func (c *JDTLSClient) ExecuteCommand(command string, arguments []any) (any, error) {
 	// Convert arguments to json.RawMessage
 	var rawArgs []json.RawMessage
 	for _, arg := range arguments {
@@ -228,7 +228,7 @@ func (c *JDTLSClient) ExecuteCommand(command string, arguments []interface{}) (i
 		Arguments: rawArgs,
 	}
 
-	var result interface{}
+	var result any
 	call := c.conn.Call(c.ctx, "workspace/executeCommand", params)
 	if err := call.Await(c.ctx, &result); err != nil {
 		return nil, fmt.Errorf("executeCommand failed: %w", err)
@@ -239,7 +239,7 @@ func (c *JDTLSClient) ExecuteCommand(command string, arguments []interface{}) (i
 
 // SearchSymbols executes a symbol search using the analyzer bundle
 func (c *JDTLSClient) SearchSymbols(project, query string, location int, analysisMode string, includedPaths []string) ([]protocol.SymbolInformation, error) {
-	args := map[string]interface{}{
+	args := map[string]any{
 		"project":      project,
 		"query":        query,
 		"location":     fmt.Sprintf("%d", location),
@@ -250,7 +250,7 @@ func (c *JDTLSClient) SearchSymbols(project, query string, location int, analysi
 		args["includedPaths"] = includedPaths
 	}
 
-	result, err := c.ExecuteCommand("io.konveyor.tackle.ruleEntry", []interface{}{args})
+	result, err := c.ExecuteCommand("io.konveyor.tackle.ruleEntry", []any{args})
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +281,7 @@ func (c *JDTLSClient) Shutdown() error {
 	c.logger.Info("Shutting down JDT.LS server...")
 
 	// Send shutdown request
-	var result interface{}
+	var result any
 	call := c.conn.Call(c.ctx, "shutdown", nil)
 	if err := call.Await(c.ctx, &result); err != nil {
 		c.logger.Warnf("Shutdown request failed: %v", err)
