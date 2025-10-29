@@ -237,8 +237,25 @@ func (c *JDTLSClient) ExecuteCommand(command string, arguments []any) (any, erro
 	return result, nil
 }
 
+// AnnotationElement represents an annotation element with name and value
+type AnnotationElement struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+// AnnotationQuery represents query parameters for annotation searches
+type AnnotationQuery struct {
+	Pattern  string              `json:"pattern"`
+	Elements []AnnotationElement `json:"elements"`
+}
+
 // SearchSymbols executes a symbol search using the analyzer bundle
 func (c *JDTLSClient) SearchSymbols(project, query string, location int, analysisMode string, includedPaths []string) ([]protocol.SymbolInformation, error) {
+	return c.SearchSymbolsWithAnnotation(project, query, location, analysisMode, includedPaths, nil)
+}
+
+// SearchSymbolsWithAnnotation executes a symbol search with optional annotation query
+func (c *JDTLSClient) SearchSymbolsWithAnnotation(project, query string, location int, analysisMode string, includedPaths []string, annotationQuery *AnnotationQuery) ([]protocol.SymbolInformation, error) {
 	args := map[string]any{
 		"project":      project,
 		"query":        query,
@@ -248,6 +265,10 @@ func (c *JDTLSClient) SearchSymbols(project, query string, location int, analysi
 
 	if includedPaths != nil {
 		args["includedPaths"] = includedPaths
+	}
+
+	if annotationQuery != nil {
+		args["annotationQuery"] = annotationQuery
 	}
 
 	result, err := c.ExecuteCommand("io.konveyor.tackle.ruleEntry", []any{args})

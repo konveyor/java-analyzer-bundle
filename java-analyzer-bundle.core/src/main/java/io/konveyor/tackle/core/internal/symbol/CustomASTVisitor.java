@@ -559,15 +559,4 @@ public class CustomASTVisitor extends ASTVisitor {
     public boolean symbolMatches() {
         return this.symbolMatches;
     }
-
-    private class TypeParamMatcher {
-        private String TypeParameterPart;
-        private String FQDN;
-        private String ParameterPart;
-    }
-
-    private TypeParamMatcher(String queryString) {
-
-    }
-
 }
