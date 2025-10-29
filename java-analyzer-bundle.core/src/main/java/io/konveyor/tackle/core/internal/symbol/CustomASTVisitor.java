@@ -2,8 +2,6 @@ package io.konveyor.tackle.core.internal.symbol;
 
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
-import java.lang.reflect.Parameter;
-
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Annotation;
@@ -270,15 +268,4 @@ public class CustomASTVisitor extends ASTVisitor {
     public boolean symbolMatches() {
         return this.symbolMatches;
     }
-
-    private class TypeParamMatcher {
-        private String TypeParameterPart;
-        private String FQDN;
-        private String ParameterPart;
-    }
-
-    private TypeParamMatcher(String queryString) {
-
-    }
-
 }
