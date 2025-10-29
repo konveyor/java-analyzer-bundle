@@ -16,16 +16,14 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.search.MethodReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
-import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
 import io.konveyor.tackle.core.internal.symbol.CustomASTVisitor.QueryLocation;
 
-public class MethodCallSymbolProvider implements SymbolProvider, WithQuery, WithSearchPattern {
+public class MethodCallSymbolProvider implements SymbolProvider, WithQuery {
     private String query;
-    private SearchPattern searchPattern;
     
     @Override
     public List<SymbolInformation> get(SearchMatch match) {
@@ -60,7 +58,7 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery, With
                     astParser.setSource(unit);
                     astParser.setResolveBindings(true);
                     CompilationUnit cu = (CompilationUnit) astParser.createAST(null);
-                    CustomASTVisitor visitor = new CustomASTVisitor(query, searchPattern, match, QueryLocation.METHOD_CALL);
+                    CustomASTVisitor visitor = new CustomASTVisitor(query, match, QueryLocation.METHOD_CALL);
                     // Under tests, resolveConstructorBinding will return null if there are problems
                     IProblem[] problems = cu.getProblems();
                     if (problems != null && problems.length > 0) {
@@ -95,10 +93,5 @@ public class MethodCallSymbolProvider implements SymbolProvider, WithQuery, With
     @Override
     public void setQuery(String query) {
         this.query = query;
-    }
-
-    @Override
-    public void setSearchPattern(SearchPattern pattern) {
-        this.searchPattern = pattern;
     }
 }

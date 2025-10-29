@@ -22,7 +22,6 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.search.SearchMatch;
-import org.eclipse.jdt.core.search.SearchPattern;
 
 /*
  * SearchEngine we use often gives us more matches than needed when
@@ -34,7 +33,6 @@ import org.eclipse.jdt.core.search.SearchPattern;
  */
 public class CustomASTVisitor extends ASTVisitor {
     private String query;
-    private SearchPattern pattern;
     private SearchMatch match;
     private boolean symbolMatches;
     private QueryLocation location;
@@ -50,7 +48,7 @@ public class CustomASTVisitor extends ASTVisitor {
         ANNOTATION,
     }
 
-    public CustomASTVisitor(String query, SearchPattern pattern, SearchMatch match, QueryLocation location) {
+    public CustomASTVisitor(String query, SearchMatch match, QueryLocation location) {
         /*
          * Extract parameter types from the query pattern if present
          * e.g., "java.util.Properties.setProperty(java.lang.String, java.lang.String)"
@@ -65,7 +63,6 @@ public class CustomASTVisitor extends ASTVisitor {
          * by .* so that java regex works as expected on them
         */
         this.query = processedQuery.replaceAll("(?<!\\.)\\*", ".*");
-        this.pattern = pattern;
         this.symbolMatches = false;
         this.match = match;
         // depending on which location the query was for we only want to
@@ -122,9 +119,7 @@ public class CustomASTVisitor extends ASTVisitor {
                         declaringClass = declaringClass.getErasure();
                     }
                     String fullyQualifiedName = declaringClass.getQualifiedName();
-                    // match fqn with query pattern
-                    // Note: We keep using regex matching for now as SearchPattern doesn't expose
-                    // a simple string matching API. The pattern is passed for potential future use.
+                    // match fqn with query pattern using regex
                     boolean matches = fullyQualifiedName.matches(this.query);
                     if (matches) {
                         this.symbolMatches = true;

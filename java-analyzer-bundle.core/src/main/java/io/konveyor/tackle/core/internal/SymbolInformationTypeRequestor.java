@@ -22,7 +22,6 @@ import io.konveyor.tackle.core.internal.symbol.SymbolProviderResolver;
 import io.konveyor.tackle.core.internal.symbol.WithAnnotationQuery;
 import io.konveyor.tackle.core.internal.symbol.WithMaxResults;
 import io.konveyor.tackle.core.internal.symbol.WithQuery;
-import io.konveyor.tackle.core.internal.symbol.WithSearchPattern;
 
 public class SymbolInformationTypeRequestor extends SearchRequestor {
     private List<SymbolInformation> symbols;
@@ -34,7 +33,6 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
     private int symbolKind;
     private String query;
     private AnnotationQuery annotationQuery;
-    private SearchPattern searchPattern;
     private SymbolProviderResolver resolver;
 
 
@@ -46,7 +44,6 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
         this.query = query;
         this.numberSearchMatches = 0;
         this.annotationQuery = annotationQuery;
-        this.searchPattern = searchPattern;
         if (maxResults == 0) {
             this.maxResults = 10000;
         }
@@ -86,9 +83,6 @@ public class SymbolInformationTypeRequestor extends SearchRequestor {
         }
         if (symbolProvider instanceof WithMaxResults) {
             ((WithMaxResults) symbolProvider).setMaxResultes(this.maxResults);
-        }
-        if (symbolProvider instanceof WithSearchPattern) {
-            ((WithSearchPattern) symbolProvider).setSearchPattern(this.searchPattern);
         }
 
         logInfo("getting match: " + match + "with provider: " + symbolProvider);
