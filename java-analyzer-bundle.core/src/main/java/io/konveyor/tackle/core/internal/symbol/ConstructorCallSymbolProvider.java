@@ -16,7 +16,6 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.search.MethodReferenceMatch;
 import org.eclipse.jdt.core.search.SearchMatch;
-import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
@@ -26,9 +25,8 @@ import org.eclipse.lsp4j.SymbolKind;
 
 import io.konveyor.tackle.core.internal.symbol.CustomASTVisitor.QueryLocation;
 
-public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery, WithSearchPattern {
+public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery {
     public String query;
-    private SearchPattern searchPattern;
 
     @Override
     public List<SymbolInformation> get(SearchMatch match) throws CoreException {
@@ -72,7 +70,7 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery,
                 astParser.setSource(unit);
                 astParser.setResolveBindings(true);
                 CompilationUnit cu = (CompilationUnit) astParser.createAST(null);
-                CustomASTVisitor visitor = new CustomASTVisitor(query, searchPattern, match, QueryLocation.CONSTRUCTOR_CALL);
+                CustomASTVisitor visitor = new CustomASTVisitor(query, match, QueryLocation.CONSTRUCTOR_CALL);
                 // Under tests, resolveConstructorBinding will return null if there are problems
                     cu.accept(visitor);
                     if (visitor.symbolMatches()) {
@@ -94,10 +92,5 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery,
     public void setQuery(String query) {
         // TODO Auto-generated method stub
         this.query = query;
-    }
-
-    @Override
-    public void setSearchPattern(SearchPattern pattern) {
-        this.searchPattern = pattern;
     }
 }
