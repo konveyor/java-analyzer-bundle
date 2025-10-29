@@ -202,6 +202,10 @@ public class CustomASTVisitor extends ASTVisitor {
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
                 if (declaringClass != null) {
+                    // Handle Erasure results - strip type parameters for matching
+                    if (declaringClass.getErasure() != null) {
+                        declaringClass = declaringClass.getErasure();
+                    }
                     String fullyQualifiedName = declaringClass.getQualifiedName();
                     // match fqn with query pattern
                     // Note: We keep using regex matching for now as SearchPattern doesn't expose
@@ -226,7 +230,7 @@ public class CustomASTVisitor extends ASTVisitor {
             // this is so that we fallback and don't lose a match when we fail
             this.symbolMatches = true;
             return false;
-        }    
+        }
     }
 
     /* 
@@ -246,6 +250,10 @@ public class CustomASTVisitor extends ASTVisitor {
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
                 if (declaringClass != null) {
+                    // Handle Erasure results - strip type parameters for matching
+                    if (declaringClass.getErasure() != null) {
+                        declaringClass = declaringClass.getErasure();
+                    }
                     String fullyQualifiedName = declaringClass.getQualifiedName();
                     // match fqn with query pattern
                     // Note: We keep using regex matching for now as SearchPattern doesn't expose
@@ -270,7 +278,7 @@ public class CustomASTVisitor extends ASTVisitor {
             // this is so that we fallback and don't lose a match when we fail
             this.symbolMatches = true;
             return false;
-        }    
+        }
     }
 
     public boolean symbolMatches() {
