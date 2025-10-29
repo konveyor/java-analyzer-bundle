@@ -436,6 +436,260 @@ go build -o jdtls-integration-tests .
    go test -v -run TestMyPattern
    ```
 
+## Test Coverage by Java Features
+
+### Tested Location Types (8/15 - 53%)
+
+#### ✅ Location 1: Inheritance
+**Java Features**: Class extends another class
+**Test**: `TestInheritanceSearch`
+**Queries**:
+- `io.konveyor.demo.inheritance.BaseService` → finds `SampleApplication`, `DataService` (custom subclasses)
+- `java.lang.Exception` → finds `CustomException` (JDK subclass)
+
+**Java Code Pattern**:
+```java
+public class SampleApplication extends BaseService { }
+```
+
+**Symbol Results**: Class declarations that extend the queried class
+
+---
+
+#### ✅ Location 2: Method Calls
+**Java Features**: Method invocations on objects/classes
+**Test**: `TestMethodCallSearch`
+**Queries**:
+- `println(*)` → finds all `System.out.println()` calls (wildcard parameter matching)
+- `add(*)` → finds `List.add()` calls in `processData` method
+
+**Java Code Pattern**:
+```java
+System.out.println("Processing: " + tempData);  // println method call
+items.add(tempData);                             // add method call
+```
+
+**Symbol Results**: Method invocation locations with method name and containing method
+
+---
+
+#### ✅ Location 3: Constructor Calls
+**Java Features**: Object instantiation with `new` keyword
+**Test**: `TestConstructorCallSearch`
+**Queries**:
+- `java.util.ArrayList` → finds all `new ArrayList<>()` instantiations
+- `java.io.File` → finds all `new File(...)` instantiations
+
+**Java Code Pattern**:
+```java
+this.items = new ArrayList<>();           // ArrayList constructor
+File tempFile = new File("/tmp/data.txt"); // File constructor
+```
+
+**Symbol Results**: Constructor call locations
+
+---
+
+#### ✅ Location 4: Annotations
+**Java Features**: Java annotations on classes, methods, fields
+**Test**: `TestAnnotationSearch`, `TestCustomersTomcatLegacy`
+**Queries**:
+- `io.konveyor.demo.annotations.CustomAnnotation` → finds `@CustomAnnotation` on `SampleApplication`
+- `javax.persistence.Entity` → finds `@Entity` on `Customer` (migration target)
+- `org.springframework.stereotype.Service` → finds `@Service` on `CustomerService`
+
+**Java Code Pattern**:
+```java
+@CustomAnnotation(value = "SampleApp", version = "1.0")
+public class SampleApplication extends BaseService { }
+
+@Entity
+@Table(name = "customers")
+public class Customer { }
+
+@Service
+@Transactional
+public class CustomerService implements ICustomerService { }
+```
+
+**Symbol Results**: Annotation name with container showing the annotated element
+
+---
+
+#### ✅ Location 5: Implements Type
+**Java Features**: Class/interface implements interface(s)
+**Test**: `TestImplementsTypeSearch`
+**Queries**:
+- `java.io.Serializable` → finds `BaseService` (which implements Serializable)
+
+**Java Code Pattern**:
+```java
+public abstract class BaseService implements Serializable, Comparable<BaseService> { }
+```
+
+**Symbol Results**: Classes implementing the queried interface
+
+---
+
+#### ✅ Location 8: Imports
+**Java Features**: Import statements for classes/packages
+**Test**: `TestImportSearch`, `TestCustomersTomcatLegacy`
+**Queries**:
+- `java.io.File` → finds import statements in files using File class
+- `javax.persistence.Entity` → finds javax.persistence imports (migration target)
+
+**Java Code Pattern**:
+```java
+import java.io.File;
+import java.io.FileWriter;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+```
+
+**Symbol Results**: Import statement locations
+
+**Migration Use Case**: Finding legacy `javax.*` imports to replace with `jakarta.*`
+
+---
+
+#### ✅ Location 10: Type References
+**Java Features**: Type usage in variable declarations, parameters, return types, generic types
+**Test**: `TestTypeSearch`
+**Queries**:
+- `java.util.ArrayList` → finds all ArrayList type references (fields, variables, return types)
+
+**Java Code Pattern**:
+```java
+private List<String> items;                    // Generic type reference
+List<String> results = new ArrayList<>();      // Variable declaration type
+```
+
+**Symbol Results**: Locations where the type is referenced
+
+---
+
+#### ✅ Location 14: Class Declarations
+**Java Features**: Class definition (class, interface, enum, annotation)
+**Test**: `TestClassDeclarationSearch`
+**Queries**:
+- `SampleApplication` → finds the class declaration itself
+
+**Java Code Pattern**:
+```java
+public class SampleApplication extends BaseService { }
+```
+
+**Symbol Results**: The class declaration symbol
+
+---
+
+### Untested Location Types (7/15 - 47%)
+
+#### ❌ Location 0: Default
+**Java Features**: Default search behavior (all locations)
+**Status**: Not tested
+
+---
+
+#### ❌ Location 6: Enum Constants
+**Java Features**: Enum constant declarations and references
+**Status**: Not tested
+**Java Code Available** (test-project/EnumExample.java):
+```java
+public enum EnumExample {
+    ACTIVE("active", 1),
+    INACTIVE("inactive", 0),
+    PENDING("pending", 2),
+    ARCHIVED("archived", -1);
+}
+```
+**Potential Queries**:
+- `io.konveyor.demo.EnumExample.ACTIVE` → find ACTIVE constant usage
+- `io.konveyor.demo.EnumExample.*` → find all enum constant references
+
+---
+
+#### ❌ Location 7: Return Types
+**Java Features**: Method return type declarations
+**Status**: Not tested
+**Java Code Available** (test-project/SampleApplication.java):
+```java
+public String getName() {              // String return type
+    return applicationName;
+}
+
+public void processData() { }          // void return type
+```
+**Potential Queries**:
+- `java.lang.String` → find all methods returning String
+- `java.util.List` → find all methods returning List
+
+---
+
+#### ❌ Location 9: Variable Declarations
+**Java Features**: Local variable declarations in method bodies
+**Status**: Not tested
+**Java Code Available** (test-project/SampleApplication.java):
+```java
+public void processData() {
+    String tempData = "temporary";     // String variable
+    int count = 0;                     // int variable
+    File tempFile = new File("/tmp");  // File variable
+}
+```
+**Potential Queries**:
+- `java.lang.String` → find String variable declarations
+- `java.io.File` → find File variable declarations
+
+---
+
+#### ❌ Location 11: Package Declarations
+**Java Features**: Package statements at top of Java files
+**Status**: Not tested
+**Java Code Available** (all test files):
+```java
+package io.konveyor.demo;
+package io.konveyor.demo.ordermanagement.model;
+```
+**Potential Queries**:
+- `io.konveyor.demo` → find all classes in this package
+- `io.konveyor.demo.*` → find all classes in this package and subpackages
+
+---
+
+#### ❌ Location 12: Field Declarations
+**Java Features**: Class-level field/member variable declarations
+**Status**: Not tested
+**Java Code Available** (test-project/SampleApplication.java):
+```java
+private String applicationName;        // String field
+private List<String> items;            // List field
+private File configFile;               // File field
+private static final int MAX_RETRIES = 3;  // static final field
+```
+**Potential Queries**:
+- `java.lang.String` → find String fields
+- `java.util.List` → find List fields
+- Can test static vs instance fields
+
+---
+
+#### ❌ Location 13: Method Declarations
+**Java Features**: Method signature declarations
+**Status**: Not tested
+**Java Code Available** (test-project/SampleApplication.java):
+```java
+public void processData() { }          // processData method
+public String getName() { }            // getName method
+public static void printVersion() { } // static method
+```
+**Potential Queries**:
+- `processData` → find processData method declarations
+- `get*` → find all getter methods (wildcard)
+- `print*` → find all methods starting with print
+
+---
+
 ## Coverage Matrix
 
 | Location | Description | Tested | Test Function |
