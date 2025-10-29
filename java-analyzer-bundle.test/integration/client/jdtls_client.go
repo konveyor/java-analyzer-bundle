@@ -51,10 +51,15 @@ func (rwc *CmdDialer) Write(p []byte) (int, error) {
 }
 
 func (rwc *CmdDialer) Close() error {
-	if rwc.Cmd.Process != nil {
-		rwc.Cmd.Process.Kill()
+	// Just close the pipes - don't kill or wait for the process
+	// The Shutdown() method handles process termination
+	if rwc.Stdin != nil {
+		rwc.Stdin.Close()
 	}
-	return rwc.Cmd.Wait()
+	if rwc.Stdout != nil {
+		rwc.Stdout.Close()
+	}
+	return nil
 }
 
 func (rwc *CmdDialer) Dial(ctx context.Context) (io.ReadWriteCloser, error) {
@@ -301,46 +306,56 @@ func (c *JDTLSClient) SearchSymbolsWithAnnotation(project, query string, locatio
 func (c *JDTLSClient) Shutdown() error {
 	c.logger.Info("Shutting down JDT.LS server...")
 
+	// Create a context with timeout for shutdown requests
+	shutdownCtx, shutdownCancel := context.WithTimeout(c.ctx, 3*time.Second)
+	defer shutdownCancel()
+
 	// Send shutdown request
 	var result any
-	call := c.conn.Call(c.ctx, "shutdown", nil)
-	if err := call.Await(c.ctx, &result); err != nil {
+	call := c.conn.Call(shutdownCtx, "shutdown", nil)
+	if err := call.Await(shutdownCtx, &result); err != nil {
 		c.logger.Warnf("Shutdown request failed: %v", err)
 	}
 
 	// Send exit notification
-	if err := c.conn.Notify(c.ctx, "exit", nil); err != nil {
+	if err := c.conn.Notify(shutdownCtx, "exit", nil); err != nil {
 		c.logger.Warnf("Exit notification failed: %v", err)
 	}
 
-	// Close connection
+	// Close connection (this closes the pipes)
 	if err := c.conn.Close(); err != nil {
 		c.logger.Warnf("Failed to close connection: %v", err)
 	}
 
-	// Cancel context
+	// Cancel main context
 	c.cancel()
 
-	// Wait for process with timeout
+	// Wait for process to finish with a reasonable timeout
+	// Use a channel to avoid blocking indefinitely
 	done := make(chan error, 1)
 	go func() {
 		done <- c.cmd.Wait()
 	}()
 
 	select {
-	case <-time.After(10 * time.Second):
-		c.logger.Warn("JDT.LS did not exit cleanly, killing process")
-		if err := c.cmd.Process.Kill(); err != nil {
-			return fmt.Errorf("failed to kill process: %w", err)
-		}
-		return fmt.Errorf("process killed due to timeout")
 	case err := <-done:
-		if err != nil && err != io.EOF {
-			c.logger.Warnf("Process exited with error: %v", err)
+		// Process exited
+		if err != nil {
+			// Don't treat this as an error - just log it
+			c.logger.Debugf("Process exited with: %v", err)
 		}
+		c.logger.Info("JDT.LS server shut down cleanly")
+	case <-time.After(2 * time.Second):
+		// Process didn't exit in time, kill it
+		c.logger.Info("JDT.LS did not exit in time, terminating...")
+		if c.cmd.Process != nil {
+			c.cmd.Process.Kill()
+		}
+		// Wait a bit more for the kill to take effect
+		<-done
+		c.logger.Info("JDT.LS server terminated")
 	}
 
-	c.logger.Info("JDT.LS server shut down")
 	return nil
 }
 

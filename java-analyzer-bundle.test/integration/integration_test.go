@@ -308,8 +308,9 @@ func TestEnumConstantSearch(t *testing.T) {
 		}
 	})
 
-	t.Run("Find EnumExample.fromCode usage", func(t *testing.T) {
-		symbols, err := jdtlsClient.SearchSymbols("test-project", "io.konveyor.demo.EnumExample", 6, "source-only", nil)
+	t.Run("Find all EnumExample constant usages with wildcard", func(t *testing.T) {
+		// Use wildcard to find all enum constant references from EnumExample enum
+		symbols, err := jdtlsClient.SearchSymbols("test-project", "io.konveyor.demo.EnumExample.*", 6, "source-only", nil)
 		if err != nil {
 			t.Fatalf("Search failed: %v", err)
 		}

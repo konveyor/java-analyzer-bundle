@@ -33,13 +33,13 @@ public class SampleApplication extends BaseService {
     public SampleApplication() {
         // Constructor calls
         this.applicationName = new String("Test Application");
-        this.items = new ArrayList<>();
+        this.items = new ArrayList<String>();  // Explicit type parameter for testing
         this.configFile = new File("config.xml");
     }
 
     public SampleApplication(String name) {
         this.applicationName = name;
-        this.items = new ArrayList<>();
+        this.items = new ArrayList<String>();  // Explicit type parameter for testing
     }
 
     // Method declaration
@@ -54,7 +54,7 @@ public class SampleApplication extends BaseService {
 
         // More constructor calls
         File tempFile = new File("/tmp/data.txt");
-        List<String> results = new ArrayList<>();
+        List<String> results = new ArrayList<String>();  // Explicit type parameter for testing
     }
 
     // Method with return type
