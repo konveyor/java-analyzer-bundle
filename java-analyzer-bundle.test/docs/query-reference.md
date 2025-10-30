@@ -410,86 +410,9 @@ Most queries use fully qualified class names:
 Some location types accept simple names:
 
 ```go
-"SampleApplication"  // Class declaration search
-"processData"        // Method declaration search (location 13, not tested)
+"SampleApplication"  // Class declaration search (location 14)
+"processData"        // Method declaration search (location 13)
 ```
-
----
-
-## Untested Query Patterns
-
-The following location types have Java code available but are not tested:
-
-### Location 6: Enum Constants
-**Available code**: `EnumExample.java`
-**Potential queries**:
-```go
-"io.konveyor.demo.EnumExample.ACTIVE"
-"io.konveyor.demo.EnumExample.*"
-```
-**Would find**: Enum constant references
-
----
-
-### Location 7: Return Types
-**Available code**: `SampleApplication.java`
-**Potential queries**:
-```go
-"java.lang.String"   // Find methods returning String
-"java.util.List"     // Find methods returning List
-"void"               // Find void methods
-```
-**Would find**: Method declarations with matching return type
-
----
-
-### Location 9: Variable Declarations
-**Available code**: `SampleApplication.java`
-**Potential queries**:
-```go
-"java.lang.String"   // Find String variables
-"java.io.File"       // Find File variables
-"int"                // Find int variables
-```
-**Would find**: Local variable declarations in method bodies
-
----
-
-### Location 11: Package Declarations
-**Available code**: All test files
-**Potential queries**:
-```go
-"io.konveyor.demo"
-"io.konveyor.demo.*"
-"io.konveyor.demo.ordermanagement.model"
-```
-**Would find**: Classes in the specified package
-
----
-
-### Location 12: Field Declarations
-**Available code**: `SampleApplication.java`, `Customer.java`
-**Potential queries**:
-```go
-"java.lang.String"            // Find String fields
-"java.util.List"              // Find List fields
-"java.io.File"                // Find File fields
-"javax.persistence.Column"    // Find JPA column fields
-```
-**Would find**: Class-level field declarations
-
----
-
-### Location 13: Method Declarations
-**Available code**: `SampleApplication.java`, `CustomerService.java`
-**Potential queries**:
-```go
-"processData"      // Find specific method
-"get*"             // Find getter methods
-"set*"             // Find setter methods
-"find*"            // Find query methods
-```
-**Would find**: Method signature declarations
 
 ---
 
@@ -525,7 +448,7 @@ The following location types have Java code available but are not tested:
 - `DataService.java` - Another BaseService subclass
 - `CustomException.java` - Exception inheritance
 - `CustomAnnotation.java` - Custom annotation definition
-- `EnumExample.java` - Enum with constants (not tested yet)
+- `EnumExample.java` - Enum with constants (location 6)
 
 **Coverage**: Designed to test all 15 location types systematically
 
@@ -612,14 +535,17 @@ Common queries for identifying migration targets:
 
 ## Next Steps for Complete Coverage
 
-To reach 100% location type coverage, add tests for:
+**🎉 100% Location Type Coverage Achieved!**
 
-1. **Location 0** - Default search behavior
-2. **Location 6** - Enum constant references
-3. **Location 7** - Method return types
-4. **Location 9** - Variable declarations
-5. **Location 11** - Package declarations
-6. **Location 12** - Field declarations
-7. **Location 13** - Method declarations
+All 15 location types (0-14) are now fully tested with comprehensive integration tests:
+- ✅ Location 0 - Default search behavior (`TestDefaultSearch`)
+- ✅ Location 6 - Enum constant references (`TestEnumConstantSearch`)
+- ✅ Location 7 - Method return types (`TestReturnTypeSearch`)
+- ✅ Location 9 - Variable declarations (`TestVariableDeclarationSearch`)
+- ✅ Location 11 - Package declarations (`TestPackageDeclarationSearch`)
+- ✅ Location 12 - Field declarations (`TestFieldDeclarationSearch`)
+- ✅ Location 13 - Method declarations (`TestMethodDeclarationSearch`)
 
-All necessary Java code patterns exist in test-project; only Go test functions need to be added.
+Plus **Priority 1 Advanced Features**:
+- ✅ Annotated element matching (4 tests in `TestAnnotatedElementMatching`)
+- ✅ File path filtering (2 tests in `TestFilePathFiltering`)

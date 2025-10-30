@@ -76,16 +76,25 @@ if err := c.conn.Call(c.ctx, "initialize", params, &result); err != nil {
 ### 2. `integration_test.go`
 Go test file using the standard `testing` package with test functions for all location types.
 
-**Test Functions**:
+**Test Functions** (18 total):
+- `TestDefaultSearch(t *testing.T)` - Location type 0 (default)
 - `TestInheritanceSearch(t *testing.T)` - Location type 1
 - `TestMethodCallSearch(t *testing.T)` - Location type 2
 - `TestConstructorCallSearch(t *testing.T)` - Location type 3
 - `TestAnnotationSearch(t *testing.T)` - Location type 4
 - `TestImplementsTypeSearch(t *testing.T)` - Location type 5
+- `TestEnumConstantSearch(t *testing.T)` - Location type 6
+- `TestReturnTypeSearch(t *testing.T)` - Location type 7
 - `TestImportSearch(t *testing.T)` - Location type 8
+- `TestVariableDeclarationSearch(t *testing.T)` - Location type 9
 - `TestTypeSearch(t *testing.T)` - Location type 10
+- `TestPackageDeclarationSearch(t *testing.T)` - Location type 11
+- `TestFieldDeclarationSearch(t *testing.T)` - Location type 12
+- `TestMethodDeclarationSearch(t *testing.T)` - Location type 13
 - `TestClassDeclarationSearch(t *testing.T)` - Location type 14
 - `TestCustomersTomcatLegacy(t *testing.T)` - Real-world migration patterns
+- `TestAnnotatedElementMatching(t *testing.T)` - Priority 1: Annotation element matching
+- `TestFilePathFiltering(t *testing.T)` - Priority 1: File path filtering
 
 **Test Setup**:
 ```go
@@ -207,6 +216,21 @@ go test -v -run "TestMethod.*"
 
 ## Test Scenarios
 
+### Default Search (Location 0)
+```go
+// Search for all List usage across all location types
+symbols, err := c.SearchSymbols(
+    "test-project",
+    "java.util.List",
+    0,  // location type: default (all locations)
+    "source-only",
+    nil,
+)
+
+// Expected Results:
+// ✓ Finds List in imports, fields, variables, type references, etc.
+```
+
 ### Inheritance (Location 1)
 ```go
 // Search for classes extending BaseService
@@ -255,6 +279,36 @@ symbols, err := c.SearchSymbols(
 // MIGRATION TARGET: javax → jakarta namespace
 ```
 
+### Enum Constants (Location 6)
+```go
+// Search for enum constant usage
+symbols, err := c.SearchSymbols(
+    "test-project",
+    "io.konveyor.demo.EnumExample.ACTIVE",
+    6,  // location type: enum_constant
+    "source-only",
+    nil,
+)
+
+// Expected Results:
+// ✓ Finds ACTIVE enum constant references
+```
+
+### Return Types (Location 7)
+```go
+// Search for methods returning String
+symbols, err := c.SearchSymbols(
+    "test-project",
+    "java.lang.String",
+    7,  // location type: return_type
+    "source-only",
+    nil,
+)
+
+// Expected Results:
+// ✓ Finds getName() and other methods returning String
+```
+
 ### Import Searches (Location 8)
 ```go
 // Search for javax.persistence imports
@@ -270,6 +324,110 @@ symbols, err := c.SearchSymbols(
 // ✓ Customer.java imports javax.persistence.*
 //
 // These imports flag code for jakarta migration!
+```
+
+### Variable Declarations (Location 9)
+```go
+// Search for String variable declarations
+symbols, err := c.SearchSymbols(
+    "test-project",
+    "java.lang.String",
+    9,  // location type: variable_declaration
+    "source-only",
+    nil,
+)
+
+// Expected Results:
+// ✓ Finds local String variable declarations in method bodies
+```
+
+### Package Declarations (Location 11)
+```go
+// Search for package declarations
+symbols, err := c.SearchSymbols(
+    "test-project",
+    "io.konveyor.demo",
+    11,  // location type: package
+    "source-only",
+    nil,
+)
+
+// Expected Results:
+// ✓ Finds all files with package io.konveyor.demo
+```
+
+### Field Declarations (Location 12)
+```go
+// Search for String field declarations
+symbols, err := c.SearchSymbols(
+    "test-project",
+    "java.lang.String",
+    12,  // location type: field
+    "source-only",
+    nil,
+)
+
+// Expected Results:
+// ✓ Finds applicationName and other String fields
+```
+
+### Method Declarations (Location 13)
+```go
+// Search for method declarations with wildcard
+symbols, err := c.SearchSymbols(
+    "test-project",
+    "get*",
+    13,  // location type: method_declaration
+    "source-only",
+    nil,
+)
+
+// Expected Results:
+// ✓ Finds getName(), getItems(), and other getter methods
+```
+
+### Priority 1: Annotated Element Matching
+```go
+// Search for annotations with specific attribute values
+annotationQuery := &client.AnnotationQuery{
+    Pattern: "javax.annotation.sql.DataSourceDefinition",
+    Elements: []client.AnnotationElement{
+        {Name: "className", Value: "org.postgresql.Driver"},
+    },
+}
+
+symbols, err := c.SearchSymbolsWithAnnotation(
+    "test-project",
+    "javax.annotation.sql.DataSourceDefinition",
+    4,  // location type: annotation
+    "source-only",
+    nil,
+    annotationQuery,
+)
+
+// Expected Results:
+// ✓ Finds @DataSourceDefinition with PostgreSQL driver class
+// ✓ Useful for detecting database driver dependencies for migration
+```
+
+### Priority 1: File Path Filtering
+```go
+// Search with file path filtering
+includedPaths := []string{
+    "src/main/java/io/konveyor/demo/persistence",
+}
+
+symbols, err := c.SearchSymbols(
+    "test-project",
+    "java.sql.PreparedStatement",
+    8,  // location type: import
+    "source-only",
+    &includedPaths,
+)
+
+// Expected Results:
+// ✓ Finds PreparedStatement imports only in persistence package
+// ✓ Excludes matches from other packages
 ```
 
 ## Test Assertions
@@ -321,6 +479,9 @@ Started JDT.LS server with PID 1234
 JDT.LS initialized successfully
 JDT.LS ready for testing
 
+--- Testing Default Searches (Location 0) ---
+✓ PASS: Default: Find all List usage across all location types
+
 --- Testing Inheritance Searches (Location 1) ---
 ✓ PASS: Inheritance: Find SampleApplication extends BaseService
 ✓ PASS: Inheritance: Find DataService extends BaseService
@@ -340,11 +501,29 @@ JDT.LS ready for testing
 --- Testing Implements Type Searches (Location 5) ---
 ✓ PASS: Implements: Find BaseService implements Serializable
 
+--- Testing Enum Constant Searches (Location 6) ---
+✓ PASS: Enum Constant: Find ACTIVE enum constant references
+
+--- Testing Return Type Searches (Location 7) ---
+✓ PASS: Return Type: Find methods returning String
+
 --- Testing Import Searches (Location 8) ---
 ✓ PASS: Import: Find java.io.* imports (2 found)
 
+--- Testing Variable Declaration Searches (Location 9) ---
+✓ PASS: Variable Declaration: Find String variable declarations
+
 --- Testing Type Searches (Location 10) ---
 ✓ PASS: Type: Find String type references (15 found)
+
+--- Testing Package Declaration Searches (Location 11) ---
+✓ PASS: Package Declaration: Find io.konveyor.demo package
+
+--- Testing Field Declaration Searches (Location 12) ---
+✓ PASS: Field Declaration: Find String fields
+
+--- Testing Method Declaration Searches (Location 13) ---
+✓ PASS: Method Declaration: Find getter methods with wildcard
 
 --- Testing Class Declaration Searches (Location 14) ---
 ✓ PASS: Class Declaration: Find SampleApplication class
@@ -354,8 +533,16 @@ JDT.LS ready for testing
 ✓ PASS: Legacy Project: Find @Service on CustomerService
 ✓ PASS: Legacy Project: Find javax.persistence imports (9 found)
 
+--- Testing Priority 1 Advanced Features ---
+✓ PASS: Annotated Element Matching: Find @ActivationConfigProperty with propertyName=destinationLookup
+✓ PASS: Annotated Element Matching: Find @DataSourceDefinition with PostgreSQL driver
+✓ PASS: Annotated Element Matching: Find @DataSourceDefinition with MySQL driver
+✓ PASS: Annotated Element Matching: Find @Column with nullable=false
+✓ PASS: File Path Filtering: Find PreparedStatement imports in persistence package
+✓ PASS: File Path Filtering: Verify filtering excludes other packages
+
 ============================================================
-Test Results: 15/15 passed
+Test Results: 18/18 passed (100%)
 ============================================================
 ```
 
@@ -438,7 +625,7 @@ go build -o jdtls-integration-tests .
 
 ## Test Coverage by Java Features
 
-### Tested Location Types (8/15 - 53%)
+### All Location Types Tested (15/15 - 100%)
 
 #### ✅ Location 1: Inheritance
 **Java Features**: Class extends another class
@@ -583,18 +770,31 @@ public class SampleApplication extends BaseService { }
 
 ---
 
-### Untested Location Types (7/15 - 47%)
-
-#### ❌ Location 0: Default
+#### ✅ Location 0: Default
 **Java Features**: Default search behavior (all locations)
-**Status**: Not tested
+**Test**: `TestDefaultSearch`
+**Queries**:
+- `java.util.List` → finds all List usage across all location types
+
+**Java Code Pattern**:
+```java
+// Matches in multiple contexts: imports, fields, variables, types, etc.
+import java.util.List;
+private List<String> items;
+```
+
+**Symbol Results**: All occurrences across all location types
 
 ---
 
-#### ❌ Location 6: Enum Constants
+#### ✅ Location 6: Enum Constants
 **Java Features**: Enum constant declarations and references
-**Status**: Not tested
-**Java Code Available** (test-project/EnumExample.java):
+**Test**: `TestEnumConstantSearch`
+**Queries**:
+- `io.konveyor.demo.EnumExample.ACTIVE` → finds ACTIVE constant usage
+- `io.konveyor.demo.EnumExample.*` → finds all enum constant references
+
+**Java Code Pattern** (test-project/EnumExample.java):
 ```java
 public enum EnumExample {
     ACTIVE("active", 1),
@@ -602,34 +802,45 @@ public enum EnumExample {
     PENDING("pending", 2),
     ARCHIVED("archived", -1);
 }
+
+// Usage
+EnumExample status = EnumExample.ACTIVE;
 ```
-**Potential Queries**:
-- `io.konveyor.demo.EnumExample.ACTIVE` → find ACTIVE constant usage
-- `io.konveyor.demo.EnumExample.*` → find all enum constant references
+
+**Symbol Results**: Enum constant references
 
 ---
 
-#### ❌ Location 7: Return Types
+#### ✅ Location 7: Return Types
 **Java Features**: Method return type declarations
-**Status**: Not tested
-**Java Code Available** (test-project/SampleApplication.java):
+**Test**: `TestReturnTypeSearch`
+**Queries**:
+- `java.lang.String` → finds all methods returning String
+- `java.util.List` → finds all methods returning List
+
+**Java Code Pattern** (test-project/SampleApplication.java):
 ```java
 public String getName() {              // String return type
     return applicationName;
 }
 
-public void processData() { }          // void return type
+public List<String> getItems() {       // List return type
+    return items;
+}
 ```
-**Potential Queries**:
-- `java.lang.String` → find all methods returning String
-- `java.util.List` → find all methods returning List
+
+**Symbol Results**: Methods with specified return types
 
 ---
 
-#### ❌ Location 9: Variable Declarations
+#### ✅ Location 9: Variable Declarations
 **Java Features**: Local variable declarations in method bodies
-**Status**: Not tested
-**Java Code Available** (test-project/SampleApplication.java):
+**Test**: `TestVariableDeclarationSearch`
+**Queries**:
+- `java.lang.String` → finds String variable declarations
+- `java.io.File` → finds File variable declarations
+
+**Java Code Pattern** (test-project/SampleApplication.java):
 ```java
 public void processData() {
     String tempData = "temporary";     // String variable
@@ -637,56 +848,63 @@ public void processData() {
     File tempFile = new File("/tmp");  // File variable
 }
 ```
-**Potential Queries**:
-- `java.lang.String` → find String variable declarations
-- `java.io.File` → find File variable declarations
+
+**Symbol Results**: Local variable declaration locations
 
 ---
 
-#### ❌ Location 11: Package Declarations
+#### ✅ Location 11: Package Declarations
 **Java Features**: Package statements at top of Java files
-**Status**: Not tested
-**Java Code Available** (all test files):
+**Test**: `TestPackageDeclarationSearch`
+**Queries**:
+- `io.konveyor.demo` → finds all classes in this package
+- `io.konveyor.demo.*` → finds all classes in this package and subpackages
+
+**Java Code Pattern** (all test files):
 ```java
 package io.konveyor.demo;
 package io.konveyor.demo.ordermanagement.model;
 ```
-**Potential Queries**:
-- `io.konveyor.demo` → find all classes in this package
-- `io.konveyor.demo.*` → find all classes in this package and subpackages
+
+**Symbol Results**: Package declaration locations
 
 ---
 
-#### ❌ Location 12: Field Declarations
+#### ✅ Location 12: Field Declarations
 **Java Features**: Class-level field/member variable declarations
-**Status**: Not tested
-**Java Code Available** (test-project/SampleApplication.java):
+**Test**: `TestFieldDeclarationSearch`
+**Queries**:
+- `java.lang.String` → finds String fields
+- `java.util.List` → finds List fields
+
+**Java Code Pattern** (test-project/SampleApplication.java):
 ```java
 private String applicationName;        // String field
 private List<String> items;            // List field
 private File configFile;               // File field
 private static final int MAX_RETRIES = 3;  // static final field
 ```
-**Potential Queries**:
-- `java.lang.String` → find String fields
-- `java.util.List` → find List fields
-- Can test static vs instance fields
+
+**Symbol Results**: Field declaration locations (both static and instance)
 
 ---
 
-#### ❌ Location 13: Method Declarations
+#### ✅ Location 13: Method Declarations
 **Java Features**: Method signature declarations
-**Status**: Not tested
-**Java Code Available** (test-project/SampleApplication.java):
+**Test**: `TestMethodDeclarationSearch`
+**Queries**:
+- `processData` → finds processData method declarations
+- `get*` → finds all getter methods (wildcard)
+- `print*` → finds all methods starting with print
+
+**Java Code Pattern** (test-project/SampleApplication.java):
 ```java
 public void processData() { }          // processData method
 public String getName() { }            // getName method
 public static void printVersion() { } // static method
 ```
-**Potential Queries**:
-- `processData` → find processData method declarations
-- `get*` → find all getter methods (wildcard)
-- `print*` → find all methods starting with print
+
+**Symbol Results**: Method declaration locations
 
 ---
 
@@ -694,23 +912,27 @@ public static void printVersion() { } // static method
 
 | Location | Description | Tested | Test Function |
 |----------|-------------|--------|---------------|
-| 0 | Default | ❌ | - |
+| 0 | Default | ✅ | `TestDefaultSearch` |
 | 1 | Inheritance | ✅ | `TestInheritanceSearch` |
 | 2 | Method call | ✅ | `TestMethodCallSearch` |
 | 3 | Constructor | ✅ | `TestConstructorCallSearch` |
 | 4 | Annotation | ✅ | `TestAnnotationSearch` + `TestCustomersTomcatLegacy` |
 | 5 | Implements | ✅ | `TestImplementsTypeSearch` |
-| 6 | Enum constant | ❌ | - |
-| 7 | Return type | ❌ | - |
+| 6 | Enum constant | ✅ | `TestEnumConstantSearch` |
+| 7 | Return type | ✅ | `TestReturnTypeSearch` |
 | 8 | Import | ✅ | `TestImportSearch` + `TestCustomersTomcatLegacy` |
-| 9 | Variable decl | ❌ | - |
+| 9 | Variable decl | ✅ | `TestVariableDeclarationSearch` |
 | 10 | Type | ✅ | `TestTypeSearch` |
-| 11 | Package | ❌ | - |
-| 12 | Field | ❌ | - |
-| 13 | Method decl | ❌ | - |
+| 11 | Package | ✅ | `TestPackageDeclarationSearch` |
+| 12 | Field | ✅ | `TestFieldDeclarationSearch` |
+| 13 | Method decl | ✅ | `TestMethodDeclarationSearch` |
 | 14 | Class decl | ✅ | `TestClassDeclarationSearch` |
 
-**Current Coverage**: 8/15 location types (53%)
+**Current Coverage**: 15/15 location types (100%) 🎉
+
+**Priority 1 Advanced Features**:
+- ✅ Annotated Element Matching - `TestAnnotatedElementMatching` (4 tests)
+- ✅ File Path Filtering - `TestFilePathFiltering` (2 tests)
 
 ## Migration Testing
 
@@ -782,11 +1004,15 @@ require (
 
 ## Future Enhancements
 
-- [ ] Add tests for remaining location types (0, 6, 7, 9, 11, 12, 13)
-- [ ] Test with annotation query elements
+**✅ Completed**:
+- ✅ All location types tested (0-14) - 100% coverage achieved!
+- ✅ Annotation query elements tested (Priority 1 feature)
+- ✅ File path filtering tested (Priority 1 feature)
+- ✅ Source-only analysis mode tested
+
+**Potential Future Work**:
 - [ ] Test complex regex patterns with OR expressions
-- [ ] Test included paths filtering
-- [ ] Test source-only vs full analysis modes
+- [ ] Test full analysis mode (vs source-only)
 - [ ] Performance benchmarking
 - [ ] Parallel test execution
 - [ ] Test result JSON export

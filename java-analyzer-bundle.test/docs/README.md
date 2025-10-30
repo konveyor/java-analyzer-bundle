@@ -8,7 +8,7 @@ Welcome to the Java Analyzer Bundle test documentation. This directory contains 
 **Best for**: Getting started, quick lookups, command reference
 
 A condensed guide with:
-- Coverage summary (8/15 location types)
+- Coverage summary (15/15 location types - 100% ✅)
 - Test execution commands
 - Expected output examples
 - Key test patterns and wildcards
@@ -76,7 +76,7 @@ Detailed overview of the Java test projects:
 
 ### I want to add a new test
 → [Integration Tests Guide - Adding New Tests](integration-tests.md#adding-new-tests)
-→ [Query Reference - Untested Query Patterns](query-reference.md#untested-query-patterns)
+→ [Query Reference - All Tested Patterns](query-reference.md#tested-search-queries)
 
 ### I want to understand the architecture
 → [Integration Tests Guide - Architecture](integration-tests.md#architecture)
@@ -257,7 +257,7 @@ README.md (you are here)
 ### Advanced: Adding/Debugging Tests
 1. Read [Integration Tests - Architecture](integration-tests.md#architecture)
 2. Read [Integration Tests - Components](integration-tests.md#components)
-3. Study [Query Reference - Untested Patterns](query-reference.md#untested-query-patterns)
+3. Study [Query Reference - All Tested Patterns](query-reference.md#tested-search-queries)
 4. Review [Integration Tests - Adding New Tests](integration-tests.md#adding-new-tests)
 5. Add new test function and verify
 

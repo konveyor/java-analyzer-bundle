@@ -52,6 +52,7 @@ COPY ./gradle/build-v9.gradle /usr/local/etc/task-v9.gradle
 
 COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/plugins/
+COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
 COPY --from=maven-index /maven.default.index /usr/local/etc/maven.default.index
 COPY --from=index-download /maven-index-data/central.archive-metadata.txt /usr/local/etc/maven-index.txt

@@ -181,6 +181,11 @@ public class CustomASTVisitor extends ASTVisitor {
                     }
                 }
             }
+            logInfo("failed to get accurate info for MethodInvocation, falling back");
+            // sometimes binding or declaring class cannot be found, usually due to errors
+            // in source code. in that case, we will fallback and accept the match
+            this.symbolMatches = true;
+            return false;
         } catch (Exception e) {
             logInfo("KONVEYOR_LOG: error visiting MethodInvocation node: " + e);
             // this is so that we fallback and don't lose a match when we fail
