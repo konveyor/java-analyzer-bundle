@@ -118,8 +118,8 @@ projects/
 
 ### Simple Names
 ```go
-"SampleApplication"  // Class declaration
-"processData"        // Method name (location 13, untested)
+"SampleApplication"  // Class declaration (location 14)
+"processData"        // Method name (location 13)
 ```
 
 ## Migration Use Cases Tested
@@ -160,11 +160,10 @@ public class CustomerService implements ICustomerService {
 }
 ```
 
-### ⚠️ JBoss Logging → SLF4J
+### ✅ JBoss Logging → SLF4J
 
-**Code available but not tested**:
+**Available for testing** (location 10 - type references):
 ```java
-// Would need location 10 (type references) test
 // Query: org.jboss.logging.Logger
 import org.jboss.logging.Logger;
 

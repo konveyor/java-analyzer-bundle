@@ -69,7 +69,7 @@ jobs:
       - name: Run Phase 2 integration tests in container
         run: |
           podman run --rm \
-            -v $(pwd)/java-analyzer-bundle.test:/tests:Z \
+            -v "$(pwd)/java-analyzer-bundle.test:/tests:Z" \
             -e WORKSPACE_DIR=/tests/projects \
             -e JDTLS_PATH=/jdtls \
             --workdir /tests/integration \

@@ -99,10 +99,9 @@ func NewJDTLSClient(jdtlsPath, workspaceDir string) *JDTLSClient {
 func (c *JDTLSClient) Start() error {
 	c.logger.Info("Starting JDT.LS server...")
 
-	// Prepare workspace
-	dataDir := filepath.Join(c.workspaceDir, ".metadata")
-	if err := os.MkdirAll(dataDir, 0755); err != nil {
-		return fmt.Errorf("failed to create data directory: %w", err)
+	// Ensure workspace directory exists; JDT.LS will create ".metadata" under it
+	if err := os.MkdirAll(c.workspaceDir, 0755); err != nil {
+		return fmt.Errorf("failed to create workspace directory: %w", err)
 	}
 
 	// Determine config directory
@@ -112,7 +111,7 @@ func (c *JDTLSClient) Start() error {
 	jdtlsBin := filepath.Join(c.jdtlsPath, "bin", "jdtls")
 	c.cmd = exec.Command(jdtlsBin,
 		"-configuration", configDir,
-		"-data", dataDir,
+		"-data", c.workspaceDir,
 	)
 
 	// Create pipes for stdin/stdout
