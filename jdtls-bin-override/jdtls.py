@@ -18,6 +18,7 @@ import re
 import subprocess
 from pathlib import Path
 import tempfile
+from urllib.parse import urlparse
 
 def get_java_executable(known_args):
 	if known_args.java_executable is not None:
@@ -69,6 +70,54 @@ def get_shared_config_path(jdtls_base_path):
 
 	return jdtls_base_path / config_dir
 
+def get_proxy_jvm_args():
+	jvm_args = []
+
+	# HTTP Proxy
+	http_proxy = os.environ.get('HTTP_PROXY') or os.environ.get('http_proxy')
+	if http_proxy:
+		# Add default scheme if missing
+		if '://' not in http_proxy:
+			http_proxy = 'http://' + http_proxy
+		parsed = urlparse(http_proxy)
+		if parsed.hostname:
+			jvm_args.append(f'-Dhttp.proxyHost={parsed.hostname}')
+			if parsed.port:
+				jvm_args.append(f'-Dhttp.proxyPort={parsed.port}')
+			elif parsed.scheme == 'http':
+				jvm_args.append('-Dhttp.proxyPort=80')
+			if parsed.username:
+				jvm_args.append(f'-Dhttp.proxyUser={parsed.username}')
+			if parsed.password:
+				jvm_args.append(f'-Dhttp.proxyPassword={parsed.password}')
+
+	# HTTPS Proxy
+	https_proxy = os.environ.get('HTTPS_PROXY') or os.environ.get('https_proxy')
+	if https_proxy:
+		# Add default scheme if missing
+		if '://' not in https_proxy:
+			https_proxy = 'https://' + https_proxy
+		parsed = urlparse(https_proxy)
+		if parsed.hostname:
+			jvm_args.append(f'-Dhttps.proxyHost={parsed.hostname}')
+			if parsed.port:
+				jvm_args.append(f'-Dhttps.proxyPort={parsed.port}')
+			elif parsed.scheme == 'https':
+				jvm_args.append('-Dhttps.proxyPort=443')
+			if parsed.username:
+				jvm_args.append(f'-Dhttps.proxyUser={parsed.username}')
+			if parsed.password:
+				jvm_args.append(f'-Dhttps.proxyPassword={parsed.password}')
+
+	# NO_PROXY / Non-proxy hosts
+	no_proxy = os.environ.get('NO_PROXY') or os.environ.get('no_proxy')
+	if no_proxy:
+		# Convert comma-separated list to pipe-separated for Java
+		no_proxy_hosts = no_proxy.replace(',', '|')
+		jvm_args.append(f'-Dhttp.nonProxyHosts={no_proxy_hosts}')
+
+	return jvm_args
+
 def main(args):
 	cwd_name = os.path.basename(os.getcwd())
 	jdtls_data_path = os.path.join(tempfile.gettempdir(), "jdtls-" + sha1(cwd_name.encode()).hexdigest())
@@ -103,6 +152,7 @@ def main(args):
 			"--add-modules=ALL-SYSTEM",
 			"--add-opens", "java.base/java.util=ALL-UNNAMED",
 			"--add-opens", "java.base/java.lang=ALL-UNNAMED"] \
+			+ get_proxy_jvm_args() \
 			+ known_args.jvm_arg \
 			+ ["-jar", jar_path,
 			"-data", known_args.data] \
