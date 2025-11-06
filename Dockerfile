@@ -53,7 +53,6 @@ COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bu
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
 COPY --from=maven-index /maven.default.index /usr/local/etc/maven.default.index
 COPY --from=index-download /maven-index-data/central.archive-metadata.txt /usr/local/etc/maven-index.txt
-COPY --from=index-download /maven-index-data/central.archive-metadata.idx /usr/local/etc/maven-index.idx
 
 RUN ln -sf /root/.m2 /.m2 && chgrp -R 0 /root && chmod -R g=u /root
 CMD [ "/jdtls/bin/jdtls" ]
