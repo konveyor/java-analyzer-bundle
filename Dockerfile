@@ -28,8 +28,10 @@ RUN JAVA_HOME=/usr/lib/jvm/java-17-openjdk mvn clean install -DskipTests=true
 FROM registry.access.redhat.com/ubi9/ubi-minimal AS index-download
 RUN microdnf install -y wget zip && microdnf clean all && rm -rf /var/cache/dnf
 WORKDIR /maven-index-data
-#TODO: get latest release when we get to update them periodically
-RUN wget --quiet https://github.com/konveyor/maven-search-index/releases/download/v0.0.1/maven-index-data-v0.0.1.zip -O maven-index-data.zip && unzip maven-index-data.zip && rm maven-index-data.zip
+RUN DOWNLOAD_URL=$(wget --quiet -O - https://api.github.com/repos/konveyor/maven-search-index/releases/latest | grep '"browser_download_url".*maven-index-data.*\.zip' | sed -E 's/.*"browser_download_url": "([^"]+)".*/\1/') && \
+    wget --quiet ${DOWNLOAD_URL} -O maven-index-data.zip && \
+    unzip maven-index-data.zip && \
+    rm maven-index-data.zip
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 # Java 1.8 is required for backwards compatibility with older versions of Gradle
