@@ -42,11 +42,19 @@ public class CustomASTVisitor extends ASTVisitor {
 
     public CustomASTVisitor(String query, SearchMatch match, QueryLocation location) {
         /*
+         * Strip parameter types from the query pattern before matching
+         * The AST provides method names without parameter types, but users
+         * may specify patterns like "ClassName.method(ParamType1, ParamType2)"
+         * We need to remove the parameter types to match correctly
+         */
+        String processedQuery = query.replaceAll("\\([^)]*\\)", "");
+
+        /*
          * When comparing query pattern with an actual java element's fqn
          * we need to make sure that * not preceded with a . are replaced
          * by .* so that java regex works as expected on them
         */
-        this.query = query.replaceAll("(?<!\\.)\\*", ".*");
+        this.query = processedQuery.replaceAll("(?<!\\.)\\*", ".*");
         this.symbolMatches = false;
         this.match = match;
         // depending on which location the query was for we only want to
