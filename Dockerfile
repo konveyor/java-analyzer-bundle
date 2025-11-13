@@ -23,7 +23,7 @@ RUN dnf install -y maven-openjdk17 && dnf clean all && rm -rf /var/cache/dnf
 WORKDIR /app
 COPY ./ /app/
 RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
-RUN JAVA_HOME=/usr/lib/jvm/java-17-openjdk mvn clean install -DskipTests=true
+RUN --mount=type=cache,id=m2_repo,uid=1001,target=/root/.m2 JAVA_HOME=/usr/lib/jvm/java-17-openjdk mvn clean package -DskipTests=true
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal AS index-download
 RUN microdnf install -y wget zip && microdnf clean all && rm -rf /var/cache/dnf
@@ -51,7 +51,7 @@ COPY ./gradle/build.gradle /usr/local/etc/task.gradle
 COPY ./gradle/build-v9.gradle /usr/local/etc/task-v9.gradle
 
 COPY --from=jdtls-download /jdtls /jdtls/
-COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
+COPY --from=addon-build /app/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
 COPY --from=maven-index /maven.default.index /usr/local/etc/maven.default.index
 COPY --from=index-download /maven-index-data/central.archive-metadata.txt /usr/local/etc/maven-index.txt
