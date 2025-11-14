@@ -381,16 +381,23 @@ public class CustomASTVisitor extends ASTVisitor {
             return true;
         }
 
+        // Normalize varargs notation in the query ("Type..." -> "Type[]")
+        // so it matches JDT's representation of varargs parameters as arrays.
+        String normalizedQueryType = queryType;
+        if (queryType.endsWith("...")) {
+            normalizedQueryType = queryType.substring(0, queryType.length() - 3) + "[]";
+        }
+
         // Performance optimization: primitives can only match exactly, not via subtype
         if (actualType.isPrimitive()) {
-            return queryType.equals(actualType.getName());
+            return normalizedQueryType.equals(actualType.getName());
         }
 
         // Get the qualified name of the actual type (cache to avoid recomputation)
         String actualTypeName = getQualifiedTypeName(actualType);
 
         // Exact match - most common case, check first
-        if (queryType.equals(actualTypeName)) {
+        if (normalizedQueryType.equals(actualTypeName)) {
             return true;
         }
 
@@ -398,14 +405,14 @@ public class CustomASTVisitor extends ASTVisitor {
         ITypeBinding erasure = actualType.getErasure();
         if (erasure != null && erasure != actualType) {
             String erasureName = erasure.getQualifiedName();
-            if (queryType.equals(erasureName)) {
+            if (normalizedQueryType.equals(erasureName)) {
                 return true;
             }
         }
 
         // Subtype matching: check if actualType is assignable to queryType
         // Only do this expensive check if exact match failed
-        return isSubtypeOf(actualType, queryType, actualTypeName, new HashSet<>());
+        return isSubtypeOf(actualType, normalizedQueryType, actualTypeName, new HashSet<>());
     }
 
     /**
