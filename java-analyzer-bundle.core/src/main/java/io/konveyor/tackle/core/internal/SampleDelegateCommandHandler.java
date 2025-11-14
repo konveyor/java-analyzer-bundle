@@ -15,6 +15,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -26,9 +27,8 @@ import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.core.search.JavaSearchParticipant;
 import org.eclipse.jdt.ls.core.internal.IDelegateCommandHandler;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
+import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.JobHelpers;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.jdt.ls.core.internal.ResourceUtils;
@@ -162,6 +162,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
      */
     private static SearchPattern getPatternSingleQuery(int location, String query) throws Exception {
         var pattern = SearchPattern.R_PATTERN_MATCH;
+        // Package searches (location 11) always use PATTERN_MATCH because Eclipse JDT
+        // package matching is more flexible than exact matching
         if ((!query.contains("?") && !query.contains("*")) && (location != 11)) {
             logInfo("Using full match");
             pattern = SearchPattern.R_EXACT_MATCH | SearchPattern.R_CASE_SENSITIVE;
@@ -178,7 +180,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
                 return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.IMPLEMENTORS, pattern);
             case 7:
             case 9:
-                return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.REFERENCES, pattern);
+                // Include R_ERASURE_MATCH to match parameterized types (e.g., List<String> when searching for java.util.List)
+                return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.REFERENCES, pattern | SearchPattern.R_ERASURE_MATCH);
             case 2:
                 if (query.contains(".")) {
                     return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.QUALIFIED_REFERENCE, SearchPattern.R_PATTERN_MATCH | SearchPattern.R_ERASURE_MATCH);
@@ -186,15 +189,20 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
                 // Switched back to referenced
                 return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.REFERENCES, SearchPattern.R_PATTERN_MATCH | SearchPattern.R_ERASURE_MATCH);
             case 3:
-                return SearchPattern.createPattern(query, IJavaSearchConstants.CONSTRUCTOR, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
+                // Include R_ERASURE_MATCH to match parameterized constructor calls (e.g., ArrayList<String> when searching for java.util.ArrayList)
+                return SearchPattern.createPattern(query, IJavaSearchConstants.CONSTRUCTOR, IJavaSearchConstants.ALL_OCCURRENCES, pattern | SearchPattern.R_ERASURE_MATCH);
             case 11:
                 return SearchPattern.createPattern(query, IJavaSearchConstants.PACKAGE, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
             case 12:
-                return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.FIELD_DECLARATION_TYPE_REFERENCE, pattern);
+                // Include R_ERASURE_MATCH to match parameterized field types (e.g., List<String> when searching for java.util.List)
+                return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.FIELD_DECLARATION_TYPE_REFERENCE, pattern | SearchPattern.R_ERASURE_MATCH);
             case 13:
                 return SearchPattern.createPattern(query, IJavaSearchConstants.METHOD, IJavaSearchConstants.DECLARATIONS, SearchPattern.R_EXACT_MATCH | SearchPattern.R_PATTERN_MATCH);
             case 14:
                 return SearchPattern.createPattern(query, IJavaSearchConstants.CLASS, IJavaSearchConstants.DECLARATIONS, SearchPattern.R_EXACT_MATCH | SearchPattern.R_PATTERN_MATCH);
+            case 6:
+                // Enum constants are fields, so we search for FIELD references
+                return SearchPattern.createPattern(query, IJavaSearchConstants.FIELD, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
         }
         throw new Exception("unable to create search pattern");
     }
@@ -343,7 +351,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
 
         SearchEngine searchEngine = new SearchEngine();
 
-        SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor, location, query, annotationQuery);
+        SymbolInformationTypeRequestor requestor = new SymbolInformationTypeRequestor(symbols, 0, monitor, location, query, annotationQuery, pattern);
 
         //Use the default search participents
         SearchParticipant participent = new JavaSearchParticipant();

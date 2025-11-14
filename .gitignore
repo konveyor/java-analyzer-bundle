@@ -4,3 +4,9 @@ target/
 *.iml
 .DS_Store
 .gradle/
+
+# Eclipse metadata
+**/.metadata/
+.classpath
+.project
+.settings/
