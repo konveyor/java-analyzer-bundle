@@ -4,7 +4,9 @@ import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -290,11 +292,15 @@ public class CustomASTVisitor extends ASTVisitor {
      * Returns null if no parameters are specified in the query
      */
     List<String> extractParameterTypes(String query) {
+        // Performance: Quick check before indexOf
         int openParen = query.indexOf('(');
-        int closeParen = query.lastIndexOf(')');
-
-        if (openParen == -1 || closeParen == -1 || openParen >= closeParen) {
+        if (openParen == -1) {
             return null;  // No parameters specified in query
+        }
+
+        int closeParen = query.lastIndexOf(')');
+        if (closeParen == -1 || openParen >= closeParen) {
+            return null;  // Invalid or no parameters
         }
 
         String paramsString = query.substring(openParen + 1, closeParen).trim();
@@ -302,11 +308,15 @@ public class CustomASTVisitor extends ASTVisitor {
             return Collections.emptyList();  // Empty parameter list: method()
         }
 
-        List<String> params = new ArrayList<>();
+        // Performance: Pre-size ArrayList for common cases (most methods have 1-3 params)
+        List<String> params = new ArrayList<>(4);
+
         // Split by comma, handling nested generics like Map<String, Integer>
         int depth = 0;
         int start = 0;
-        for (int i = 0; i < paramsString.length(); i++) {
+        int length = paramsString.length();
+
+        for (int i = 0; i < length; i++) {
             char c = paramsString.charAt(i);
             if (c == '<') {
                 depth++;
@@ -328,17 +338,26 @@ public class CustomASTVisitor extends ASTVisitor {
      * Supports wildcards (*) and subtype matching.
      */
     private boolean matchesParameterTypes(ITypeBinding[] actualTypes) {
+        // Performance: Early return if no parameter filter (most common case for backward compat)
         if (queryParameterTypes == null) {
             return true;  // No parameter filter specified in query
         }
 
-        if (queryParameterTypes.size() != actualTypes.length) {
+        // Performance: Quick length check before iterating
+        int paramCount = queryParameterTypes.size();
+        if (paramCount != actualTypes.length) {
             return false;  // Different number of parameters
         }
 
-        for (int i = 0; i < queryParameterTypes.size(); i++) {
+        // Performance: Avoid loop overhead for common cases
+        if (paramCount == 0) {
+            return true;  // Both have no parameters
+        }
+
+        // Check each parameter type
+        for (int i = 0; i < paramCount; i++) {
             if (!typeMatches(queryParameterTypes.get(i), actualTypes[i])) {
-                return false;
+                return false;  // Early exit on first mismatch
             }
         }
 
@@ -362,18 +381,31 @@ public class CustomASTVisitor extends ASTVisitor {
             return true;
         }
 
-        // Get the qualified name of the actual type
+        // Performance optimization: primitives can only match exactly, not via subtype
+        if (actualType.isPrimitive()) {
+            return queryType.equals(actualType.getName());
+        }
+
+        // Get the qualified name of the actual type (cache to avoid recomputation)
         String actualTypeName = getQualifiedTypeName(actualType);
 
-        // Exact match
+        // Exact match - most common case, check first
         if (queryType.equals(actualTypeName)) {
             return true;
         }
 
+        // Quick check: try erasure type before expensive hierarchy traversal
+        ITypeBinding erasure = actualType.getErasure();
+        if (erasure != null && erasure != actualType) {
+            String erasureName = erasure.getQualifiedName();
+            if (queryType.equals(erasureName)) {
+                return true;
+            }
+        }
+
         // Subtype matching: check if actualType is assignable to queryType
-        // This requires resolving the queryType to a binding, which is complex
-        // For now, we'll do a simple check by walking up the type hierarchy
-        return isSubtypeOf(actualType, queryType);
+        // Only do this expensive check if exact match failed
+        return isSubtypeOf(actualType, queryType, actualTypeName, new HashSet<>());
     }
 
     /**
@@ -420,34 +452,64 @@ public class CustomASTVisitor extends ASTVisitor {
     /**
      * Checks if actualType is a subtype of (or equal to) queryTypeName.
      * Walks up the type hierarchy checking superclasses and interfaces.
+     *
+     * @param actualType the type to check
+     * @param queryTypeName the query type name to match against
+     * @param actualTypeName cached qualified name of actualType (performance optimization)
+     * @param visited set of already visited types to prevent infinite loops
      */
-    private boolean isSubtypeOf(ITypeBinding actualType, String queryTypeName) {
+    private boolean isSubtypeOf(ITypeBinding actualType, String queryTypeName,
+                                String actualTypeName, Set<String> visited) {
         if (actualType == null) {
             return false;
         }
 
-        // Check the type itself (including with generics)
-        if (queryTypeName.equals(getQualifiedTypeName(actualType))) {
+        // Performance: Check if we already examined this type (cycle detection)
+        String typeKey = actualType.getKey();
+        if (typeKey != null && !visited.add(typeKey)) {
+            return false;  // Already visited, avoid infinite loop
+        }
+
+        // Use cached actualTypeName (already computed in typeMatches)
+        if (queryTypeName.equals(actualTypeName)) {
             return true;
         }
 
-        // Check without generics (erasure)
-        ITypeBinding erasure = actualType.getErasure();
-        if (erasure != null && queryTypeName.equals(erasure.getQualifiedName())) {
-            return true;
-        }
-
-        // Check superclass
+        // Performance: Quick check of superclass before recursing
         ITypeBinding superclass = actualType.getSuperclass();
-        if (superclass != null && isSubtypeOf(superclass, queryTypeName)) {
-            return true;
+        if (superclass != null) {
+            // Quick check: does superclass name match before recursing?
+            ITypeBinding superErasure = superclass.getErasure();
+            if (superErasure != null) {
+                String superName = superErasure.getQualifiedName();
+                if (queryTypeName.equals(superName)) {
+                    return true;
+                }
+            }
+
+            // Recurse to check full hierarchy
+            String superTypeName = getQualifiedTypeName(superclass);
+            if (isSubtypeOf(superclass, queryTypeName, superTypeName, visited)) {
+                return true;
+            }
         }
 
-        // Check interfaces
+        // Performance: Check interfaces with same optimization
         ITypeBinding[] interfaces = actualType.getInterfaces();
-        if (interfaces != null) {
+        if (interfaces != null && interfaces.length > 0) {
             for (ITypeBinding interfaceType : interfaces) {
-                if (isSubtypeOf(interfaceType, queryTypeName)) {
+                // Quick check erasure name first
+                ITypeBinding intfErasure = interfaceType.getErasure();
+                if (intfErasure != null) {
+                    String intfName = intfErasure.getQualifiedName();
+                    if (queryTypeName.equals(intfName)) {
+                        return true;
+                    }
+                }
+
+                // Recurse to check full hierarchy
+                String intfTypeName = getQualifiedTypeName(interfaceType);
+                if (isSubtypeOf(interfaceType, queryTypeName, intfTypeName, visited)) {
                     return true;
                 }
             }
