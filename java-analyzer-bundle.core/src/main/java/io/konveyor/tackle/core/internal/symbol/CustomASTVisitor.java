@@ -4,12 +4,12 @@ import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
@@ -111,8 +111,9 @@ public class CustomASTVisitor extends ASTVisitor {
                         declaringClass = declaringClass.getErasure();
                     }
                     String fullyQualifiedName = declaringClass.getQualifiedName();
-                    // match fqn with query pattern
-                    if (fullyQualifiedName.matches(this.query)) {
+                    // match fqn with query pattern using regex
+                    boolean matches = fullyQualifiedName.matches(this.query);
+                    if (matches) {
                         this.symbolMatches = true;
                         return false;
                     } else {
@@ -146,30 +147,29 @@ public class CustomASTVisitor extends ASTVisitor {
         }
         try {
             IMethodBinding binding = node.resolveMethodBinding();
-            if (binding != null) {
-                // get fqn of the method being called
-                ITypeBinding declaringClass = binding.getDeclaringClass();
-                if (declaringClass != null) {
-                    // Handle Erasure results
-                    if (declaringClass.getErasure() != null) {
-                        declaringClass = declaringClass.getErasure();
-                    }
-                    String fullyQualifiedName = declaringClass.getQualifiedName() + "." + binding.getName();
-                    // match fqn with query pattern
-                    if (fullyQualifiedName.matches(this.query)) {
-                        this.symbolMatches = true;
-                        return false;
-                    } else {
-                        logInfo("method fqn " + fullyQualifiedName + " did not match with " + query);
-                        return true;
-                    }
-                }
+            if (binding == null) {
+                return false;
             }
-            logInfo("failed to get accurate info for MethodInvocation, falling back");
-            // sometimes binding or declaring class cannot be found, usually due to errors
-            // in source code. in that case, we will fallback and accept the match
-            this.symbolMatches = true;
-            return false;
+            logInfo("getTypeParameters: " + binding.getTypeParameters());
+            // get fqn of the method being called
+            ITypeBinding declaringClass = binding.getDeclaringClass();
+            if (declaringClass == null) {
+                return false;
+            }
+            // Handle Erasure results
+            if (declaringClass.getErasure() != null) {
+                declaringClass = declaringClass.getErasure();
+            }
+            String fullyQualifiedName = declaringClass.getQualifiedName() + "." + binding.getName();
+            // match fqn with query pattern using regex
+            boolean matches = fullyQualifiedName.matches(this.query);
+            if (matches) {
+                this.symbolMatches = true;
+                return false;
+            } else {
+                logInfo("method fqn " + fullyQualifiedName + " did not match with " + query);
+                return true;
+            }
         } catch (Exception e) {
             logInfo("KONVEYOR_LOG: error visiting MethodInvocation node: " + e);
             // this is so that we fallback and don't lose a match when we fail
@@ -190,13 +190,19 @@ public class CustomASTVisitor extends ASTVisitor {
         }
         try {
             IMethodBinding binding = node.resolveConstructorBinding();
+            logInfo("get type parameters: " + binding.getTypeParameters());
             if (binding != null) {
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
                 if (declaringClass != null) {
+                    // Handle Erasure results - strip type parameters for matching
+                    if (declaringClass.getErasure() != null) {
+                        declaringClass = declaringClass.getErasure();
+                    }
                     String fullyQualifiedName = declaringClass.getQualifiedName();
-                    // match fqn with query pattern
-                    if (fullyQualifiedName.matches(this.query)) {
+                    // match fqn with query pattern using regex
+                    boolean matches = fullyQualifiedName.matches(this.query);
+                    if (matches) {
                         this.symbolMatches = true;
                         return false;
                     } else {
@@ -215,7 +221,7 @@ public class CustomASTVisitor extends ASTVisitor {
             // this is so that we fallback and don't lose a match when we fail
             this.symbolMatches = true;
             return false;
-        }    
+        }
     }
 
     /* 
@@ -230,13 +236,19 @@ public class CustomASTVisitor extends ASTVisitor {
         }
         try {
             IMethodBinding binding = node.resolveConstructorBinding();
+            logInfo("get type parameters: " + binding.getTypeParameters());
             if (binding != null) {
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
                 if (declaringClass != null) {
+                    // Handle Erasure results - strip type parameters for matching
+                    if (declaringClass.getErasure() != null) {
+                        declaringClass = declaringClass.getErasure();
+                    }
                     String fullyQualifiedName = declaringClass.getQualifiedName();
-                    // match fqn with query pattern
-                    if (fullyQualifiedName.matches(this.query)) {
+                    // match fqn with query pattern using regex
+                    boolean matches = fullyQualifiedName.matches(this.query);
+                    if (matches) {
                         this.symbolMatches = true;
                         return false;
                     } else {
@@ -255,7 +267,7 @@ public class CustomASTVisitor extends ASTVisitor {
             // this is so that we fallback and don't lose a match when we fail
             this.symbolMatches = true;
             return false;
-        }    
+        }
     }
 
     public boolean symbolMatches() {
