@@ -289,7 +289,7 @@ public class CustomASTVisitor extends ASTVisitor {
      * e.g., "ClassName.method(Type1, Type2)" -> ["Type1", "Type2"]
      * Returns null if no parameters are specified in the query
      */
-    private List<String> extractParameterTypes(String query) {
+    List<String> extractParameterTypes(String query) {
         int openParen = query.indexOf('(');
         int closeParen = query.lastIndexOf(')');
 
