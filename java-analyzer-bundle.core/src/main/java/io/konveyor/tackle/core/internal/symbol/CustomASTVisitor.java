@@ -343,6 +343,11 @@ public class CustomASTVisitor extends ASTVisitor {
             return true;  // No parameter filter specified in query
         }
 
+        // Handle null actualTypes (can happen with certain bindings)
+        if (actualTypes == null) {
+            return queryParameterTypes.isEmpty();  // Match only if query expects no parameters
+        }
+
         // Performance: Quick length check before iterating
         int paramCount = queryParameterTypes.size();
         if (paramCount != actualTypes.length) {
