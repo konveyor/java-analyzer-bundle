@@ -2,6 +2,12 @@ package io.konveyor.tackle.core.internal.symbol;
 
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
@@ -29,6 +35,7 @@ public class CustomASTVisitor extends ASTVisitor {
     private SearchMatch match;
     private boolean symbolMatches;
     private QueryLocation location;
+    private List<String> queryParameterTypes;
 
     /* 
      * we re-use this same class for different locations in a query
@@ -42,11 +49,11 @@ public class CustomASTVisitor extends ASTVisitor {
 
     public CustomASTVisitor(String query, SearchMatch match, QueryLocation location) {
         /*
-         * Strip parameter types from the query pattern before matching
-         * The AST provides method names without parameter types, but users
-         * may specify patterns like "ClassName.method(ParamType1, ParamType2)"
-         * We need to remove the parameter types to match correctly
+         * Extract parameter types from the query pattern if present
+         * e.g., "java.util.Properties.setProperty(java.lang.String, java.lang.String)"
+         * We'll extract ["java.lang.String", "java.lang.String"] and strip the parameters from the query
          */
+        this.queryParameterTypes = extractParameterTypes(query);
         String processedQuery = query.replaceAll("\\([^)]*\\)", "");
 
         /*
@@ -157,8 +164,15 @@ public class CustomASTVisitor extends ASTVisitor {
                     String fullyQualifiedName = declaringClass.getQualifiedName() + "." + binding.getName();
                     // match fqn with query pattern
                     if (fullyQualifiedName.matches(this.query)) {
-                        this.symbolMatches = true;
-                        return false;
+                        // Check parameter types if specified in the query
+                        ITypeBinding[] parameterTypes = binding.getParameterTypes();
+                        if (matchesParameterTypes(parameterTypes)) {
+                            this.symbolMatches = true;
+                            return false;
+                        } else {
+                            logInfo("method parameters did not match query parameters");
+                            return true;
+                        }
                     } else {
                         logInfo("method fqn " + fullyQualifiedName + " did not match with " + query);
                         return true;
@@ -197,8 +211,15 @@ public class CustomASTVisitor extends ASTVisitor {
                     String fullyQualifiedName = declaringClass.getQualifiedName();
                     // match fqn with query pattern
                     if (fullyQualifiedName.matches(this.query)) {
-                        this.symbolMatches = true;
-                        return false;
+                        // Check parameter types if specified in the query
+                        ITypeBinding[] parameterTypes = binding.getParameterTypes();
+                        if (matchesParameterTypes(parameterTypes)) {
+                            this.symbolMatches = true;
+                            return false;
+                        } else {
+                            logInfo("constructor parameters did not match query parameters");
+                            return true;
+                        }
                     } else {
                         logInfo("constructor fqn " + fullyQualifiedName + " did not match with " + query);
                         return true;
@@ -215,7 +236,7 @@ public class CustomASTVisitor extends ASTVisitor {
             // this is so that we fallback and don't lose a match when we fail
             this.symbolMatches = true;
             return false;
-        }    
+        }
     }
 
     /* 
@@ -237,8 +258,15 @@ public class CustomASTVisitor extends ASTVisitor {
                     String fullyQualifiedName = declaringClass.getQualifiedName();
                     // match fqn with query pattern
                     if (fullyQualifiedName.matches(this.query)) {
-                        this.symbolMatches = true;
-                        return false;
+                        // Check parameter types if specified in the query
+                        ITypeBinding[] parameterTypes = binding.getParameterTypes();
+                        if (matchesParameterTypes(parameterTypes)) {
+                            this.symbolMatches = true;
+                            return false;
+                        } else {
+                            logInfo("constructor parameters did not match query parameters");
+                            return true;
+                        }
                     } else {
                         logInfo("constructor fqn " + fullyQualifiedName + " did not match with " + query);
                         return true;
@@ -255,7 +283,273 @@ public class CustomASTVisitor extends ASTVisitor {
             // this is so that we fallback and don't lose a match when we fail
             this.symbolMatches = true;
             return false;
-        }    
+        }
+    }
+
+    /**
+     * Extracts parameter types from a query pattern.
+     * e.g., "ClassName.method(Type1, Type2)" -> ["Type1", "Type2"]
+     * Returns null if no parameters are specified in the query
+     *
+     * Note: Must distinguish between method parameters like "method(String, int)"
+     * and regex alternation groups like "java.io.(FileWriter|FileReader)"
+     */
+    List<String> extractParameterTypes(String query) {
+        // Performance: Quick check before indexOf
+        int openParen = query.indexOf('(');
+        if (openParen == -1) {
+            return null;  // No parameters specified in query
+        }
+
+        int closeParen = query.lastIndexOf(')');
+        if (closeParen == -1 || openParen >= closeParen) {
+            return null;  // Invalid or no parameters
+        }
+
+        // Check if this looks like method parameters vs regex alternation
+        // Method parameters: "ClassName.methodName(Type1, Type2)" - parens at END with optional * after
+        // Regex alternation: "java.io.(FileWriter|FileReader)*" - parens in MIDDLE with content after
+        //
+        // Heuristic: If there's a '|' (pipe) character inside the parentheses, it's likely
+        // a regex alternation group, not method parameters
+        String potentialParams = query.substring(openParen + 1, closeParen);
+        if (potentialParams.contains("|")) {
+            return null;  // Regex alternation, not method parameters
+        }
+
+        // Another check: method parameters should be near the end of the pattern
+        // Look for content after the closing paren (besides wildcards * which are common)
+        String afterParen = query.substring(closeParen + 1).trim();
+        if (afterParen.length() > 0 && !afterParen.matches("\\**")) {
+            // There's significant content after the closing paren, not method parameters
+            return null;
+        }
+
+        String paramsString = potentialParams.trim();
+        if (paramsString.isEmpty()) {
+            return Collections.emptyList();  // Empty parameter list: method()
+        }
+
+        // Performance: Pre-size ArrayList for common cases (most methods have 1-3 params)
+        List<String> params = new ArrayList<>(4);
+
+        // Split by comma, handling nested generics like Map<String, Integer>
+        int depth = 0;
+        int start = 0;
+        int length = paramsString.length();
+
+        for (int i = 0; i < length; i++) {
+            char c = paramsString.charAt(i);
+            if (c == '<') {
+                depth++;
+            } else if (c == '>') {
+                depth--;
+            } else if (c == ',' && depth == 0) {
+                params.add(paramsString.substring(start, i).trim());
+                start = i + 1;
+            }
+        }
+        // Add the last parameter
+        params.add(paramsString.substring(start).trim());
+
+        return params;
+    }
+
+    /**
+     * Checks if the actual parameter types from a method binding match the query parameter types.
+     * Supports wildcards (*) and subtype matching.
+     */
+    private boolean matchesParameterTypes(ITypeBinding[] actualTypes) {
+        // Performance: Early return if no parameter filter (most common case for backward compat)
+        if (queryParameterTypes == null) {
+            return true;  // No parameter filter specified in query
+        }
+
+        // Handle null actualTypes (can happen with certain bindings)
+        if (actualTypes == null) {
+            return queryParameterTypes.isEmpty();  // Match only if query expects no parameters
+        }
+
+        // Performance: Quick length check before iterating
+        int paramCount = queryParameterTypes.size();
+        if (paramCount != actualTypes.length) {
+            return false;  // Different number of parameters
+        }
+
+        // Performance: Avoid loop overhead for common cases
+        if (paramCount == 0) {
+            return true;  // Both have no parameters
+        }
+
+        // Check each parameter type
+        for (int i = 0; i < paramCount; i++) {
+            if (!typeMatches(queryParameterTypes.get(i), actualTypes[i])) {
+                return false;  // Early exit on first mismatch
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if a query type pattern matches an actual type binding.
+     * Supports:
+     * - Wildcards: "*" matches any type
+     * - Subtype matching: "java.lang.Object" matches "java.lang.String"
+     * - Generic signatures: "java.util.List<java.lang.String>" matches only that exact generic type
+     */
+    private boolean typeMatches(String queryType, ITypeBinding actualType) {
+        if (actualType == null) {
+            return false;
+        }
+
+        // Wildcard matches any type
+        if ("*".equals(queryType)) {
+            return true;
+        }
+
+        // Normalize varargs notation in the query ("Type..." -> "Type[]")
+        // so it matches JDT's representation of varargs parameters as arrays.
+        String normalizedQueryType = queryType;
+        if (queryType.endsWith("...")) {
+            normalizedQueryType = queryType.substring(0, queryType.length() - 3) + "[]";
+        }
+
+        // Performance optimization: primitives can only match exactly, not via subtype
+        if (actualType.isPrimitive()) {
+            return normalizedQueryType.equals(actualType.getName());
+        }
+
+        // Get the qualified name of the actual type (cache to avoid recomputation)
+        String actualTypeName = getQualifiedTypeName(actualType);
+
+        // Exact match - most common case, check first
+        if (normalizedQueryType.equals(actualTypeName)) {
+            return true;
+        }
+
+        // Quick check: try erasure type before expensive hierarchy traversal
+        ITypeBinding erasure = actualType.getErasure();
+        if (erasure != null && erasure != actualType) {
+            String erasureName = erasure.getQualifiedName();
+            if (normalizedQueryType.equals(erasureName)) {
+                return true;
+            }
+        }
+
+        // Subtype matching: check if actualType is assignable to queryType
+        // Only do this expensive check if exact match failed
+        return isSubtypeOf(actualType, normalizedQueryType, actualTypeName, new HashSet<>());
+    }
+
+    /**
+     * Gets the fully qualified name of a type, including generic parameters.
+     * e.g., "java.util.List<java.lang.String>"
+     */
+    private String getQualifiedTypeName(ITypeBinding type) {
+        if (type == null) {
+            return "";
+        }
+
+        // Handle arrays
+        if (type.isArray()) {
+            return getQualifiedTypeName(type.getElementType()) + "[]";
+        }
+
+        // Handle primitives
+        if (type.isPrimitive()) {
+            return type.getName();
+        }
+
+        // Get erasure for generic types to get base qualified name
+        ITypeBinding erasure = type.getErasure();
+        String baseName = erasure != null ? erasure.getQualifiedName() : type.getQualifiedName();
+
+        // Add generic type arguments if present
+        ITypeBinding[] typeArguments = type.getTypeArguments();
+        if (typeArguments != null && typeArguments.length > 0) {
+            StringBuilder sb = new StringBuilder(baseName);
+            sb.append("<");
+            for (int i = 0; i < typeArguments.length; i++) {
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                sb.append(getQualifiedTypeName(typeArguments[i]));
+            }
+            sb.append(">");
+            return sb.toString();
+        }
+
+        return baseName;
+    }
+
+    /**
+     * Checks if actualType is a subtype of (or equal to) queryTypeName.
+     * Walks up the type hierarchy checking superclasses and interfaces.
+     *
+     * @param actualType the type to check
+     * @param queryTypeName the query type name to match against
+     * @param actualTypeName cached qualified name of actualType (performance optimization)
+     * @param visited set of already visited types to prevent infinite loops
+     */
+    private boolean isSubtypeOf(ITypeBinding actualType, String queryTypeName,
+                                String actualTypeName, Set<String> visited) {
+        if (actualType == null) {
+            return false;
+        }
+
+        // Performance: Check if we already examined this type (cycle detection)
+        String typeKey = actualType.getKey();
+        if (typeKey != null && !visited.add(typeKey)) {
+            return false;  // Already visited, avoid infinite loop
+        }
+
+        // Use cached actualTypeName (already computed in typeMatches)
+        if (queryTypeName.equals(actualTypeName)) {
+            return true;
+        }
+
+        // Performance: Quick check of superclass before recursing
+        ITypeBinding superclass = actualType.getSuperclass();
+        if (superclass != null) {
+            // Quick check: does superclass name match before recursing?
+            ITypeBinding superErasure = superclass.getErasure();
+            if (superErasure != null) {
+                String superName = superErasure.getQualifiedName();
+                if (queryTypeName.equals(superName)) {
+                    return true;
+                }
+            }
+
+            // Recurse to check full hierarchy
+            String superTypeName = getQualifiedTypeName(superclass);
+            if (isSubtypeOf(superclass, queryTypeName, superTypeName, visited)) {
+                return true;
+            }
+        }
+
+        // Performance: Check interfaces with same optimization
+        ITypeBinding[] interfaces = actualType.getInterfaces();
+        if (interfaces != null && interfaces.length > 0) {
+            for (ITypeBinding interfaceType : interfaces) {
+                // Quick check erasure name first
+                ITypeBinding intfErasure = interfaceType.getErasure();
+                if (intfErasure != null) {
+                    String intfName = intfErasure.getQualifiedName();
+                    if (queryTypeName.equals(intfName)) {
+                        return true;
+                    }
+                }
+
+                // Recurse to check full hierarchy
+                String intfTypeName = getQualifiedTypeName(interfaceType);
+                if (isSubtypeOf(interfaceType, queryTypeName, intfTypeName, visited)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public boolean symbolMatches() {
