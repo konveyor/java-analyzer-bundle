@@ -290,6 +290,9 @@ public class CustomASTVisitor extends ASTVisitor {
      * Extracts parameter types from a query pattern.
      * e.g., "ClassName.method(Type1, Type2)" -> ["Type1", "Type2"]
      * Returns null if no parameters are specified in the query
+     *
+     * Note: Must distinguish between method parameters like "method(String, int)"
+     * and regex alternation groups like "java.io.(FileWriter|FileReader)"
      */
     List<String> extractParameterTypes(String query) {
         // Performance: Quick check before indexOf
@@ -303,7 +306,26 @@ public class CustomASTVisitor extends ASTVisitor {
             return null;  // Invalid or no parameters
         }
 
-        String paramsString = query.substring(openParen + 1, closeParen).trim();
+        // Check if this looks like method parameters vs regex alternation
+        // Method parameters: "ClassName.methodName(Type1, Type2)" - parens at END with optional * after
+        // Regex alternation: "java.io.(FileWriter|FileReader)*" - parens in MIDDLE with content after
+        //
+        // Heuristic: If there's a '|' (pipe) character inside the parentheses, it's likely
+        // a regex alternation group, not method parameters
+        String potentialParams = query.substring(openParen + 1, closeParen);
+        if (potentialParams.contains("|")) {
+            return null;  // Regex alternation, not method parameters
+        }
+
+        // Another check: method parameters should be near the end of the pattern
+        // Look for content after the closing paren (besides wildcards * which are common)
+        String afterParen = query.substring(closeParen + 1).trim();
+        if (afterParen.length() > 0 && !afterParen.matches("\\**")) {
+            // There's significant content after the closing paren, not method parameters
+            return null;
+        }
+
+        String paramsString = potentialParams.trim();
         if (paramsString.isEmpty()) {
             return Collections.emptyList();  // Empty parameter list: method()
         }
