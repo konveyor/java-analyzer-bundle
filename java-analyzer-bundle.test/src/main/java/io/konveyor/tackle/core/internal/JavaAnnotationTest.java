@@ -10,65 +10,83 @@ import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class JavaAnnotationTest extends ProjectUtilsTest {
 
-    @Test
-    public void shouldMatchSpringResponseBodyAnnotationTest() throws Exception {
-        IJavaProject javaProject = loadMavenProject(MavenProjectName.springboot_todo_project);
-        System.out.println("=== Java Project name : " + javaProject.getProject().getName());
+        private static boolean existingDebugFlag = false;
 
-        // String aQuery = "org.springframework.web.bind.annotation.ResponseBody"; //
-        // !! We got 2 SymbolInformation: ResponseBody and PostMapping - https://github.com/konveyor/java-analyzer-bundle/issues/175
+        @BeforeClass
+        public static void setupOnce() throws Exception {
+                existingDebugFlag = Boolean.getBoolean("jdt.ls.debug");
+                System.setProperty("jdt.ls.debug", "true");
+                //System.out.println("########## jdt.ls.debug: " + System.getProperty("jdt.ls.debug"));
+        }
 
-        String aQuery = "ResponseBody";
+        @AfterClass
+        public static void cleanUpOnce() throws Exception {
+                System.setProperty("jdt.ls.debug", Boolean.toString(existingDebugFlag));
+        }
 
-        // Query to search an annotation
-        Map<String, Object> mapArgs = Map.of(
-                "project", javaProject.getProject().getName(),
-                "location", LOCATION_TYPE_ANNOTATION,
-                "query", aQuery,
-                "analysisMode", ANALYSIS_MODE_SOURCE_ONLY);
+        @Test
+        public void shouldMatchSpringResponseBodyAnnotationTest() throws Exception {
+                IJavaProject javaProject = loadMavenProject(MavenProjectName.springboot_todo_project);
+                System.out.println("=== Java Project name : " + javaProject.getProject().getName());
+                System.out.println("=== Env jdt log variable: " + System.getProperty("jdt.ls.debug"));
 
-        RuleEntryParams params = new RuleEntryParams(RULE_ENTRY_COMMAND_ID, List.of(mapArgs));
-        Assert.assertNotNull(params);
+                // String aQuery = "org.springframework.web.bind.annotation.ResponseBody"; //
+                // !! We got 2 SymbolInformation: ResponseBody and PostMapping -
+                // https://github.com/konveyor/java-analyzer-bundle/issues/175
 
-        SampleDelegateCommandHandler sdch = new SampleDelegateCommandHandler();
-        List<SymbolInformation> results = sdch.search(params.getProjectName(),
-                params.getIncludedPaths(), params.getQuery(),
-                params.getAnnotationQuery(), params.getLocation(), params.getAnalysisMode(),
-                params.getIncludeOpenSourceLibraries(), params.getMavenLocalRepoPath(),
-                params.getMavenIndexPath(), new NullProgressMonitor());
-        Assert.assertNotNull(results);
+                String aQuery = "ResponseBody";
 
-        // Search within the results the symbol matching thge annotation to search
-        String targetAnnotation = "ResponseBody";
-        Optional<SymbolInformation> foundSymbol = results.stream()
-                .filter(symbol -> symbol.getName().equals(targetAnnotation))
-                .findFirst();
+                // Query to search an annotation
+                Map<String, Object> mapArgs = Map.of(
+                                "project", javaProject.getProject().getName(),
+                                "location", LOCATION_TYPE_ANNOTATION,
+                                "query", aQuery,
+                                "analysisMode", ANALYSIS_MODE_SOURCE_ONLY);
 
-        Assert.assertNotNull(foundSymbol.get());
+                RuleEntryParams params = new RuleEntryParams(RULE_ENTRY_COMMAND_ID, List.of(mapArgs));
+                Assert.assertNotNull(params);
 
-        Location loc = foundSymbol.get().getLocation();
-        Assert.assertNotNull(loc);
+                SampleDelegateCommandHandler sdch = new SampleDelegateCommandHandler();
+                List<SymbolInformation> results = sdch.search(params.getProjectName(),
+                                params.getIncludedPaths(), params.getQuery(),
+                                params.getAnnotationQuery(), params.getLocation(), params.getAnalysisMode(),
+                                params.getIncludeOpenSourceLibraries(), params.getMavenLocalRepoPath(),
+                                params.getMavenIndexPath(), new NullProgressMonitor());
+                Assert.assertNotNull(results);
 
-        // The annotation org.springframework.web.bind.annotation.ResponseBody is
-        // included
-        // within the file com.todo.app.controller.TaskController.java
-        Assert.assertEquals(true, loc.getUri().contains("TaskController.java"));
+                // Search within the results the symbol matching thge annotation to search
+                String targetAnnotation = "ResponseBody";
+                Optional<SymbolInformation> foundSymbol = results.stream()
+                                .filter(symbol -> symbol.getName().equals(targetAnnotation))
+                                .findFirst();
 
-        // Verify the location where the annotation has been declared using the Range
-        Range range = loc.getRange();
-        Assert.assertNotNull(range);
+                Assert.assertNotNull(foundSymbol.get());
 
-        Position posStart = range.getStart();
-        Position posEnd = range.getEnd();
-        Assert.assertEquals(76, posStart.getLine());
-        Assert.assertEquals(5, posStart.getCharacter());
+                Location loc = foundSymbol.get().getLocation();
+                Assert.assertNotNull(loc);
 
-        Assert.assertEquals(76, posEnd.getLine());
-        Assert.assertEquals(17, posEnd.getCharacter());
-    }
+                // The annotation org.springframework.web.bind.annotation.ResponseBody is
+                // included
+                // within the file com.todo.app.controller.TaskController.java
+                Assert.assertEquals(true, loc.getUri().contains("TaskController.java"));
+
+                // Verify the location where the annotation has been declared using the Range
+                Range range = loc.getRange();
+                Assert.assertNotNull(range);
+
+                Position posStart = range.getStart();
+                Position posEnd = range.getEnd();
+                Assert.assertEquals(76, posStart.getLine());
+                Assert.assertEquals(5, posStart.getCharacter());
+
+                Assert.assertEquals(76, posEnd.getLine());
+                Assert.assertEquals(17, posEnd.getCharacter());
+        }
 }

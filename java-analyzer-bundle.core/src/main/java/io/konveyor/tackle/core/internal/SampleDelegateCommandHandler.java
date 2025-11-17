@@ -1,6 +1,7 @@
 package io.konveyor.tackle.core.internal;
 
 import static java.lang.String.format;
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.debugTrace;
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
@@ -410,8 +411,8 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
           .map(si -> 
             String.format("\n-------------------------\nSymbol name: %s\nkind: %s\nLocation: %s",si.getName(), si.getKind(), si.getLocation())
           )
-          .collect(Collectors.joining());
-        logInfo("KONVEYOR_LOG: " + result);
+          .collect(Collectors.joining()); 
+        debugTrace("KONVEYOR_DEBUG: " + result);
 
         return symbols;
 
