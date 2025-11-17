@@ -151,7 +151,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
      * "import":               8,
      * "variable_declaration": 9,
      * "type":                 10,
-     * "package":              11,
+     * "package":              1
      * "field":                12,
      * "method_declaration":   13,
      * "class_declaration":    14,
@@ -200,7 +200,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         throw new Exception("unable to create search pattern");
     }
 
-    public static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, AnnotationQuery annotationQuery, int location, String analysisMode,
+    protected static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, AnnotationQuery annotationQuery, int location, String analysisMode,
                                                   boolean includeOpenSourceLibraries, String mavenLocalRepoPath, String mavenIndexPath, IProgressMonitor monitor) throws Exception {
         IJavaProject[] targetProjects;
         IJavaProject project = ProjectUtils.getJavaProject(projectName);

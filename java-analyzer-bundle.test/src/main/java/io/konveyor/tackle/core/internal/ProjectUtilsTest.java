@@ -1,4 +1,4 @@
-package io.konveyor.tackle.core.test;
+package io.konveyor.tackle.core.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -33,8 +33,6 @@ import org.eclipse.lsp4j.ClientCapabilities;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-
-import io.konveyor.tackle.core.internal.SampleDelegateCommandHandler;
 
 /**
  * Base Utility class to load a project for testing

@@ -1,4 +1,4 @@
-package io.konveyor.tackle.core.test;
+package io.konveyor.tackle.core.internal;
 
 import java.util.List;
 import java.util.Map;
@@ -12,9 +12,6 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.junit.Assert;
 import org.junit.Test;
-
-import io.konveyor.tackle.core.internal.RuleEntryParams;
-import io.konveyor.tackle.core.internal.SampleDelegateCommandHandler;
 
 public class JavaAnnotationTest extends ProjectUtilsTest {
 
@@ -38,7 +35,8 @@ public class JavaAnnotationTest extends ProjectUtilsTest {
         RuleEntryParams params = new RuleEntryParams(RULE_ENTRY_COMMAND_ID, List.of(mapArgs));
         Assert.assertNotNull(params);
 
-        List<SymbolInformation> results = SampleDelegateCommandHandler.search(params.getProjectName(),
+        SampleDelegateCommandHandler sdch = new SampleDelegateCommandHandler();
+        List<SymbolInformation> results = sdch.search(params.getProjectName(),
                 params.getIncludedPaths(), params.getQuery(),
                 params.getAnnotationQuery(), params.getLocation(), params.getAnalysisMode(),
                 params.getIncludeOpenSourceLibraries(), params.getMavenLocalRepoPath(),

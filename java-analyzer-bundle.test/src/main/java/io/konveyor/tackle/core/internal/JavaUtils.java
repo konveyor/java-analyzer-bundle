@@ -1,4 +1,4 @@
-package io.konveyor.tackle.core.test;
+package io.konveyor.tackle.core.internal;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +20,6 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 
 /**

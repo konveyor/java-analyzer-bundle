@@ -1,7 +1,6 @@
 package io.konveyor.tackle.core.internal;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -10,8 +9,6 @@ import java.util.Collections;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.Test;
-
-import io.konveyor.tackle.core.test.ProjectUtilsTest;
 
 /**
 * Sample integration test. In Eclipse, right-click > Run As > JUnit-Plugin. <br/>

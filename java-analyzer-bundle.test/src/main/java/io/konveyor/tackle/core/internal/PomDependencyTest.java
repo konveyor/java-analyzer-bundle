@@ -1,4 +1,4 @@
-package io.konveyor.tackle.core.test;
+package io.konveyor.tackle.core.internal;
 
 import static org.junit.Assert.assertEquals;
 
