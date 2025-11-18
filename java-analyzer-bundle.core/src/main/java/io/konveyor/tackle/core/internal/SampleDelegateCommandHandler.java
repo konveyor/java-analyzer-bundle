@@ -1,12 +1,14 @@
 package io.konveyor.tackle.core.internal;
 
 import static java.lang.String.format;
+import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.debugTrace;
 import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -150,7 +152,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
      * "import":               8,
      * "variable_declaration": 9,
      * "type":                 10,
-     * "package":              11,
+     * "package":              1
      * "field":                12,
      * "method_declaration":   13,
      * "class_declaration":    14,
@@ -199,7 +201,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
         throw new Exception("unable to create search pattern");
     }
 
-    private static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, AnnotationQuery annotationQuery, int location, String analysisMode,
+    protected static List<SymbolInformation> search(String projectName, ArrayList<String> includedPaths, String query, AnnotationQuery annotationQuery, int location, String analysisMode,
                                                   boolean includeOpenSourceLibraries, String mavenLocalRepoPath, String mavenIndexPath, IProgressMonitor monitor) throws Exception {
         IJavaProject[] targetProjects;
         IJavaProject project = ProjectUtils.getJavaProject(projectName);
@@ -209,7 +211,7 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             targetProjects = ProjectUtils.getJavaProjects();
         }
 
-        logInfo("Searching in target project: " + targetProjects);
+        logInfo("KONVEYOR_LOG: Searching in target project: " + targetProjects);
 
         //  For Partial results, we are going to filter out based on a list in the engine
         int s = IJavaSearchScope.SOURCES | IJavaSearchScope.REFERENCED_PROJECTS | IJavaSearchScope.APPLICATION_LIBRARIES;
@@ -399,10 +401,18 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
             }
         }
 
-        logInfo("KONVEYOR_LOG: got: " + requestor.getAllSearchMatches() +
-                " search matches for " + query +
-                " location " + location
-                + " matches" + requestor.getSymbols().size());
+        logInfo("KONVEYOR_LOG: Got: " + requestor.getAllSearchMatches() +
+                " Number of search matching the query: \"" + query + "\"" +
+                " and location type: " + location);
+
+        logInfo("KONVEYOR_LOG: Results size: " + requestor.getSymbols().size());
+
+        String result = requestor.getSymbols().stream()
+          .map(si -> 
+            String.format("\n-------------------------\nSymbol name: %s\nkind: %s\nLocation: %s",si.getName(), si.getKind(), si.getLocation())
+          )
+          .collect(Collectors.joining()); 
+        debugTrace("KONVEYOR_DEBUG: " + result);
 
         return symbols;
 
