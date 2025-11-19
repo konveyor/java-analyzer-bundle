@@ -206,8 +206,8 @@ public class CustomASTVisitor extends ASTVisitor {
         }
         try {
             IMethodBinding binding = node.resolveConstructorBinding();
-            logInfo("get type parameters: " + binding.getTypeParameters());
             if (binding != null) {
+                logInfo("get type parameters: " + binding.getTypeParameters());
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
                 if (declaringClass != null) {
@@ -258,8 +258,8 @@ public class CustomASTVisitor extends ASTVisitor {
         }
         try {
             IMethodBinding binding = node.resolveConstructorBinding();
-            logInfo("get type parameters: " + binding.getTypeParameters());
             if (binding != null) {
+                logInfo("get type parameters: " + binding.getTypeParameters());
                 // get fqn of the method being called
                 ITypeBinding declaringClass = binding.getDeclaringClass();
                 if (declaringClass != null) {

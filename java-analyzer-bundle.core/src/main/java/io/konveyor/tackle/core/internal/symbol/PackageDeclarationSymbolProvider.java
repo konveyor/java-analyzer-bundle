@@ -7,9 +7,13 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.lsp4j.SymbolInformation;
 
@@ -23,54 +27,90 @@ public class PackageDeclarationSymbolProvider implements SymbolProvider, WithQue
             IJavaElement element = (IJavaElement) match.getElement();
             logInfo("Package search match element type: " + element.getClass().getName() + ", element: " + element);
 
-            // Package searches can return different element types
-            IPackageDeclaration packageDecl = null;
+            // Package searches with REFERENCES can return different element types:
+            // - IImportDeclaration: import statements (import java.util.List;)
+            // - IType/IMethod/IField: Fully qualified name usage (java.sql.Connection)
+            // - IPackageDeclaration: Package declaration (package io.konveyor.demo;)
+            // - IPackageFragment: Package fragment reference
 
-            if (element instanceof IPackageDeclaration) {
-                packageDecl = (IPackageDeclaration) element;
-                logInfo("Direct IPackageDeclaration");
+            String packageName = null;
+            IJavaElement locationElement = element;
+
+            if (element instanceof IImportDeclaration) {
+                // Import statement - extract package from the import
+                IImportDeclaration importDecl = (IImportDeclaration) element;
+                String importName = importDecl.getElementName();
+                logInfo("Import declaration: " + importName);
+
+                // Extract package from import (e.g., "java.util.List" -> "java.util")
+                int lastDot = importName.lastIndexOf('.');
+                if (lastDot > 0) {
+                    packageName = importName.substring(0, lastDot);
+                    logInfo("Extracted package from import: " + packageName);
+                }
+                locationElement = importDecl;
+            } else if (element instanceof IType || element instanceof IMethod || element instanceof IField) {
+                // Fully qualified name usage - extract package from the element's qualified name
+                String fullyQualifiedName = null;
+                if (element instanceof IType) {
+                    fullyQualifiedName = ((IType) element).getFullyQualifiedName();
+                } else if (element instanceof IMethod) {
+                    IMethod method = (IMethod) element;
+                    IType declaringType = method.getDeclaringType();
+                    if (declaringType != null) {
+                        fullyQualifiedName = declaringType.getFullyQualifiedName();
+                    }
+                } else if (element instanceof IField) {
+                    IField field = (IField) element;
+                    IType declaringType = field.getDeclaringType();
+                    if (declaringType != null) {
+                        fullyQualifiedName = declaringType.getFullyQualifiedName();
+                    }
+                }
+
+                if (fullyQualifiedName != null) {
+                    int lastDot = fullyQualifiedName.lastIndexOf('.');
+                    if (lastDot > 0) {
+                        packageName = fullyQualifiedName.substring(0, lastDot);
+                        logInfo("Extracted package from FQN: " + packageName + " (from " + fullyQualifiedName + ")");
+                    }
+                }
+            } else if (element instanceof IPackageDeclaration) {
+                IPackageDeclaration packageDecl = (IPackageDeclaration) element;
+                packageName = packageDecl.getElementName();
+                logInfo("Direct IPackageDeclaration: " + packageName);
             } else if (element instanceof ICompilationUnit) {
                 ICompilationUnit cu = (ICompilationUnit) element;
                 IPackageDeclaration[] packages = cu.getPackageDeclarations();
                 if (packages != null && packages.length > 0) {
-                    packageDecl = packages[0];
-                    logInfo("Found package from ICompilationUnit: " + packageDecl.getElementName());
+                    packageName = packages[0].getElementName();
+                    logInfo("Found package from ICompilationUnit: " + packageName);
                 }
             } else if (element instanceof IPackageFragment) {
-                // Sometimes the search returns the package fragment itself
                 IPackageFragment pkgFrag = (IPackageFragment) element;
-                logInfo("IPackageFragment: " + pkgFrag.getElementName());
-
-                // Get a compilation unit from this package to extract the package declaration
-                ICompilationUnit[] units = pkgFrag.getCompilationUnits();
-                if (units != null && units.length > 0) {
-                    IPackageDeclaration[] packages = units[0].getPackageDeclarations();
-                    if (packages != null && packages.length > 0) {
-                        packageDecl = packages[0];
-                        logInfo("Found package from IPackageFragment: " + packageDecl.getElementName());
-                    }
-                }
+                packageName = pkgFrag.getElementName();
+                logInfo("IPackageFragment: " + packageName);
             }
 
-            if (packageDecl != null) {
+            if (packageName != null && !packageName.isEmpty()) {
                 SymbolInformation symbol = new SymbolInformation();
-                symbol.setName(packageDecl.getElementName());
-                symbol.setKind(convertSymbolKind(packageDecl));
+                symbol.setName(packageName);
+                symbol.setKind(convertSymbolKind(element));
 
-                // For packages, the container is typically the compilation unit
-                IJavaElement parent = packageDecl.getParent();
+                // For packages, the container is typically the compilation unit or parent element
+                IJavaElement parent = locationElement.getParent();
                 if (parent != null) {
                     symbol.setContainerName(parent.getElementName());
                 }
 
-                symbol.setLocation(getLocation(packageDecl, match));
+                symbol.setLocation(getLocation(locationElement, match));
                 symbols.add(symbol);
-                logInfo("Successfully created symbol for package: " + packageDecl.getElementName());
+                logInfo("Successfully created symbol for package reference: " + packageName);
             } else {
-                logInfo("Could not extract package declaration from match element: " + element.getClass().getName());
+                logInfo("Could not extract package name from match element: " + element.getClass().getName());
             }
         } catch (Exception e) {
-            logInfo("Error processing package declaration: " + e.toString());
+            logInfo("Error processing package reference: " + e.toString());
             e.printStackTrace();
         }
 

@@ -41,7 +41,7 @@ Complete integration test documentation:
 - Architecture (JDT.LS server, LSP client, test framework)
 - Component details (Go LSP client, test framework, helpers)
 - Running tests (locally, containers, CI/CD)
-- Test scenarios for all 8 tested location types
+- Test scenarios for all 15 location types (100% coverage)
 - Test assertions and verification
 - Troubleshooting guide
 - Adding new tests
@@ -139,7 +139,7 @@ Detailed overview of the Java test projects:
 
 ---
 
-### Phase 2: Go Integration Tests (16 functions)
+### Phase 2: Go Integration Tests (18 functions)
 **Location**: `../integration/`
 **Framework**: Go test with real JDT.LS server
 **Coverage**: Actual search results, symbol verification, migration patterns
@@ -161,6 +161,8 @@ Detailed overview of the Java test projects:
 - `TestMethodDeclarationSearch` (location 13)
 - `TestClassDeclarationSearch` (location 14)
 - `TestCustomersTomcatLegacy` (migration patterns)
+- `TestAnnotatedElementMatching` (Priority 1: annotation attributes)
+- `TestFilePathFiltering` (Priority 1: file path filtering)
 
 **Run**: `make phase2` or `cd ../integration && go test -v`
 

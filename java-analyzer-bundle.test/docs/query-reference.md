@@ -4,10 +4,10 @@ This document provides a comprehensive overview of all search queries tested by 
 
 ## Quick Reference
 
-**Total Tests**: 9 test functions covering 8 location types
+**Total Tests**: 18 test functions covering 15 location types (100% coverage)
 **Test Projects**:
 - `test-project`: Systematic patterns for all location types
-- `customers-tomcat`: Real-world Spring MVC application with migration targets
+- `customers-tomcat-legacy`: Real-world Spring MVC application with migration targets
 
 ---
 
@@ -422,17 +422,26 @@ Some location types accept simple names:
 
 | Test Function | Location Types | Queries | Assertions |
 |---------------|----------------|---------|------------|
+| `TestDefaultSearch` | 0 | 3 | Cross-location search verification |
 | `TestInheritanceSearch` | 1 | 3 | Verify specific classes found |
 | `TestMethodCallSearch` | 2 | 2 | Verify call sites and count |
 | `TestConstructorCallSearch` | 3 | 2 | Verify instantiation count |
 | `TestAnnotationSearch` | 4 | 1 | Verify annotation on target |
 | `TestImplementsTypeSearch` | 5 | 1 | Verify implementing class |
+| `TestEnumConstantSearch` | 6 | 2 | Verify enum constant usage |
+| `TestReturnTypeSearch` | 7 | 3 | Verify method return types |
 | `TestImportSearch` | 8 | 1 | Verify import statements |
+| `TestVariableDeclarationSearch` | 9 | 3 | Verify local variable declarations |
 | `TestTypeSearch` | 10 | 1 | Verify type reference count |
+| `TestPackageDeclarationSearch` | 11 | 2 | Verify package declarations |
+| `TestFieldDeclarationSearch` | 12 | 3 | Verify field declarations |
+| `TestMethodDeclarationSearch` | 13 | 4 | Verify method declarations |
 | `TestClassDeclarationSearch` | 14 | 1 | Verify class declaration |
 | `TestCustomersTomcatLegacy` | 4, 8 | 3 | Migration pattern verification |
+| `TestAnnotatedElementMatching` | 4 | 4 | Annotation attributes matching |
+| `TestFilePathFiltering` | 9 | 2 | File path filtering with includedPaths |
 
-**Total Query Executions**: 15 unique search queries across 9 test functions
+**Total Query Executions**: 40+ unique search queries across 18 test functions covering all 15 location types
 
 ---
 

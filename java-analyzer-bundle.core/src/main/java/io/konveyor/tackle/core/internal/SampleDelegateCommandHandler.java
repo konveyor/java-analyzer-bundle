@@ -194,7 +194,14 @@ public class SampleDelegateCommandHandler implements IDelegateCommandHandler {
                 // Include R_ERASURE_MATCH to match parameterized constructor calls (e.g., ArrayList<String> when searching for java.util.ArrayList)
                 return SearchPattern.createPattern(query, IJavaSearchConstants.CONSTRUCTOR, IJavaSearchConstants.ALL_OCCURRENCES, pattern | SearchPattern.R_ERASURE_MATCH);
             case 11:
-                return SearchPattern.createPattern(query, IJavaSearchConstants.PACKAGE, IJavaSearchConstants.ALL_OCCURRENCES, pattern);
+                // PACKAGE location should match any usage of a package:
+                // - Package declarations (package io.konveyor.demo;)
+                // - Import statements (import java.util.List; references java.util package)
+                // - Fully qualified names (java.sql.Connection references java.sql package)
+                // Create an OR pattern to find both declarations AND references
+                SearchPattern declPattern = SearchPattern.createPattern(query, IJavaSearchConstants.PACKAGE, IJavaSearchConstants.DECLARATIONS, pattern);
+                SearchPattern refPattern = SearchPattern.createPattern(query, IJavaSearchConstants.PACKAGE, IJavaSearchConstants.REFERENCES, pattern);
+                return SearchPattern.createOrPattern(declPattern, refPattern);
             case 12:
                 // Include R_ERASURE_MATCH to match parameterized field types (e.g., List<String> when searching for java.util.List)
                 return SearchPattern.createPattern(query, IJavaSearchConstants.TYPE, IJavaSearchConstants.FIELD_DECLARATION_TYPE_REFERENCE, pattern | SearchPattern.R_ERASURE_MATCH);

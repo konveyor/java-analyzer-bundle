@@ -305,6 +305,20 @@ func (c *JDTLSClient) SearchSymbolsWithAnnotation(project, query string, locatio
 func (c *JDTLSClient) Shutdown() error {
 	c.logger.Info("Shutting down JDT.LS server...")
 
+	// Guard against shutdown when connection was never established
+	if c.conn == nil {
+		c.logger.Warn("Connection was never established, skipping LSP shutdown")
+		// Still clean up the process if it exists
+		if c.cmd != nil && c.cmd.Process != nil {
+			c.logger.Info("Terminating JDT.LS process...")
+			c.cmd.Process.Kill()
+		}
+		if c.cancel != nil {
+			c.cancel()
+		}
+		return nil
+	}
+
 	// Create a context with timeout for shutdown requests
 	shutdownCtx, shutdownCancel := context.WithTimeout(c.ctx, 3*time.Second)
 	defer shutdownCancel()
