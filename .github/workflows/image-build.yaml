@@ -36,10 +36,10 @@ jobs:
           application_id: ${{ vars.KONVEYOR_BOT_ID }}
           application_private_key: ${{ secrets.KONVEYOR_BOT_KEY }}
 
-      // Tell the analyzer to re-build it's images to get the update image.
+      # Tell the analyzer to re-build it's images to get the update image.
       - uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
           repository: "konveyor/analyzer-lsp"
           event-type: rebuild-java-provider
-          client-payload: '{"ref": "${{ github.ref_name }}"}'
+          client-payload: '{"ref": "${{ github.ref}}", "ref_name": "${{ github.ref_name }}"}'
