@@ -15,8 +15,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <tycho.version>3.0.1</tycho.version>
-    <tycho.extras.version>3.0.1</tycho.extras.version>
+    <tycho.version>4.0.7</tycho.version>
+    <tycho.extras.version>4.0.7</tycho.extras.version>
     <tycho.scmUrl>scm:git:https://github.com/konveyor/java-analyzer-bundle.git</tycho.scmUrl>
     <tycho.generateSourceReferences>true</tycho.generateSourceReferences>
     <tycho.test.platformArgs />
@@ -41,10 +41,17 @@
         <artifactId>target-platform-configuration</artifactId>
         <version>${tycho.version}</version>
         <configuration>
-          <executionEnvironment>JavaSE-17</executionEnvironment>
-          <resolver>p2</resolver>
-          <pomDependencies>consider</pomDependencies>
-          <ignoreTychoRepositories>true</ignoreTychoRepositories>
+          <executionEnvironment>JavaSE-21</executionEnvironment>
+          <environments>
+            <environment>
+              <os>linux</os>
+              <ws>gtk</ws>
+              <arch>x86_64</arch>
+            </environment>
+          </environments>
+          <!-- <resolver>p2</resolver> -->
+          <!-- <pomDependencies>consider</pomDependencies> -->
+          <!-- <ignoreTychoRepositories>true</ignoreTychoRepositories> -->
           <target>
             <artifact>
               <groupId>io.konveyor.tackle</groupId>
