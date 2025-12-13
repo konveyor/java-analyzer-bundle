@@ -42,13 +42,6 @@
         <version>${tycho.version}</version>
         <configuration>
           <executionEnvironment>JavaSE-21</executionEnvironment>
-          <environments>
-            <environment>
-              <os>linux</os>
-              <ws>gtk</ws>
-              <arch>x86_64</arch>
-            </environment>
-          </environments>
           <!-- <resolver>p2</resolver> -->
           <!-- <pomDependencies>consider</pomDependencies> -->
           <!-- <ignoreTychoRepositories>true</ignoreTychoRepositories> -->
