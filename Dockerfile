@@ -16,13 +16,13 @@ RUN mkdir /output && cp ./build/libs/fernflower.jar /output
 
 FROM registry.access.redhat.com/ubi9/ubi AS addon-build
 RUN dnf install -y java-21-openjdk-devel wget zip --nodocs --setopt=install_weak_deps=0 && dnf clean all && rm -rf /var/cache/dnf
-RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz && \
+RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
     rm /tmp/apache-maven.tar.gz
 WORKDIR /app
 COPY ./ /app/
 ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
-RUN /usr/local/apache-maven-3.9.11/bin/mvn clean install -DskipTests=true
+RUN /usr/local/apache-maven-3.9.12/bin/mvn clean install -DskipTests=true
 # Download maven index data
 WORKDIR /maven-index-data
 RUN DOWNLOAD_URL=$(wget --quiet -O - https://api.github.com/repos/konveyor/maven-search-index/releases/latest | grep '"browser_download_url".*maven-index-data.*\.zip' | sed -E 's/.*"browser_download_url": "([^"]+)".*/\1/') && \
@@ -36,7 +36,7 @@ RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-21-openjdk-devel 
 ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
 # Specify Java 1.8 home for usage with gradle wrappers
 ENV JAVA8_HOME /usr/lib/jvm/java-1.8.0-openjdk
-ENV M2_HOME /usr/local/apache-maven-3.9.11
+ENV M2_HOME /usr/local/apache-maven-3.9.12
 
 # Copy "download sources" gradle task. This is needed to download project sources.
 RUN mkdir /root/.gradle
@@ -46,8 +46,8 @@ COPY ./gradle/build-v9.gradle /usr/local/etc/task-v9.gradle
 COPY hack/maven.default.index /usr/local/etc/maven.default.index
 
 COPY --from=jdtls-download /jdtls /jdtls/
-COPY --from=addon-build /usr/local/apache-maven-3.9.11/ /usr/local/apache-maven-3.9.11/
-RUN ln -s /usr/local/apache-maven-3.9.11/bin/mvn /usr/bin/mvn
+COPY --from=addon-build /usr/local/apache-maven-3.9.12/ /usr/local/apache-maven-3.9.12/
+RUN ln -s /usr/local/apache-maven-3.9.12/bin/mvn /usr/bin/mvn
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/plugins/
 COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
