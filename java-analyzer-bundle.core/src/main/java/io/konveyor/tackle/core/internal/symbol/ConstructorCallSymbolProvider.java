@@ -72,12 +72,16 @@ public class ConstructorCallSymbolProvider implements SymbolProvider, WithQuery 
                 CompilationUnit cu = (CompilationUnit) astParser.createAST(null);
                 CustomASTVisitor visitor = new CustomASTVisitor(query, match, QueryLocation.CONSTRUCTOR_CALL);
                 // Under tests, resolveConstructorBinding will return null if there are problems
-                    cu.accept(visitor);
-                    if (visitor.symbolMatches()) {
-                        symbols.add(symbol);
+                cu.accept(visitor);
+                if (visitor.symbolMatches()) {
+                    symbols.add(symbol);
+                }
+                if (unit != null && unit.isWorkingCopy())  {
+                    synchronized (SymbolProvider.LOCATION_LOCK) {
+                        unit.discardWorkingCopy();
+                        unit.close();
                     }
-                unit.discardWorkingCopy();
-                unit.close();
+                }
             } else {
                 symbols.add(symbol);
             }
