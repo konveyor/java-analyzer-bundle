@@ -26,4 +26,11 @@ public class ServletExample extends HttpServlet {
         String data = request.getParameter("data");
         response.getWriter().println("Received: " + data);
     }
+
+    /**
+     * See note on {@link SampleApplication#callFullyQualifiedMethod()}
+     */
+    public void merge(Object o) {
+        System.out.println("Calling merge() from ServletExample with object: " + o);
+    }
 }

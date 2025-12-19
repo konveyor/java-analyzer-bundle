@@ -274,6 +274,15 @@ public interface SymbolProvider {
                         return true;
                     }
                 }
+                // Handle same-package references: if queryQualification is a simple class name
+                // (no dots = no package prefix), the referenced class might be in the same package.
+                // Since same-package classes don't need imports, we should allow the match
+                // and let the AST visitor verify with binding information.
+                if (!queryQualification.contains(".")) {
+                    logInfo("queryQualificationMatches: queryQualification '" + queryQualification + 
+                           "' has no package prefix, could be same-package reference. Allowing match.");
+                    return true;
+                }
             } catch (Exception e) {
                 logInfo("unable to determine accuracy of the match");
             }
