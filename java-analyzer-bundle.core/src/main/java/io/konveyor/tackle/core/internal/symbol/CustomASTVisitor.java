@@ -73,15 +73,22 @@ public class CustomASTVisitor extends ASTVisitor {
     /*
      * When visiting AST nodes, it may happen that we visit more nodes than
      * needed. We need to ensure that we are only visiting ones that are found
-     * in the given search match. I wrote this for methods / constructors where 
-     * I observed that node starts at the beginning of line whereas match starts 
-     * at an offset within that line. However, both end on the same position. This 
-     * could differ for other locations. In that case, change logic based on type of
-     * the node you get.
+     * in the given search match.
+     * 
+     * The match offset/length points to the specific code location (e.g., the method
+     * call), while the AST node may have slightly different boundaries. We check if
+     * the match falls within the node's range to handle cases like qualified method
+     * references where the SearchMatch element is the containing method but the
+     * offset points to the actual call site.
      */
     private boolean shouldVisit(ASTNode node) {
-        return (this.match.getOffset() + this.match.getLength()) == 
-            (node.getStartPosition() + node.getLength());
+        int matchStart = this.match.getOffset();
+        int matchEnd = matchStart + this.match.getLength();
+        int nodeStart = node.getStartPosition();
+        int nodeEnd = nodeStart + node.getLength();
+        boolean result = (matchStart >= nodeStart && matchEnd <= nodeEnd) ||
+               (matchEnd == nodeEnd);
+        return result;
     }
 
     @Override

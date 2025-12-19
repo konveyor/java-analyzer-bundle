@@ -208,13 +208,15 @@ public interface SymbolProvider {
         // e.g. java.nio.file.Paths.get(String)/java.nio.file.Paths.get(*)  -> java.nio.file.Paths.get
         // Remove any parentheses and their contents
         query = query.replaceAll("\\([^|]*\\)", "");
-        query = query.replaceAll("(?<!\\.)\\*", ".*");
+        
         String queryQualification = "";
         int dotIndex = query.lastIndexOf('.');
         if (dotIndex > 0) {
             // for a query, java.io.paths.File*, queryQualification is java.io.paths
             queryQualification = query.substring(0, dotIndex);
         }
+        
+        query = query.replaceAll("(?<!\\.)\\*", ".*");
         // an element need not be imported if its referenced by fqn
         if (!queryQualification.isEmpty() && (
                 matchedElement.getElementName().equals(queryQualification)

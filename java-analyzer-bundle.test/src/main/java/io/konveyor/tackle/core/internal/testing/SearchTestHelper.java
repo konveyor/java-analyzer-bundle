@@ -17,25 +17,6 @@ import io.konveyor.tackle.core.internal.query.AnnotationQuery;
  * Provides convenient wrappers around the RuleEntry command with filtering and
  * debugging utilities.
  * 
- * <h3>Location Type Reference:</h3>
- * <ul>
- *   <li>0 - DEFAULT (searches across all types)</li>
- *   <li>1 - INHERITANCE</li>
- *   <li>2 - METHOD_CALL</li>
- *   <li>3 - CONSTRUCTOR_CALL</li>
- *   <li>4 - ANNOTATION</li>
- *   <li>5 - IMPLEMENTS_TYPE</li>
- *   <li>6 - ENUM_CONSTANT</li>
- *   <li>7 - RETURN_TYPE</li>
- *   <li>8 - IMPORT</li>
- *   <li>9 - VARIABLE_DECLARATION</li>
- *   <li>10 - TYPE</li>
- *   <li>11 - PACKAGE</li>
- *   <li>12 - FIELD</li>
- *   <li>13 - METHOD_DECLARATION</li>
- *   <li>14 - CLASS_DECLARATION</li>
- * </ul>
- * 
  * <h3>Usage Example:</h3>
  * <pre>{@code
  * // Simple search
