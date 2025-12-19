@@ -94,4 +94,22 @@ public class SampleApplication extends BaseService {
     public void initialize() {
         System.out.println("Initializing SampleApplication");
     }
+
+    /* 
+     * This is a function that calls PackageUsageExample.merge() 
+     * this is intended to test fully qualified method call and method
+     * method declaration queries. There are multiple merge() functions
+     * throughout the project, we want to only match on PackageUsageExample.merge()
+     */
+    public static void callFullyQualifiedMethod() {
+        PackageUsageExample packageUsageExample = new PackageUsageExample();
+        packageUsageExample.merge(new Object());
+    }
+
+    /**
+     * See note on #callFullyQualifiedMethod()
+     */
+    public void merge(Object o) {
+        System.out.println("Calling merge() from SampleApplication with object: " + o);
+    }
 }

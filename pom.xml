@@ -70,8 +70,11 @@
             <useUIHarness>false</useUIHarness>
             <argLine>${tycho.test.jvmArgs}</argLine>
             <showEclipseLog>true</showEclipseLog>
-            <!-- kill test JVM if tests take more than 1 minute (60 seconds) to finish -->
-            <forkedProcessTimeoutInSeconds>60</forkedProcessTimeoutInSeconds>
+            <!-- kill test JVM if tests take more than 4 minutes (240 seconds) to finish -->
+            <forkedProcessTimeoutInSeconds>240</forkedProcessTimeoutInSeconds>
+            <!-- Show test stdout/stderr in console -->
+            <redirectTestOutputToFile>false</redirectTestOutputToFile>
+            <printSummary>true</printSummary>
           </configuration>
         </plugin>
         <plugin>

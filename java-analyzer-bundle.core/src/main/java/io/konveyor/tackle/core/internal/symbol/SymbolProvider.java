@@ -208,13 +208,15 @@ public interface SymbolProvider {
         // e.g. java.nio.file.Paths.get(String)/java.nio.file.Paths.get(*)  -> java.nio.file.Paths.get
         // Remove any parentheses and their contents
         query = query.replaceAll("\\([^|]*\\)", "");
-        query = query.replaceAll("(?<!\\.)\\*", ".*");
+        
         String queryQualification = "";
         int dotIndex = query.lastIndexOf('.');
         if (dotIndex > 0) {
             // for a query, java.io.paths.File*, queryQualification is java.io.paths
             queryQualification = query.substring(0, dotIndex);
         }
+        
+        query = query.replaceAll("(?<!\\.)\\*", ".*");
         // an element need not be imported if its referenced by fqn
         if (!queryQualification.isEmpty() && (
                 matchedElement.getElementName().equals(queryQualification)
@@ -273,6 +275,15 @@ public interface SymbolProvider {
                     if (query.equals(importElement) || query.startsWith(importElement + ".")) {
                         return true;
                     }
+                }
+                // Handle same-package references: if queryQualification is a simple class name
+                // (no dots = no package prefix), the referenced class might be in the same package.
+                // Since same-package classes don't need imports, we should allow the match
+                // and let the AST visitor verify with binding information.
+                if (!queryQualification.contains(".")) {
+                    logInfo("queryQualificationMatches: queryQualification '" + queryQualification + 
+                           "' has no package prefix, could be same-package reference. Allowing match.");
+                    return true;
                 }
             } catch (Exception e) {
                 logInfo("unable to determine accuracy of the match");
