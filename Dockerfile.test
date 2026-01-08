@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi9/ubi AS jdtls-download
 WORKDIR /jdtls
-RUN curl -s -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.38.0/jdt-language-server-1.38.0-202408011337.tar.gz &&\
-	tar -xvf jdtls.tar.gz --no-same-owner &&\
+RUN curl -s -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.51.0/jdt-language-server-1.51.0-202510022025.tar.gz &&\
+	tar -xvf jdtls.tar.gz --no-same-owner --no-same-permissions &&\
 	chmod 755 /jdtls/bin/jdtls &&\
         rm -rf jdtls.tar.gz
 
@@ -30,11 +30,11 @@ RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-21-openjdk-devel 
 ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
 # Specify Java 1.8 home for usage with gradle wrappers
 ENV JAVA8_HOME /usr/lib/jvm/java-1.8.0-openjdk
-RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz && \
+RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
-    ln -s /usr/local/apache-maven-3.9.11/bin/mvn /usr/bin/mvn && \
+    ln -s /usr/local/apache-maven-3.9.12/bin/mvn /usr/bin/mvn && \
     rm /tmp/apache-maven.tar.gz
-ENV M2_HOME /usr/local/apache-maven-3.9.11
+ENV M2_HOME /usr/local/apache-maven-3.9.12
 
 # Copy "download sources" gradle task. This is needed to download project sources.
 RUN mkdir /root/.gradle
