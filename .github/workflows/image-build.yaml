@@ -28,6 +28,7 @@ jobs:
   build_image_analyzer:
     name: trigger java provider rebuild
     runs-on: ubuntu-latest
+    needs: image-build
     steps:
       - name: Get Token
         id: get_workflow_token
