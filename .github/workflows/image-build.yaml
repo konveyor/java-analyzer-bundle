@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   image-build:
-    uses: pranavgaikwad/release-tools/.github/workflows/build-push-images.yaml@feat/makePushOptional
+    uses: konveyor/release-tools/.github/workflows/build-push-images.yaml@main
     with:
       registry: "quay.io/konveyor"
       image_name: "jdtls-server-base"
