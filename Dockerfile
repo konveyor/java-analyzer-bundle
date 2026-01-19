@@ -25,10 +25,18 @@ ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
 RUN /usr/local/apache-maven-3.9.12/bin/mvn clean install -DskipTests=true
 # Download maven index data
 WORKDIR /maven-index-data
-RUN DOWNLOAD_URL=$(wget --quiet -O - https://api.github.com/repos/konveyor/maven-search-index/releases/latest | grep '"browser_download_url".*maven-index-data.*\.zip' | sed -E 's/.*"browser_download_url": "([^"]+)".*/\1/') && \
-    wget --quiet ${DOWNLOAD_URL} -O maven-index-data.zip && \
-    unzip maven-index-data.zip && \
-    rm maven-index-data.zip
+RUN set -e; \
+  URL=$(wget -qO- https://api.github.com/repos/konveyor/maven-search-index/releases/latest \
+    | grep '"browser_download_url".*maven-index-data.*\.zip' \
+    | sed -E 's/.*"browser_download_url": "([^"]+)".*/\1/' \
+    || true); \
+  if [ -z "$URL" ]; then \
+    echo "Falling back to direct download"; \
+    URL=https://github.com/konveyor/maven-search-index/releases/download/v2025-11-11/maven-index-data-v20251112021242.zip; \
+  fi; \
+  wget -q "$URL" -O maven-index-data.zip && \
+  unzip maven-index-data.zip && \
+  rm maven-index-data.zip
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 # Java 1.8 is required for backwards compatibility with older versions of Gradle
