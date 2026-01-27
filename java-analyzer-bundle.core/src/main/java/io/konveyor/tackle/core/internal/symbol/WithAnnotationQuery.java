@@ -7,6 +7,7 @@ import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.internal.core.Annotation;
+import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.internal.core.SourceRefElement;
 
 import java.util.Arrays;
@@ -39,7 +40,6 @@ public interface WithAnnotationQuery {
                         .filter(c -> c.isInstance(match.getElement()))
                         .map(c -> c.cast(match.getElement()))
                         .map(this::tryToGetAnnotations).findFirst().orElse(new IAnnotation[]{});
-
                 // If we are expecting annotations and the symbol is not annotated, return false
                 if (annotations.length == 0) {
                     return false;
