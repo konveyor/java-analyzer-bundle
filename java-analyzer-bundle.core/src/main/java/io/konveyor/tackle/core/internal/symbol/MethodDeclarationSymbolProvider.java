@@ -4,31 +4,15 @@ import static org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin.logInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 import io.konveyor.tackle.core.internal.query.AnnotationQuery;
-import org.eclipse.core.runtime.URIUtil;
-import org.eclipse.jdt.core.IAnnotation;
-import org.eclipse.jdt.core.IClassFile;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IPackageDeclaration;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.core.search.MethodDeclarationMatch;
-import org.eclipse.jdt.internal.core.Annotation;
 import org.eclipse.jdt.internal.core.ResolvedSourceMethod;
-import org.eclipse.jdt.internal.core.ResolvedSourceType;
-import org.eclipse.jdt.internal.core.SourceField;
 import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.internal.core.SourceRefElement;
-import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 
@@ -50,6 +34,7 @@ public class MethodDeclarationSymbolProvider implements SymbolProvider, WithQuer
 
             List<Class<? extends SourceRefElement>> classes = new ArrayList<>();
             classes.add(ResolvedSourceMethod.class);
+            classes.add(SourceMethod.class);
             if (matchesAnnotationQuery(match, classes)) {
                 symbols.add(symbol);
             }
