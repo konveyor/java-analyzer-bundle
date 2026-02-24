@@ -66,6 +66,13 @@ public interface WithAnnotationQuery {
                                         }
                                     }
                                 }
+                            } else if (member.getValue() instanceof IAnnotation) {
+                                Annotation innerAnnotation = (Annotation) member.getValue();
+                                for (String fqn : getFQNCandidates(innerAnnotation)) {
+                                    if (getAnnotationQuery().matchesAnnotation(fqn)) {
+                                        return doElementsMatch(innerAnnotation);
+                                    }
+                                }
                             }
                         }
                     }
@@ -185,7 +192,8 @@ public interface WithAnnotationQuery {
         if (name == null || name.isEmpty()) {
             return List.of();
         }
-        if (Pattern.matches(".*\\.", name)) {
+        // Already fully qualified in source (e.g. @com.example.MyAnnotation)
+        if (name.contains(".")) {
             return List.of(name);
         }
         List<IImportDeclaration> imports = tryToGetImports(annotation);
