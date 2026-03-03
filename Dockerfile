@@ -22,7 +22,7 @@ RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-
 WORKDIR /app
 COPY ./ /app/
 ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
-RUN /usr/local/apache-maven-3.9.12/bin/mvn clean install -DskipTests=true
+RUN --mount=type=cache,id=m2_repo,uid=1001,target=/root/.m2 /usr/local/apache-maven-3.9.12/bin/mvn clean install -DskipTests=true && cp /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar ./
 # Download maven index data
 WORKDIR /maven-index-data
 RUN set -e; \
@@ -56,8 +56,8 @@ COPY hack/maven.default.index /usr/local/etc/maven.default.index
 COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /usr/local/apache-maven-3.9.12/ /usr/local/apache-maven-3.9.12/
 RUN ln -s /usr/local/apache-maven-3.9.12/bin/mvn /usr/bin/mvn
-COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/plugins/
-COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
+COPY --from=addon-build /app/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/plugins/
+COPY --from=addon-build /app/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
 COPY --from=addon-build /maven-index-data/central.archive-metadata.txt /usr/local/etc/maven-index.txt
 
