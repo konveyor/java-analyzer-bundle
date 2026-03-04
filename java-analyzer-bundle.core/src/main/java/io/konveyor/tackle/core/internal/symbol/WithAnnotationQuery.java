@@ -10,6 +10,7 @@ import org.eclipse.jdt.internal.core.Annotation;
 import org.eclipse.jdt.internal.core.SourceMethod;
 import org.eclipse.jdt.internal.core.SourceRefElement;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -47,28 +48,33 @@ public interface WithAnnotationQuery {
 
                 // Iterate over the annotation this symbol is annotated with
                 for (IAnnotation annotation : annotations) {
-                    // See if the annotation's name matches the pattern given in the query for the annotation
-                    String fqn = getFQN(annotation);
-                    if (getAnnotationQuery().matchesAnnotation(fqn)) {
-                        return doElementsMatch((Annotation) annotation);
-                    } else {
-                        // The LS doesn't seem to be able to match on annotations within annotations, but
-                        // if the main annotation doesn't match, there might be some annotations inside:
-                        for (IMemberValuePair member : annotation.getMemberValuePairs()) {
-                            if (member.getValueKind() == IMemberValuePair.K_ANNOTATION) {
-                                if (member.getValue() instanceof Object[]) {
-                                    Object[] objs = (Object[]) member.getValue();
-                                    for (int i = 0; i < objs.length; i++) {
-                                        Annotation innerAnnotation = (Annotation) objs[i];
-                                        fqn = getFQN(innerAnnotation);
+                    for (String fqn : getFQNCandidates(annotation)) {
+                        if (getAnnotationQuery().matchesAnnotation(fqn)) {
+                            return doElementsMatch((Annotation) annotation);
+                        }
+                    }
+                    // Nested annotations (e.g. in member value pairs)
+                    for (IMemberValuePair member : annotation.getMemberValuePairs()) {
+                        if (member.getValueKind() == IMemberValuePair.K_ANNOTATION) {
+                            if (member.getValue() instanceof Object[]) {
+                                Object[] objs = (Object[]) member.getValue();
+                                for (int i = 0; i < objs.length; i++) {
+                                    Annotation innerAnnotation = (Annotation) objs[i];
+                                    for (String fqn : getFQNCandidates(innerAnnotation)) {
                                         if (getAnnotationQuery().matchesAnnotation(fqn)) {
                                             return doElementsMatch(innerAnnotation);
                                         }
                                     }
                                 }
+                            } else if (member.getValue() instanceof IAnnotation) {
+                                Annotation innerAnnotation = (Annotation) member.getValue();
+                                for (String fqn : getFQNCandidates(innerAnnotation)) {
+                                    if (getAnnotationQuery().matchesAnnotation(fqn)) {
+                                        return doElementsMatch(innerAnnotation);
+                                    }
+                                }
                             }
                         }
-
                     }
                 }
                 return false;
@@ -178,21 +184,37 @@ public interface WithAnnotationQuery {
     }
 
     /**
-     * Tries to extract the fqn of the annotation from the list of imports of the compilation unit.
+     * Returns all possible FQNs for this annotation from the CU's imports: single-type match (if any)
+     * first, then one candidate per on-demand import. Caller tries each until the rule matches.
      */
-    private String getFQN(IAnnotation annotation) {
+    private List<String> getFQNCandidates(IAnnotation annotation) {
         String name = annotation.getElementName();
-        if (Pattern.matches(".*\\.", name)) {
-            // If the name of the annotation has a dot on it, it's a fqn
-            return name;
-        } else {
-            // If not, the annotation must have been imported. Look in the imports:
-            return tryToGetImports(annotation).stream()
-                    .filter(i -> i.getElementName().endsWith(name))
-                    .findFirst()
-                    .map(IImportDeclaration::getElementName)
-                    .orElse("");
+        if (name == null || name.isEmpty()) {
+            return List.of();
         }
+        // Already fully qualified in source (e.g. @com.example.MyAnnotation)
+        if (name.contains(".")) {
+            return List.of(name);
+        }
+        List<IImportDeclaration> imports = tryToGetImports(annotation);
+        List<String> candidates = new ArrayList<>();
+        // Single-type: at most one
+        imports.stream()
+                .filter(i -> i.getElementName().endsWith(name))
+                .findFirst()
+                .map(IImportDeclaration::getElementName)
+                .ifPresent(candidates::add);
+        // On-demand: one candidate per pkg.*
+        for (IImportDeclaration imp : imports) {
+            String elementName = imp.getElementName();
+            if (elementName != null && elementName.endsWith(".*")) {
+                String prefix = elementName.substring(0, elementName.length() - 2);
+                if (!prefix.isEmpty()) {
+                    candidates.add(prefix + "." + name);
+                }
+            }
+        }
+        return candidates;
     }
 
     private List<IImportDeclaration> tryToGetImports(IAnnotation annotation) {
