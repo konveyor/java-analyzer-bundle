@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.lang.reflect.Parameter;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -52,17 +51,12 @@ public class CustomASTVisitor extends ASTVisitor {
         /*
          * Extract parameter types from the query pattern if present
          * e.g., "java.util.Properties.setProperty(java.lang.String, java.lang.String)"
-         * We'll extract ["java.lang.String", "java.lang.String"] and strip the parameters from the query
+         * We'll extract ["java.lang.String", "java.lang.String"] and strip only that parameter list
+         * from the query for FQN matching — not parenthetical alternation like "pkg.(A|B)".
          */
-        this.queryParameterTypes = extractParameterTypes(query);
-        String processedQuery = query.replaceAll("\\([^)]*\\)", "");
-
-        /*
-         * When comparing query pattern with an actual java element's fqn
-         * we need to make sure that * not preceded with a . are replaced
-         * by .* so that java regex works as expected on them
-        */
-        this.query = processedQuery.replaceAll("(?<!\\.)\\*", ".*");
+        ParameterParseResult parsed = parseParameterList(query);
+        this.queryParameterTypes = parsed.types;
+        this.query = buildFqnRegexPattern(parsed, query);
         this.symbolMatches = false;
         this.match = match;
         // depending on which location the query was for we only want to
@@ -299,53 +293,74 @@ public class CustomASTVisitor extends ASTVisitor {
     }
 
     /**
-     * Extracts parameter types from a query pattern.
-     * e.g., "ClassName.method(Type1, Type2)" -> ["Type1", "Type2"]
-     * Returns null if no parameters are specified in the query
-     *
-     * Note: Must distinguish between method parameters like "method(String, int)"
-     * and regex alternation groups like "java.io.(FileWriter|FileReader)"
+     * Result of parsing a query for an optional trailing Java parameter list.
+     * When {@code types != null}, {@code paramOpenIndex} and {@code paramCloseIndex} bound the
+     * {@code (...)} segment to remove for FQN matching (indices of {@code '('} and {@code ')'}).
      */
-    List<String> extractParameterTypes(String query) {
-        // Performance: Quick check before indexOf
+    static final class ParameterParseResult {
+        final List<String> types;
+        final int paramOpenIndex;
+        final int paramCloseIndex;
+
+        private ParameterParseResult(List<String> types, int paramOpenIndex, int paramCloseIndex) {
+            this.types = types;
+            this.paramOpenIndex = paramOpenIndex;
+            this.paramCloseIndex = paramCloseIndex;
+        }
+
+        static ParameterParseResult none() {
+            return new ParameterParseResult(null, -1, -1);
+        }
+
+        static ParameterParseResult withTypes(List<String> types, int paramOpenIndex, int paramCloseIndex) {
+            return new ParameterParseResult(types, paramOpenIndex, paramCloseIndex);
+        }
+    }
+
+    /**
+     * Strips only a successfully parsed parameter list, then normalizes unqualified {@code *} to {@code .*} for regex.
+     * Package-private for unit tests (same package).
+     */
+    static String buildFqnRegexPattern(ParameterParseResult parsed, String query) {
+        String processed = query;
+        if (parsed.types != null) {
+            processed = query.substring(0, parsed.paramOpenIndex) + query.substring(parsed.paramCloseIndex + 1);
+        }
+        return processed.replaceAll("(?<!\\.)\\*", ".*");
+    }
+
+    /**
+     * Parses the query for a trailing Java formal parameter list (first {@code '('} through last {@code ')'})
+     * when heuristics indicate alternation groups like {@code pkg.(A|B)} are not in play.
+     */
+    static ParameterParseResult parseParameterList(String query) {
         int openParen = query.indexOf('(');
         if (openParen == -1) {
-            return null;  // No parameters specified in query
+            return ParameterParseResult.none();
         }
 
         int closeParen = query.lastIndexOf(')');
         if (closeParen == -1 || openParen >= closeParen) {
-            return null;  // Invalid or no parameters
+            return ParameterParseResult.none();
         }
 
-        // Check if this looks like method parameters vs regex alternation
-        // Method parameters: "ClassName.methodName(Type1, Type2)" - parens at END with optional * after
-        // Regex alternation: "java.io.(FileWriter|FileReader)*" - parens in MIDDLE with content after
-        //
-        // Heuristic: If there's a '|' (pipe) character inside the parentheses, it's likely
-        // a regex alternation group, not method parameters
         String potentialParams = query.substring(openParen + 1, closeParen);
         if (potentialParams.contains("|")) {
-            return null;  // Regex alternation, not method parameters
+            return ParameterParseResult.none();
         }
 
-        // Another check: method parameters should be near the end of the pattern
-        // Look for content after the closing paren (besides wildcards * which are common)
         String afterParen = query.substring(closeParen + 1).trim();
         if (afterParen.length() > 0 && !afterParen.matches("\\**")) {
-            // There's significant content after the closing paren, not method parameters
-            return null;
+            return ParameterParseResult.none();
         }
 
         String paramsString = potentialParams.trim();
         if (paramsString.isEmpty()) {
-            return Collections.emptyList();  // Empty parameter list: method()
+            return ParameterParseResult.withTypes(Collections.emptyList(), openParen, closeParen);
         }
 
-        // Performance: Pre-size ArrayList for common cases (most methods have 1-3 params)
         List<String> params = new ArrayList<>(4);
 
-        // Split by comma, handling nested generics like Map<String, Integer>
         int depth = 0;
         int start = 0;
         int length = paramsString.length();
@@ -361,10 +376,21 @@ public class CustomASTVisitor extends ASTVisitor {
                 start = i + 1;
             }
         }
-        // Add the last parameter
         params.add(paramsString.substring(start).trim());
 
-        return params;
+        return ParameterParseResult.withTypes(params, openParen, closeParen);
+    }
+
+    /**
+     * Extracts parameter types from a query pattern.
+     * e.g., "ClassName.method(Type1, Type2)" -> ["Type1", "Type2"]
+     * Returns null if no parameters are specified in the query
+     *
+     * Note: Must distinguish between method parameters like "method(String, int)"
+     * and regex alternation groups like "java.io.(FileWriter|FileReader)"
+     */
+    List<String> extractParameterTypes(String query) {
+        return parseParameterList(query).types;
     }
 
     /**
