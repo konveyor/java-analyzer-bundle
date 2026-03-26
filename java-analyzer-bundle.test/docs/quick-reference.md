@@ -6,9 +6,9 @@ Quick reference for what's tested and what's not in the Java Analyzer Bundle int
 
 ```
 Location Types: 15/15 tested (100%) ✅
-Test Functions: 18
+Test Functions: 18 (47 sub-tests total)
 Advanced Features: 2/2 tested (Priority 1)
-Query Patterns: 40+ unique queries
+Query Patterns: 47 unique queries
 Test Projects: 2 (systematic + real-world)
 ```
 
@@ -31,7 +31,7 @@ Test Projects: 2 (systematic + real-world)
 | **8** | Imports | `java.io.File`, `javax.persistence.Entity` | both |
 | **9** | Variable Decls | `java.lang.String`, `java.io.File` | test-project |
 | **10** | Type Refs | `java.util.ArrayList` | test-project |
-| **11** | Package Decls | `io.konveyor.demo` | test-project |
+| **11** | Package Decls | `io.konveyor.demo.*`, `java.util`, `jakarta.*`, etc. | test-project |
 | **12** | Field Decls | `java.util.List`, `java.io.File` | test-project |
 | **13** | Method Decls | `processData`, `getName`, `add` | test-project |
 | **14** | Class Decls | `SampleApplication` | test-project |
@@ -52,17 +52,35 @@ integration/
 ### Java Test Projects
 ```
 projects/
-├── test-project/             # Systematic pattern coverage
+├── test-project/                    # Systematic pattern coverage (19 Java files)
 │   └── src/main/java/io/konveyor/demo/
-│       ├── SampleApplication.java       # Main test file
-│       ├── inheritance/BaseService.java
+│       ├── SampleApplication.java         # Main test file
+│       ├── Calculator.java                # Return type examples
+│       ├── EnumExample.java               # Enum constant examples
+│       ├── PackageUsageExample.java       # Package reference examples
+│       ├── ServletExample.java            # Jakarta servlet example
 │       ├── annotations/CustomAnnotation.java
-│       └── EnumExample.java
+│       ├── annotations/DeprecatedApi.java
+│       ├── inheritance/BaseService.java
+│       ├── inheritance/DataService.java
+│       ├── inheritance/CustomException.java
+│       ├── jms/MessageProcessor.java      # JMS/EJB annotations
+│       ├── jms/TopicMessageProcessor.java
+│       ├── config/DataSourceConfig.java   # PostgreSQL @DataSourceDefinition
+│       ├── config/MySQLDataSourceConfig.java # MySQL @DataSourceDefinition
+│       ├── entity/Product.java            # JPA @Entity, @Column
+│       ├── persistence/ServiceWithEntityManager.java
+│       ├── persistence/JdbcOnlyService.java
+│       ├── persistence/AnotherMixedService.java
+│       └── persistence/PureJpaService.java
 │
-└── customers-tomcat-legacy/  # Real-world migration
+└── customers-tomcat-legacy/         # Real-world migration (10 Java files)
     └── src/main/java/io/konveyor/demo/ordermanagement/
         ├── model/Customer.java          # JPA entity
-        └── service/CustomerService.java # Spring service
+        ├── service/CustomerService.java # Spring service
+        ├── controller/CustomerController.java
+        ├── repository/CustomerRepository.java
+        └── config/PersistenceConfig.java
 ```
 
 ## Test Functions
@@ -82,7 +100,7 @@ projects/
 | `TestImportSearch` | 8 | 1 | Verify import statements |
 | `TestVariableDeclarationSearch` | 9 | 3 | Verify local variable declarations |
 | `TestTypeSearch` | 10 | 1 | Verify type references |
-| `TestPackageDeclarationSearch` | 11 | 2 | Verify package declarations |
+| `TestPackageDeclarationSearch` | 11 | 8 | Verify package references in imports/FQNs |
 | `TestFieldDeclarationSearch` | 12 | 3 | Verify field declarations |
 | `TestMethodDeclarationSearch` | 13 | 4 | Verify method declarations |
 | `TestClassDeclarationSearch` | 14 | 1 | Verify class declaration |
@@ -180,8 +198,9 @@ make phase2     # Just integration tests
 
 ### Manual Container Run
 ```bash
-# Build image
-podman build -t jdtls-analyzer:test .
+# Build plugin JAR first, then build image (from repository root)
+mvn clean install -DskipTests
+podman build -t jdtls-analyzer:test -f Dockerfile.test .
 
 # Run tests
 podman run --rm \
@@ -191,8 +210,11 @@ podman run --rm \
   --workdir /tests/integration \
   --entrypoint /bin/sh \
   jdtls-analyzer:test \
-  -c "microdnf install -y golang && go mod download && go test -v"
+  -c "go mod download && go test -v"
 ```
+
+**Note**: `Dockerfile.test` requires a pre-built JAR and pre-installs golang. CI uses the
+default `Dockerfile` which builds the JAR from source and installs golang at runtime.
 
 ### Run Specific Test
 ```bash
