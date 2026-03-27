@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi AS jdtls-download
+FROM registry.access.redhat.com/ubi10/ubi AS jdtls-download
 WORKDIR /jdtls
 RUN curl -s -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.51.0/jdt-language-server-1.51.0-202510022025.tar.gz &&\
 	tar -xvf jdtls.tar.gz --no-same-owner &&\
@@ -7,14 +7,14 @@ RUN curl -s -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.51.0
 
 COPY jdtls-bin-override/jdtls.py /jdtls/bin/jdtls.py
 
-FROM registry.access.redhat.com/ubi9/ubi AS fernflower
+FROM registry.access.redhat.com/ubi10/ubi AS fernflower
 RUN dnf install -y maven-openjdk17 wget --setopt=install_weak_deps=False && dnf clean all && rm -rf /var/cache/dnf
 RUN wget --quiet https://github.com/JetBrains/intellij-community/archive/refs/tags/idea/231.9011.34.tar.gz -O intellij-community.tar && tar xf intellij-community.tar intellij-community-idea-231.9011.34/plugins/java-decompiler/engine && rm -rf intellij-community.tar
 WORKDIR /intellij-community-idea-231.9011.34/plugins/java-decompiler/engine
 RUN ./gradlew build -x test && rm -rf /root/.gradle
 RUN mkdir /output && cp ./build/libs/fernflower.jar /output
 
-FROM registry.access.redhat.com/ubi9/ubi AS addon-build
+FROM registry.access.redhat.com/ubi10/ubi AS addon-build
 RUN dnf install -y java-21-openjdk-devel wget zip --nodocs --setopt=install_weak_deps=0 && dnf clean all && rm -rf /var/cache/dnf
 RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.14/binaries/apache-maven-3.9.14-bin.tar.gz && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
@@ -38,7 +38,7 @@ RUN set -e; \
   unzip maven-index-data.zip && \
   rm maven-index-data.zip
 
-FROM registry.access.redhat.com/ubi9/ubi-minimal
+FROM registry.access.redhat.com/ubi10/ubi-minimal
 # Java 1.8 is required for backwards compatibility with older versions of Gradle
 RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-21-openjdk-devel tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
 ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
