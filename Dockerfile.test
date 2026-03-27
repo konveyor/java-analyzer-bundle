@@ -49,5 +49,6 @@ COPY --from=index-download /maven-index-data/central.archive-metadata.idx /usr/l
 RUN microdnf install -y golang
 
 RUN ln -sf /root/.m2 /.m2 && chgrp -R 0 /root && chmod -R g=u /root
-COPY   java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/plugins/
+ARG BUNDLE_VERSION=1.1.0-SNAPSHOT
+COPY java-analyzer-bundle.core/target/java-analyzer-bundle.core-${BUNDLE_VERSION}.jar /jdtls/plugins/
 CMD [ "/jdtls/bin/jdtls" ]

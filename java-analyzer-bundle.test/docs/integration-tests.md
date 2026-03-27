@@ -203,7 +203,7 @@ The workflow:
 
 ### Manually (without containers)
 
-Requires JDT.LS 1.51.0+ and Go 1.21+ installed locally:
+Requires JDT.LS 1.51.0+ and Go 1.23+ installed locally:
 
 ```bash
 cd java-analyzer-bundle.test/integration

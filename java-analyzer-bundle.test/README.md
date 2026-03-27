@@ -135,10 +135,10 @@ Real-world Spring MVC application:
 
 ## Key Technologies
 
-- **Java 17** - Target platform and tests
-- **Eclipse Tycho 3.0.1** - Build system
+- **Java 21** - Target platform and tests
+- **Eclipse Tycho 4.0.7** - Build system
 - **JDT.LS 1.51.0** - Language server
-- **Go 1.21+** - Integration test framework
+- **Go 1.23+** - Integration test framework
 - **Podman/Docker** - Container runtime for CI/CD
 - **JUnit 4** - Unit test framework
 

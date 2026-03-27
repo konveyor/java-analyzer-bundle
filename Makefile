@@ -1,7 +1,7 @@
 # Makefile for Java Analyzer Bundle
 # Replicates GitHub Actions CI/CD pipeline for local verification
 
-.PHONY: help all ci clean clean-containers clean-go phase1 phase2 unit-tests build-container run-integration-tests
+.PHONY: help all ci clean clean-containers clean-go phase1 phase2 unit-tests build-container run-integration-tests set-version
 
 # Detect container runtime (prefer Podman, fallback to Docker)
 CONTAINER_RUNTIME := $(shell command -v podman 2>/dev/null || command -v docker 2>/dev/null)
@@ -20,6 +20,8 @@ endif
 IMAGE_NAME := jdtls-analyzer:test
 REPO_ROOT := $(shell pwd)
 GO_MODULE := java-analyzer-bundle.test/integration
+BUNDLE_VERSION ?= 1.1.0-SNAPSHOT
+TYCHO_VERSION := 4.0.7
 
 # Default target
 help:
@@ -40,10 +42,18 @@ help:
 	@echo "  make build-container     - Build JDT.LS container image"
 	@echo "  make run-integration-tests - Run integration tests in container"
 	@echo ""
+	@echo "Version targets:"
+	@echo "  make set-version         - Set bundle version (uses BUNDLE_VERSION)"
+	@echo ""
 	@echo "Utility targets:"
 	@echo "  make clean               - Clean all build artifacts"
 	@echo "  make clean-containers    - Remove container images"
 	@echo "  make clean-go            - Clean Go build artifacts"
+	@echo ""
+	@echo "Variables:"
+	@echo "  BUNDLE_VERSION           - Bundle version (default: 1.1.0-SNAPSHOT)"
+	@echo "                             Set to release version for non-SNAPSHOT builds"
+	@echo "                             Example: make ci BUNDLE_VERSION=1.2.0"
 	@echo ""
 	@echo "Container runtime: $(CONTAINER_RUNTIME)"
 	@echo "======================================================================"
@@ -72,10 +82,21 @@ phase2: build-container run-integration-tests
 	@echo "✓ Phase 2 Complete: Integration tests passed"
 	@echo "======================================================================"
 
-# Phase 1 Targets
-unit-tests:
+# Version management
+set-version:
+ifeq ($(findstring -SNAPSHOT,$(BUNDLE_VERSION)),)
 	@echo "======================================================================"
-	@echo "Phase 1: Running Unit Tests"
+	@echo "Setting release version: $(BUNDLE_VERSION)"
+	@echo "======================================================================"
+	mvn -B org.eclipse.tycho:tycho-versions-plugin:$(TYCHO_VERSION):set-version -DnewVersion=$(BUNDLE_VERSION)
+else
+	@echo "Using SNAPSHOT version: $(BUNDLE_VERSION)"
+endif
+
+# Phase 1 Targets
+unit-tests: set-version
+	@echo "======================================================================"
+	@echo "Phase 1: Running Unit Tests (version: $(BUNDLE_VERSION))"
 	@echo "======================================================================"
 	@echo ""
 	mvn clean integration-test
@@ -84,12 +105,12 @@ unit-tests:
 build-container:
 	@echo ""
 	@echo "======================================================================"
-	@echo "Phase 2: Building JDT.LS Container Image"
+	@echo "Phase 2: Building JDT.LS Container Image (version: $(BUNDLE_VERSION))"
 	@echo "======================================================================"
 	@echo ""
 	@echo "Using container runtime: $(CONTAINER_RUNTIME)"
 	@echo ""
-	$(CONTAINER_RUNTIME) build -t $(IMAGE_NAME) -f Dockerfile.test .
+	$(CONTAINER_RUNTIME) build -t $(IMAGE_NAME) -f Dockerfile.test --build-arg BUNDLE_VERSION=$(BUNDLE_VERSION) .
 	@echo ""
 	@echo "✓ Container image built: $(IMAGE_NAME)"
 

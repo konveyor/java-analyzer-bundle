@@ -189,9 +189,7 @@ func (c *JDTLSClient) Initialize() (*protocol.InitializeResult, error) {
 			},
 		},
 		InitializationOptions: map[string]any{
-			"bundles": []string{
-				"/jdtls/plugins/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar",
-			},
+			"bundles":          findAnalyzerBundles("/jdtls/plugins"),
 			"workspaceFolders": []string{string(workspaceURI)},
 		},
 	}
@@ -375,4 +373,17 @@ func (c *JDTLSClient) Shutdown() error {
 // Close is an alias for Shutdown
 func (c *JDTLSClient) Close() error {
 	return c.Shutdown()
+}
+
+// findAnalyzerBundles discovers java-analyzer-bundle JARs in the given directory.
+// This avoids hardcoding the version in the bundle path.
+func findAnalyzerBundles(pluginsDir string) []string {
+	pattern := filepath.Join(pluginsDir, "java-analyzer-bundle.core-*.jar")
+	matches, err := filepath.Glob(pattern)
+	if err != nil || len(matches) == 0 {
+		// Fallback: let JDT.LS fail with a clear error rather than silently
+		logrus.Warnf("No analyzer bundle found matching %s", pattern)
+		return []string{}
+	}
+	return matches
 }
