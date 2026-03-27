@@ -21,7 +21,7 @@ Unlike Phase 1 unit tests that only verify commands execute without errors, Phas
 │  ┌────────────────────────────────────────────────┐    │
 │  │           Podman Container                      │    │
 │  │  ┌──────────────────────────────────────────┐      │    │
-│  │  │   JDT.LS Server (1.38.0)             │      │    │
+│  │  │   JDT.LS Server (1.51.0)             │      │    │
 │  │  │   + Java Analyzer Bundle Plugin      │      │    │
 │  │  └──────────────────────────────────────┘      │    │
 │  │         ↕️ LSP over stdio                       │    │
@@ -55,7 +55,8 @@ Go LSP client that communicates with JDT.LS via JSON-RPC 2.0 over stdio using th
 - `Initialize()` - Initialize LSP connection and workspace
 - `ExecuteCommand()` - Execute workspace commands
 - `SearchSymbols()` - Execute analyzer searches via `io.konveyor.tackle.ruleEntry`
-- `Shutdown()` - Gracefully shutdown server
+- `SearchSymbolsWithAnnotation()` - Execute searches with annotation element matching
+- `Shutdown()` / `Close()` - Gracefully shutdown server
 
 **Protocol**: LSP (Language Server Protocol) over stdin/stdout using `jsonrpc2.Connection`
 
@@ -143,9 +144,12 @@ cd java-analyzer-bundle.test/integration
 Or manually with **Podman** (preferred):
 
 ```bash
+# First, build the plugin JAR (required by Dockerfile.test)
+mvn clean install -DskipTests
+
 # Build the container image from repository root
 cd /path/to/java-analyzer-bundle
-podman build -t jdtls-analyzer:test .
+podman build -t jdtls-analyzer:test -f Dockerfile.test .
 
 # Run integration tests with go test
 podman run --rm \
@@ -155,14 +159,17 @@ podman run --rm \
   --workdir /tests/integration \
   --entrypoint /bin/sh \
   jdtls-analyzer:test \
-  -c "microdnf install -y golang && go mod download && go test -v"
+  -c "go mod download && go test -v"
 ```
 
 Or with **Docker**:
 
 ```bash
+# First, build the plugin JAR (required by Dockerfile.test)
+mvn clean install -DskipTests
+
 # Build the Docker image
-docker build -t jdtls-analyzer:test .
+docker build -t jdtls-analyzer:test -f Dockerfile.test .
 
 # Run integration tests with go test
 docker run --rm \
@@ -172,10 +179,12 @@ docker run --rm \
   --workdir /tests/integration \
   --entrypoint /bin/sh \
   jdtls-analyzer:test \
-  -c "microdnf install -y golang && go mod download && go test -v"
+  -c "go mod download && go test -v"
 ```
 
-**Note**: Podman uses `:Z` suffix on volumes for SELinux relabeling. Docker doesn't require this.
+**Notes**:
+- Podman uses `:Z` suffix on volumes for SELinux relabeling. Docker doesn't require this.
+- `Dockerfile.test` requires the plugin JAR to be pre-built on the host (via `mvn install`). It pre-installs golang in the image.
 
 ### Via GitHub Actions
 
@@ -187,12 +196,14 @@ Workflow: `.github/workflows/integration-tests.yml`
 
 The workflow:
 1. Runs Phase 1 unit tests with Maven
-2. Builds the JDT.LS container image with Podman
-3. Runs `go test -v` inside the container
+2. Builds a self-contained container image using the default `Dockerfile` (which builds the plugin JAR from source inside the container)
+3. Installs golang at runtime and runs `go test -v` inside the container
+
+**Note**: CI uses the default `Dockerfile` (self-contained, builds JAR from source). Local development uses `Dockerfile.test` (lighter, expects pre-built JAR). Both produce equivalent images with JDT.LS + the analyzer plugin.
 
 ### Manually (without containers)
 
-Requires JDT.LS 1.38.0 and Go 1.21+ installed locally:
+Requires JDT.LS 1.51.0+ and Go 1.23+ installed locally:
 
 ```bash
 cd java-analyzer-bundle.test/integration
@@ -218,17 +229,17 @@ go test -v -run "TestMethod.*"
 
 ### Default Search (Location 0)
 ```go
-// Search for all List usage across all location types
+// Search for File usage across all location types
 symbols, err := c.SearchSymbols(
     "test-project",
-    "java.util.List",
+    "java.io.File",
     0,  // location type: default (all locations)
     "source-only",
     nil,
 )
 
 // Expected Results:
-// ✓ Finds List in imports, fields, variables, type references, etc.
+// ✓ Finds File in imports, constructors, type references, fields, variables, etc.
 ```
 
 ### Inheritance (Location 1)
@@ -422,7 +433,7 @@ symbols, err := c.SearchSymbols(
     "java.sql.PreparedStatement",
     8,  // location type: import
     "source-only",
-    &includedPaths,
+    includedPaths,
 )
 
 // Expected Results:
@@ -432,118 +443,71 @@ symbols, err := c.SearchSymbols(
 
 ## Test Assertions
 
-Tests verify using helper functions from `tests/test_utils.go`:
+Tests verify using helper functions from `test_helpers.go`:
 
-1. **Symbol Existence**:
+1. **Symbol Existence** (check name, optionally kind):
    ```go
-   if VerifySymbolInResults(symbols, "SampleApplication") {
-       results.AddPass("Test passed")
-   } else {
-       results.AddFail("Test failed", "SampleApplication not found")
+   if !verifySymbolInResults(symbols, "SampleApplication") {
+       t.Errorf("SampleApplication not found in results")
    }
    ```
 
-2. **Symbol Kind**:
+2. **Symbol Location** (check name appears in expected file):
    ```go
-   if VerifySymbolInResults(symbols, "Customer", protocol.Class) {
-       results.AddPass("Test passed")
+   if !verifySymbolLocationContains(symbols, "processData", "SampleApplication") {
+       t.Errorf("processData not found in SampleApplication")
    }
    ```
 
-3. **Symbol Location**:
+3. **Result Count** (verify non-empty results):
    ```go
-   if VerifySymbolLocationContains(symbols, "Customer", "Customer.java") {
-       results.AddPass("Test passed")
+   if len(symbols) == 0 {
+       t.Errorf("Expected symbols but got 0 results")
    }
    ```
 
-4. **Result Count**:
+4. **Container Matching** (check annotation on specific class):
    ```go
-   if count := CountSymbols(symbols); count > 0 {
-       results.AddPass(fmt.Sprintf("Found %d results", count))
+   for _, symbol := range symbols {
+       if symbol.Name == "Entity" && symbol.ContainerName == "Customer" {
+           found = true
+       }
    }
    ```
 
 ## Expected Output
 
+The tests use Go's standard `testing` framework and produce output like:
+
 ```
-============================================================
-Phase 2 Integration Tests - JDT.LS Search Verification
-============================================================
+=== RUN   TestDefaultSearch
+=== RUN   TestDefaultSearch/Find_BaseService_across_all_locations
+=== RUN   TestDefaultSearch/Find_println_across_all_locations
+=== RUN   TestDefaultSearch/Find_File_across_all_locations
+--- PASS: TestDefaultSearch (0.15s)
 
-JDT.LS Path: /jdtls
-Workspace: /tests/projects
+=== RUN   TestInheritanceSearch
+=== RUN   TestInheritanceSearch/Find_SampleApplication_extends_BaseService
+=== RUN   TestInheritanceSearch/Find_DataService_extends_BaseService
+=== RUN   TestInheritanceSearch/Find_CustomException_extends_Exception
+--- PASS: TestInheritanceSearch (0.12s)
 
-Initializing JDT.LS client...
-Started JDT.LS server with PID 1234
-JDT.LS initialized successfully
-JDT.LS ready for testing
+...
 
---- Testing Default Searches (Location 0) ---
-✓ PASS: Default: Find all List usage across all location types
+=== RUN   TestAnnotatedElementMatching
+=== RUN   TestAnnotatedElementMatching/Find_@ActivationConfigProperty_with_propertyName=destinationLookup
+=== RUN   TestAnnotatedElementMatching/Find_@DataSourceDefinition_with_className=org.postgresql.Driver
+=== RUN   TestAnnotatedElementMatching/Find_@DataSourceDefinition_with_className=com.mysql.jdbc.Driver
+=== RUN   TestAnnotatedElementMatching/Find_@Column_with_nullable=false
+--- PASS: TestAnnotatedElementMatching (0.16s)
 
---- Testing Inheritance Searches (Location 1) ---
-✓ PASS: Inheritance: Find SampleApplication extends BaseService
-✓ PASS: Inheritance: Find DataService extends BaseService
-✓ PASS: Inheritance: Find CustomException extends Exception
+=== RUN   TestFilePathFiltering
+=== RUN   TestFilePathFiltering/Find_PreparedStatement_imports_with_package-level_filtering
+=== RUN   TestFilePathFiltering/Verify_file_path_filtering_excludes_other_packages
+--- PASS: TestFilePathFiltering (0.08s)
 
---- Testing Method Call Searches (Location 2) ---
-✓ PASS: Method Call: Find println calls (8 found)
-✓ PASS: Method Call: Find List.add in SampleApplication
-
---- Testing Constructor Call Searches (Location 3) ---
-✓ PASS: Constructor: Find ArrayList instantiations (3 found)
-✓ PASS: Constructor: Find File instantiations (5 found)
-
---- Testing Annotation Searches (Location 4) ---
-✓ PASS: Annotation: Find @CustomAnnotation on SampleApplication
-
---- Testing Implements Type Searches (Location 5) ---
-✓ PASS: Implements: Find BaseService implements Serializable
-
---- Testing Enum Constant Searches (Location 6) ---
-✓ PASS: Enum Constant: Find ACTIVE enum constant references
-
---- Testing Return Type Searches (Location 7) ---
-✓ PASS: Return Type: Find methods returning String
-
---- Testing Import Searches (Location 8) ---
-✓ PASS: Import: Find java.io.* imports (2 found)
-
---- Testing Variable Declaration Searches (Location 9) ---
-✓ PASS: Variable Declaration: Find String variable declarations
-
---- Testing Type Searches (Location 10) ---
-✓ PASS: Type: Find String type references (15 found)
-
---- Testing Package Declaration Searches (Location 11) ---
-✓ PASS: Package Declaration: Find io.konveyor.demo package
-
---- Testing Field Declaration Searches (Location 12) ---
-✓ PASS: Field Declaration: Find String fields
-
---- Testing Method Declaration Searches (Location 13) ---
-✓ PASS: Method Declaration: Find getter methods with wildcard
-
---- Testing Class Declaration Searches (Location 14) ---
-✓ PASS: Class Declaration: Find SampleApplication class
-
---- Testing customers-tomcat-legacy Project ---
-✓ PASS: Legacy Project: Find @Entity on Customer
-✓ PASS: Legacy Project: Find @Service on CustomerService
-✓ PASS: Legacy Project: Find javax.persistence imports (9 found)
-
---- Testing Priority 1 Advanced Features ---
-✓ PASS: Annotated Element Matching: Find @ActivationConfigProperty with propertyName=destinationLookup
-✓ PASS: Annotated Element Matching: Find @DataSourceDefinition with PostgreSQL driver
-✓ PASS: Annotated Element Matching: Find @DataSourceDefinition with MySQL driver
-✓ PASS: Annotated Element Matching: Find @Column with nullable=false
-✓ PASS: File Path Filtering: Find PreparedStatement imports in persistence package
-✓ PASS: File Path Filtering: Verify filtering excludes other packages
-
-============================================================
-Test Results: 18/18 passed (100%)
-============================================================
+PASS
+ok      github.com/konveyor/java-analyzer-bundle/integration    5.234s
 ```
 
 ## Troubleshooting
@@ -772,15 +736,18 @@ public class SampleApplication extends BaseService { }
 
 #### ✅ Location 0: Default
 **Java Features**: Default search behavior (all locations)
-**Test**: `TestDefaultSearch`
+**Test**: `TestDefaultSearch` (3 sub-tests)
 **Queries**:
-- `java.util.List` → finds all List usage across all location types
+- `io.konveyor.demo.inheritance.BaseService` → finds BaseService across all locations
+- `println` → finds println across all locations
+- `java.io.File` → finds File in imports, constructors, type references, fields, variables
 
 **Java Code Pattern**:
 ```java
 // Matches in multiple contexts: imports, fields, variables, types, etc.
-import java.util.List;
-private List<String> items;
+import java.io.File;
+private File configFile;
+File tempFile = new File("/tmp/data.txt");
 ```
 
 **Symbol Results**: All occurrences across all location types
@@ -813,19 +780,24 @@ EnumExample status = EnumExample.ACTIVE;
 
 #### ✅ Location 7: Return Types
 **Java Features**: Method return type declarations
-**Test**: `TestReturnTypeSearch`
+**Test**: `TestReturnTypeSearch` (3 sub-tests)
 **Queries**:
 - `java.lang.String` → finds all methods returning String
-- `java.util.List` → finds all methods returning List
+- `int` → finds `add` method in Calculator
+- `io.konveyor.demo.EnumExample` → finds `getStatus` method in Calculator
 
-**Java Code Pattern** (test-project/SampleApplication.java):
+**Java Code Pattern**:
 ```java
-public String getName() {              // String return type
+public String getName() {              // String return type (SampleApplication)
     return applicationName;
 }
 
-public List<String> getItems() {       // List return type
-    return items;
+public int add(int a, int b) {        // int return type (Calculator)
+    return a + b;
+}
+
+public EnumExample getStatus() {       // Custom return type (Calculator)
+    return status;
 }
 ```
 
@@ -854,19 +826,27 @@ public void processData() {
 ---
 
 #### ✅ Location 11: Package Declarations
-**Java Features**: Package statements at top of Java files
-**Test**: `TestPackageDeclarationSearch`
+**Java Features**: Package usage via imports and references (not literal package statements)
+**Test**: `TestPackageDeclarationSearch` (8 sub-tests)
 **Queries**:
-- `io.konveyor.demo` → finds all classes in this package
-- `io.konveyor.demo.*` → finds all classes in this package and subpackages
+- `io.konveyor.demo` → may return 0 results (base package never referenced directly)
+- `io.konveyor.demo.inheritance` → finds classes referencing this sub-package
+- `io.konveyor.d*` → wildcard matching across demo sub-packages
+- `java.util` → finds SampleApplication.java (uses java.util imports)
+- `java.sql` → finds persistence package files (uses java.sql imports)
+- `jakarta.*` → finds ServletExample.java (uses jakarta imports)
+- `javax.persistence` → finds entity/Product.java and persistence files
+- `java.io` → finds ServletExample.java (uses java.io imports)
+
+**Note**: PACKAGE search with REFERENCES finds where packages are used in imports/FQNs, not literal `package` statements.
 
 **Java Code Pattern** (all test files):
 ```java
-package io.konveyor.demo;
-package io.konveyor.demo.ordermanagement.model;
+import java.util.List;           // java.util package reference
+import javax.persistence.Entity; // javax.persistence package reference
 ```
 
-**Symbol Results**: Package declaration locations
+**Symbol Results**: Package reference locations in import statements and FQNs
 
 ---
 
@@ -891,17 +871,19 @@ private static final int MAX_RETRIES = 3;  // static final field
 
 #### ✅ Location 13: Method Declarations
 **Java Features**: Method signature declarations
-**Test**: `TestMethodDeclarationSearch`
+**Test**: `TestMethodDeclarationSearch` (4 sub-tests)
 **Queries**:
-- `processData` → finds processData method declarations
-- `get*` → finds all getter methods (wildcard)
-- `print*` → finds all methods starting with print
+- `processData` → finds processData method declaration
+- `getName` → finds getName method declaration
+- `add` → finds add method in Calculator
+- `initialize` → finds initialize method declaration
 
-**Java Code Pattern** (test-project/SampleApplication.java):
+**Java Code Pattern** (test-project/SampleApplication.java, Calculator.java):
 ```java
 public void processData() { }          // processData method
 public String getName() { }            // getName method
-public static void printVersion() { } // static method
+public int add(int a, int b) { }      // add method (Calculator)
+public void initialize() { }           // initialize method
 ```
 
 **Symbol Results**: Method declaration locations
@@ -993,7 +975,7 @@ The integration tests use the following Go packages:
 
 ```go
 require (
-    github.com/konveyor/analyzer-lsp v0.4.0-alpha.1
+    github.com/konveyor/analyzer-lsp v0.8.0
     github.com/sirupsen/logrus v1.9.3
 )
 ```

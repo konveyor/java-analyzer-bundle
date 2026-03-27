@@ -16,7 +16,7 @@ make phase2     # Integration tests only
 ### Run Specific Tests
 
 ```bash
-# Maven unit tests (48 tests)
+# Maven unit tests (76 tests)
 mvn clean integration-test
 
 # Go integration tests (specific test)
@@ -31,12 +31,17 @@ This module contains two phases of testing:
 ### Phase 1: Unit Tests (Maven/JUnit)
 **Location**: `src/main/java/`
 **Technology**: JUnit-Plugin (runs in Eclipse environment)
-**Count**: 48 tests
+**Count**: 76 tests
 
-Tests command handling, parameter parsing, and error cases:
+Tests command handling, parameter parsing, AST visitors, symbol providers, and error cases:
 - `RuleEntryParamsTest` (14 tests)
 - `AnnotationQueryTest` (18 tests)
 - `SampleDelegateCommandHandlerTest` (16 tests)
+- `CustomASTVisitorTest` (16 tests)
+- `MethodDeclarationSymbolProviderTest` (8 tests)
+- `CommandHandlerTest` (2 tests)
+- `JavaAnnotationTest` (1 test)
+- `PomDependencyTest` (1 test)
 
 **Run**: `mvn clean integration-test`
 
@@ -130,10 +135,10 @@ Real-world Spring MVC application:
 
 ## Key Technologies
 
-- **Java 17** - Target platform and tests
-- **Eclipse Tycho 3.0.1** - Build system
-- **JDT.LS 1.35.0** - Language server
-- **Go 1.21+** - Integration test framework
+- **Java 21** - Target platform and tests
+- **Eclipse Tycho 4.0.7** - Build system
+- **JDT.LS 1.51.0** - Language server
+- **Go 1.23+** - Integration test framework
 - **Podman/Docker** - Container runtime for CI/CD
 - **JUnit 4** - Unit test framework
 
@@ -179,7 +184,7 @@ java-analyzer-bundle.test/
   <groupId>org.eclipse.tycho</groupId>
   <artifactId>tycho-surefire-plugin</artifactId>
   <configuration>
-    <useUIHarness>true</useUIHarness>
+    <useUIHarness>false</useUIHarness>
     <useUIThread>false</useUIThread>
   </configuration>
 </plugin>
@@ -193,7 +198,12 @@ java-analyzer-bundle.test/
 
 **Two-Phase Execution**:
 1. **Phase 1**: Maven unit tests (`mvn clean integration-test`)
-2. **Phase 2**: Build container → Go integration tests
+2. **Phase 2**: Build self-contained container (default `Dockerfile`) → Go integration tests
+
+**Container Images**:
+- **CI** uses the default `Dockerfile` which builds the plugin JAR from source inside the container
+- **Local** (`make phase2`) uses `Dockerfile.test` which expects a pre-built JAR on the host
+- Both produce equivalent images with JDT.LS + the analyzer plugin
 
 **Triggers**:
 - Push to `main` or `maven-index` branches
@@ -242,8 +252,9 @@ go test -v -run TestSpecificTest
 
 ### Build Test Container
 ```bash
-# From repository root
-podman build -t jdtls-analyzer:test .
+# From repository root (requires pre-built JAR via mvn install)
+mvn clean install -DskipTests
+podman build -t jdtls-analyzer:test -f Dockerfile.test .
 ```
 
 ---

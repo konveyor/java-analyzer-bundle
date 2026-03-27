@@ -15,6 +15,7 @@ RUN ./gradlew build -x test && rm -rf /root/.gradle
 RUN mkdir /output && cp ./build/libs/fernflower.jar /output
 
 FROM registry.access.redhat.com/ubi9/ubi AS addon-build
+ARG BUNDLE_VERSION=1.1.0-SNAPSHOT
 RUN dnf install -y java-21-openjdk-devel wget zip --nodocs --setopt=install_weak_deps=0 && dnf clean all && rm -rf /var/cache/dnf
 RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.14/binaries/apache-maven-3.9.14-bin.tar.gz && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
@@ -22,7 +23,15 @@ RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-
 WORKDIR /app
 COPY ./ /app/
 ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
-RUN /usr/local/apache-maven-3.9.14/bin/mvn clean install -DskipTests=true
+# For release builds (non-SNAPSHOT), update all POM and MANIFEST.MF versions via Tycho.
+# NOTE: The Tycho plugin version here must match <tycho.version> in pom.xml.
+RUN case "$BUNDLE_VERSION" in \
+      *-SNAPSHOT) echo "SNAPSHOT build: $BUNDLE_VERSION" ;; \
+      *) echo "Setting release version: $BUNDLE_VERSION"; \
+         /usr/local/apache-maven-3.9.14/bin/mvn -B org.eclipse.tycho:tycho-versions-plugin:4.0.7:set-version \
+           -DnewVersion=$BUNDLE_VERSION ;; \
+    esac
+RUN /usr/local/apache-maven-3.9.14/bin/mvn -B clean install -DskipTests=true
 # Download maven index data
 WORKDIR /maven-index-data
 RUN set -e; \
@@ -56,8 +65,9 @@ COPY hack/maven.default.index /usr/local/etc/maven.default.index
 COPY --from=jdtls-download /jdtls /jdtls/
 COPY --from=addon-build /usr/local/apache-maven-3.9.14/ /usr/local/apache-maven-3.9.14/
 RUN ln -s /usr/local/apache-maven-3.9.14/bin/mvn /usr/bin/mvn
-COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/plugins/
-COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/1.0.0-SNAPSHOT/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
+ARG BUNDLE_VERSION=1.1.0-SNAPSHOT
+COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/${BUNDLE_VERSION}/java-analyzer-bundle.core-${BUNDLE_VERSION}.jar /jdtls/plugins/
+COPY --from=addon-build /root/.m2/repository/io/konveyor/tackle/java-analyzer-bundle.core/${BUNDLE_VERSION}/java-analyzer-bundle.core-${BUNDLE_VERSION}.jar /jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-${BUNDLE_VERSION}.jar
 COPY --from=fernflower /output/fernflower.jar /bin/fernflower.jar
 COPY --from=addon-build /maven-index-data/central.archive-metadata.txt /usr/local/etc/maven-index.txt
 

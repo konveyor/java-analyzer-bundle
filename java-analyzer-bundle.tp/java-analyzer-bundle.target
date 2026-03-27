@@ -11,18 +11,10 @@
 		</location>
 		
 		
-		<!-- 2nd: pick up JDT.LS dependencies-->
-		<!-- Warning: the JDT.LS TP is fluid, as it points to the latest version in the git repo
-	It's not recommended to target fixed releases, such as
-		https://repo.eclipse.org/content/repositories/jdtls-releases/org/eclipse/jdt/ls/org.eclipse.jdt.ls.tp/1.18.0.20221201171036/org.eclipse.jdt.ls.tp-1.18.0.20221201171036.target
-	because those TPs point to upstream transient JDT repositories (known as I-builds), that might be
-		missing every 3 months 
+		<!-- 2nd: pick up JDT.LS dependencies
+		 Dependencies are resolved from standalone repos rather than from the JDT.LS
+		 target platform, because p2 cannot mix InstallableUnit and Target locations.
 		-->
-		
-		<!-- p2 fails to mix both the jdt and the jdt.ls locations
-		<location type="Target"
-			uri="https://raw.githubusercontent.com/eclipse/eclipse.jdt.ls/master/org.eclipse.jdt.ls.target/org.eclipse.jdt.ls.tp.target" />
-       	-->
 	
         <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
             <unit id="com.google.gson" version="2.7.0.v20170129-0911"/>
