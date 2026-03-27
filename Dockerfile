@@ -8,7 +8,7 @@ RUN curl -s -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.51.0
 COPY jdtls-bin-override/jdtls.py /jdtls/bin/jdtls.py
 
 FROM registry.access.redhat.com/ubi10/ubi AS fernflower
-RUN dnf install -y maven-openjdk17 wget --setopt=install_weak_deps=False && dnf clean all && rm -rf /var/cache/dnf
+RUN dnf install -y maven-openjdk21 wget --setopt=install_weak_deps=False && dnf clean all && rm -rf /var/cache/dnf
 RUN wget --quiet https://github.com/JetBrains/intellij-community/archive/refs/tags/idea/231.9011.34.tar.gz -O intellij-community.tar && tar xf intellij-community.tar intellij-community-idea-231.9011.34/plugins/java-decompiler/engine && rm -rf intellij-community.tar
 WORKDIR /intellij-community-idea-231.9011.34/plugins/java-decompiler/engine
 RUN ./gradlew build -x test && rm -rf /root/.gradle
