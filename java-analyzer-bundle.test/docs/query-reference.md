@@ -433,15 +433,15 @@ Some location types accept simple names:
 | `TestImportSearch` | 8 | 1 | Verify import statements |
 | `TestVariableDeclarationSearch` | 9 | 3 | Verify local variable declarations |
 | `TestTypeSearch` | 10 | 1 | Verify type reference count |
-| `TestPackageDeclarationSearch` | 11 | 2 | Verify package declarations |
+| `TestPackageDeclarationSearch` | 11 | 8 | Verify package references in imports/FQNs |
 | `TestFieldDeclarationSearch` | 12 | 3 | Verify field declarations |
 | `TestMethodDeclarationSearch` | 13 | 4 | Verify method declarations |
 | `TestClassDeclarationSearch` | 14 | 1 | Verify class declaration |
 | `TestCustomersTomcatLegacy` | 4, 8 | 3 | Migration pattern verification |
 | `TestAnnotatedElementMatching` | 4 | 4 | Annotation attributes matching |
-| `TestFilePathFiltering` | 9 | 2 | File path filtering with includedPaths |
+| `TestFilePathFiltering` | 8 | 2 | File path filtering with includedPaths |
 
-**Total Query Executions**: 40+ unique search queries across 18 test functions covering all 15 location types
+**Total Query Executions**: 47 search queries across 18 test functions covering all 15 location types
 
 ---
 
@@ -451,15 +451,28 @@ Some location types accept simple names:
 
 **Purpose**: Systematic coverage of all location types
 
-**Key Files**:
+**Key Files** (19 Java files):
 - `SampleApplication.java` - Main test file with method calls, constructors, fields, variables
-- `BaseService.java` - Inheritance base class, implements Serializable
-- `DataService.java` - Another BaseService subclass
-- `CustomException.java` - Exception inheritance
-- `CustomAnnotation.java` - Custom annotation definition
+- `Calculator.java` - Return type examples (int, EnumExample)
 - `EnumExample.java` - Enum with constants (location 6)
+- `PackageUsageExample.java` - Package reference patterns
+- `ServletExample.java` - Jakarta servlet example
+- `annotations/CustomAnnotation.java` - Custom annotation definition
+- `annotations/DeprecatedApi.java` - Deprecated API annotation
+- `inheritance/BaseService.java` - Abstract base class, implements Serializable
+- `inheritance/DataService.java` - Another BaseService subclass
+- `inheritance/CustomException.java` - Exception inheritance
+- `jms/MessageProcessor.java` - @MessageDriven with @ActivationConfigProperty
+- `jms/TopicMessageProcessor.java` - Additional JMS example
+- `config/DataSourceConfig.java` - @DataSourceDefinition (PostgreSQL)
+- `config/MySQLDataSourceConfig.java` - @DataSourceDefinition (MySQL)
+- `entity/Product.java` - @Entity, @Column with attributes
+- `persistence/ServiceWithEntityManager.java` - Mixed JPA/JDBC
+- `persistence/JdbcOnlyService.java` - Pure JDBC with PreparedStatement
+- `persistence/AnotherMixedService.java` - Additional mixed pattern
+- `persistence/PureJpaService.java` - Pure JPA (no JDBC)
 
-**Coverage**: Designed to test all 15 location types systematically
+**Coverage**: Designed to test all 15 location types + advanced features systematically
 
 ---
 
