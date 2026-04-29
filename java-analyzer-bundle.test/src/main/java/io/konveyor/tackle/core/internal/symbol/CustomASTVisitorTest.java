@@ -1,6 +1,8 @@
 package io.konveyor.tackle.core.internal.symbol;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -150,5 +152,61 @@ public class CustomASTVisitorTest {
         List<String> result = visitor.extractParameterTypes(query);
         assertEquals("Should handle varargs notation",
                      Arrays.asList("java.lang.String..."), result);
+    }
+
+    @Test
+    public void testParseParameterList_alternationReturnsNone() {
+        assertNull(CustomASTVisitor.parseParameterList("org.library.(Class1|Class2)").types);
+        assertNull(CustomASTVisitor.parseParameterList("java.io.(FileWriter|FileReader)").types);
+        assertNull(CustomASTVisitor.parseParameterList("java.io.(FileWriter|FileReader|PrintStream)").types);
+    }
+
+    @Test
+    public void testBuildFqnRegexPattern_preservesAlternationForMatching() {
+        String query = "org.library.(Class1|Class2)";
+        String regex = CustomASTVisitor.buildFqnRegexPattern(
+                CustomASTVisitor.parseParameterList(query), query);
+        assertEquals("org.library.(Class1|Class2)", regex);
+        assertTrue("org.library.Class1".matches(regex));
+        assertTrue("org.library.Class2".matches(regex));
+        assertFalse("org.library.Class3".matches(regex));
+    }
+
+    @Test
+    public void testBuildFqnRegexPattern_stripsTrailingParameterListOnly() {
+        String query = "java.util.Properties.setProperty(java.lang.String, java.lang.String)";
+        CustomASTVisitor.ParameterParseResult p = CustomASTVisitor.parseParameterList(query);
+        assertNotNull(p.types);
+        String regex = CustomASTVisitor.buildFqnRegexPattern(p, query);
+        assertEquals("java.util.Properties.setProperty", regex);
+        assertTrue("java.util.Properties.setProperty".matches(regex));
+    }
+
+    @Test
+    public void testBuildFqnRegexPattern_emptyParameterListStripped() {
+        String query = "com.example.ClassName.method()";
+        CustomASTVisitor.ParameterParseResult p = CustomASTVisitor.parseParameterList(query);
+        assertNotNull(p.types);
+        assertTrue(p.types.isEmpty());
+        String regex = CustomASTVisitor.buildFqnRegexPattern(p, query);
+        assertEquals("com.example.ClassName.method", regex);
+    }
+
+    @Test
+    public void testBuildFqnRegexPattern_alternationWithWildcardSuffix() {
+        String query = "java.io.(FileWriter|FileReader)*";
+        CustomASTVisitor.ParameterParseResult p = CustomASTVisitor.parseParameterList(query);
+        assertNull("Alternation must not be parsed as parameter list", p.types);
+        String regex = CustomASTVisitor.buildFqnRegexPattern(p, query);
+        assertEquals("java.io.(FileWriter|FileReader).*", regex);
+    }
+
+    @Test
+    public void testBuildFqnRegexPattern_methodParamsThenWildcard() {
+        String query = "com.example.Foo.bar(java.lang.String)*";
+        CustomASTVisitor.ParameterParseResult p = CustomASTVisitor.parseParameterList(query);
+        assertNotNull(p.types);
+        String regex = CustomASTVisitor.buildFqnRegexPattern(p, query);
+        assertEquals("com.example.Foo.bar.*", regex);
     }
 }
