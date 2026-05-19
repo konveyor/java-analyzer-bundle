@@ -16,7 +16,7 @@ RUN mkdir /output && cp ./build/libs/fernflower.jar /output
 
 FROM registry.access.redhat.com/ubi9/ubi AS addon-build
 RUN dnf install -y java-21-openjdk-devel wget zip --nodocs --setopt=install_weak_deps=0 && dnf clean all && rm -rf /var/cache/dnf
-RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/3.9.15/binaries/apache-maven-3.9.15-bin.tar.gz && \
+RUN curl -fsSL -o /tmp/apache-maven.tar.gz https://archive.apache.org/dist/maven/maven-3/3.9.15/binaries/apache-maven-3.9.15-bin.tar.gz && \
     tar -xzf /tmp/apache-maven.tar.gz -C /usr/local/ && \
     rm /tmp/apache-maven.tar.gz
 WORKDIR /app
