@@ -1,0 +1,21 @@
+name: Koncur E2E Tests
+
+on:
+  pull_request:
+    branches: [main, release-*]
+  workflow_dispatch:
+
+jobs:
+  koncur-kantra:
+    uses: mguetta1/ci/.github/workflows/e2e-kantra-koncur.yaml@global-ci
+    with:
+      ci_repo: mguetta1/ci
+      ci_ref: global-ci
+    secrets: inherit
+
+  koncur-hub:
+    uses: mguetta1/ci/.github/workflows/e2e-hub-koncur.yaml@global-ci
+    with:
+      ci_repo: mguetta1/ci
+      ci_ref: global-ci
+    secrets: inherit
