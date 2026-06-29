@@ -2,12 +2,12 @@
 <?pde version="3.8"?>
 <target name="Java Analyzer Target Platform">
 	<locations>
-		<!-- 1st: pick up JDT.LS bits (1.51.0)
+		<!-- 1st: pick up JDT.LS bits (1.60.0)
 		-->
 		<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner"
 			includeSource="true" type="InstallableUnit">
 			<unit id="org.eclipse.jdt.ls.core" version="0.0.0" />
-			<repository location="https://download.eclipse.org/jdtls/milestones/1.51.0/repository"/>
+			<repository location="https://download.eclipse.org/jdtls/milestones/1.60.0/repository"/>
 		</location>
 		
 		
