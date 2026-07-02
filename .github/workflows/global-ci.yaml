@@ -9,6 +9,7 @@ jobs:
     outputs:
       api_tests_ref: ${{ steps.extract_info.outputs.API_TESTS_REF }}
       operator_tag: ${{ steps.extract_info.outputs.OPERATOR_TAG }}
+      tag: ${{ steps.extract_info.outputs.TAG }}
     strategy:
       fail-fast: false
     steps:
@@ -31,7 +32,7 @@ jobs:
           echo "API_TESTS_REF=refs/pull/$API_TESTS_PR/merge" >> $GITHUB_OUTPUT
         fi
 
-        # Set operator tag based on base branch - fetch latest release dynamically
+        # Set operator tag and image tag based on base branch - fetch latest release dynamically
         case "${GITHUB_BASE_REF}" in
           release-0.9)
             OPERATOR_TAG=$(gh release list -R konveyor/operator --limit 100 | grep -E "^v0\.9\.[0-9]+\s" | head -1 | awk '{print $1}')
@@ -40,6 +41,7 @@ jobs:
               OPERATOR_TAG="v0.9.2"
             fi
             echo "OPERATOR_TAG=${OPERATOR_TAG}" >> $GITHUB_OUTPUT
+            echo "TAG=release-0.9" >> $GITHUB_OUTPUT
             ;;
           release-0.8)
             OPERATOR_TAG=$(gh release list -R konveyor/operator --limit 100 | grep -E "^v0\.8\.[0-9]+\s" | head -1 | awk '{print $1}')
@@ -48,9 +50,11 @@ jobs:
               OPERATOR_TAG="v0.8.3"
             fi
             echo "OPERATOR_TAG=${OPERATOR_TAG}" >> $GITHUB_OUTPUT
+            echo "TAG=release-0.8" >> $GITHUB_OUTPUT
             ;;
           *)
             echo "OPERATOR_TAG=latest" >> $GITHUB_OUTPUT
+            echo "TAG=latest" >> $GITHUB_OUTPUT
             ;;
         esac
     
@@ -93,5 +97,6 @@ jobs:
     uses: konveyor/ci/.github/workflows/global-ci.yml@main
     with:
       component_name: java-provider
+      tag: "${{ needs.build-addon.outputs.tag }}"
       api_tests_ref: "${{ needs.build-addon.outputs.api_tests_ref }}"
       operator_tag: "${{ needs.build-addon.outputs.operator_tag }}"
