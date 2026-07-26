@@ -125,15 +125,20 @@ Detailed overview of the Java test projects:
 
 ## 🧪 Test Structure
 
-### Phase 1: Maven Unit Tests (48 tests)
+### Phase 1: Maven Unit Tests (76 tests)
 **Location**: `../src/main/java/`
 **Framework**: JUnit-Plugin
-**Coverage**: Command handling, parameter parsing, error cases
+**Coverage**: Command handling, parameter parsing, AST visitors, symbol providers, error cases
 
 **Tests**:
 - `RuleEntryParamsTest` (14 tests)
 - `AnnotationQueryTest` (18 tests)
 - `SampleDelegateCommandHandlerTest` (16 tests)
+- `CustomASTVisitorTest` (16 tests)
+- `MethodDeclarationSymbolProviderTest` (8 tests)
+- `CommandHandlerTest` (2 tests)
+- `JavaAnnotationTest` (1 test)
+- `PomDependencyTest` (1 test)
 
 **Run**: `mvn clean integration-test`
 
@@ -171,8 +176,8 @@ Detailed overview of the Java test projects:
 ## 🏗️ Test Projects
 
 ### test-project
-**Purpose**: Systematic coverage of all location types
-**Files**: 8 Java files covering all 15 location types
+**Purpose**: Systematic coverage of all location types + advanced features
+**Files**: 19 Java files covering all 15 location types
 **Key**: `SampleApplication.java` - main test file with comprehensive patterns
 
 ### customers-tomcat-legacy
@@ -200,8 +205,8 @@ make phase2
 cd ../integration
 go test -v -run TestInheritanceSearch
 
-# Build test container
-podman build -t jdtls-analyzer:test ..
+# Build test container (run from repository root, requires pre-built JAR via mvn install)
+cd ../.. && podman build -t jdtls-analyzer:test -f Dockerfile.test .
 
 # Run tests in container
 cd ../integration
