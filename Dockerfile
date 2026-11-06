@@ -1,6 +1,6 @@
 FROM registry.access.redhat.com/ubi9/ubi AS jdtls-download
 WORKDIR /jdtls
-RUN curl -fsSL -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.60.0/jdt-language-server-1.60.0-202606262232.tar.gz &&\
+RUN curl -fsSL -o jdtls.tar.gz https://download.eclipse.org/jdtls/milestones/1.63.0/jdt-language-server-1.63.0-202610191322.tar.gz &&\
 	tar -xvf jdtls.tar.gz --no-same-owner &&\
 	chmod 755 /jdtls/bin/jdtls &&\
         rm -rf jdtls.tar.gz
@@ -40,8 +40,9 @@ RUN set -e; \
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 # Java 1.8 is required for backwards compatibility with older versions of Gradle
-RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-21-openjdk-devel tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
-ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
+# JDT.LS 1.63.0 (built on Eclipse 2026-09) requires a Java 25 runtime
+RUN microdnf install -y python39 java-1.8.0-openjdk-devel java-25-openjdk-devel tar gzip zip --nodocs --setopt=install_weak_deps=0 && microdnf clean all && rm -rf /var/cache/dnf
+ENV JAVA_HOME /usr/lib/jvm/java-25-openjdk
 # Specify Java 1.8 home for usage with gradle wrappers
 ENV JAVA8_HOME /usr/lib/jvm/java-1.8.0-openjdk
 ENV M2_HOME /usr/local/apache-maven-3.9.15
